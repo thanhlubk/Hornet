@@ -253,10 +253,10 @@ void FSideBar::setScrollIcon(const QString &iconPath, bool bKeep)
     m_pScrollArea->setScrollIcon(iconPath, bKeep);
 }
 
-void FSideBar::setCollapseIcon(const QString &iconPath, bool bKeep)
-{
-    m_pStackedWidget->setCollapseIcon(iconPath, bKeep);
-}
+// void FSideBar::setCollapseIcon(const QString &iconPath, bool bKeep)
+// {
+//     m_pStackedWidget->setCollapseIcon(iconPath, bKeep);
+// }
 
 void FSideBar::toggleCollapse()
 {

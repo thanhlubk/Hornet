@@ -128,7 +128,7 @@ public:
     bool isCollapsed() const;   
     void setCollapsed(bool collapse);
     int getCollapseWidth();
-    void setCollapseIcon(const QString& icon, bool keep);
+    // void setCollapseIcon(const QString& icon, bool keep);
 
     // QWidget* addPageTest(const QString& xml);
     QWidget* addPageTest2(const QJsonArray& jsonArray, const QString& title);

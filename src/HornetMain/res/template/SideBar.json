@@ -2,8 +2,8 @@
   {
     "type": "Tab",
     "title": "Item 1",
-    "icon": ":/toolbar/res/toolbar-button-home-normal.png",
-    "iconCheck": ":/toolbar/res/toolbar-button-home-check.png",
+    "icon": ":/HornetMain/res/icon/unfilled/home.png",
+    "iconCheck": ":/HornetMain/res/icon/filled/home.png",
     "childs": [
       {
         "type": "Panel",
@@ -15,13 +15,13 @@
           {
             "type": "SplitButton",
             "title": "Split",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png",
+            "icon": ":/HornetMain/res/icon/filled/portrait.png",
             "childs": [
               {
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -43,7 +43,7 @@
                 "type": "ExpandableButton",
                 "title": "ExpandableExpandableExpandableExpandableExpandableExpandableExpandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -72,7 +72,7 @@
           {
             "type": "SplitButton",
             "title": "Split",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png",
+            "icon": ":/HornetMain/res/icon/filled/portrait.png",
             "childs": [
               {
                 "type": "ArrowButton",
@@ -84,7 +84,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -119,7 +119,7 @@
           {
             "type": "PanelButton",
             "title": "PanelButton",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png"
+            "icon": ":/HornetMain/res/icon/filled/portrait.png"
           }
         ]
       },
@@ -132,13 +132,13 @@
           {
             "type": "SplitButton",
             "title": "Split",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png",
+            "icon": ":/HornetMain/res/icon/filled/portrait.png",
             "childs": [
               {
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -160,7 +160,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -189,7 +189,7 @@
           {
             "type": "SplitButton",
             "title": "Split",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png",
+            "icon": ":/HornetMain/res/icon/filled/portrait.png",
             "childs": [
               {
                 "type": "ArrowButton",
@@ -201,7 +201,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -236,7 +236,7 @@
           {
             "type": "PanelButton",
             "title": "PanelButton",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png"
+            "icon": ":/HornetMain/res/icon/filled/portrait.png"
           }
         ]
       },
@@ -249,13 +249,13 @@
           {
             "type": "SplitButton",
             "title": "Split",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png",
+            "icon": ":/HornetMain/res/icon/filled/portrait.png",
             "childs": [
               {
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -277,7 +277,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -306,7 +306,7 @@
           {
             "type": "SplitButton",
             "title": "Split",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png",
+            "icon": ":/HornetMain/res/icon/filled/portrait.png",
             "childs": [
               {
                 "type": "ArrowButton",
@@ -318,7 +318,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -353,7 +353,7 @@
           {
             "type": "PanelButton",
             "title": "PanelButton",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png"
+            "icon": ":/HornetMain/res/icon/filled/portrait.png"
           }
         ]
       }
@@ -362,8 +362,8 @@
   {
     "type": "Tab",
     "title": "Item 2",
-    "icon": ":/toolbar/res/toolbar-button-home-normal.png",
-    "iconCheck": ":/toolbar/res/toolbar-button-home-check.png",
+    "icon": ":/HornetMain/res/icon/unfilled/home.png",
+    "iconCheck": ":/HornetMain/res/icon/filled/home.png",
     "childs": [
       {
         "type": "Panel",
@@ -374,13 +374,13 @@
           {
             "type": "SplitButton",
             "title": "Split",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png",
+            "icon": ":/HornetMain/res/icon/filled/portrait.png",
             "childs": [
               {
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -402,7 +402,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -431,7 +431,7 @@
           {
             "type": "SplitButton",
             "title": "Split",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png",
+            "icon": ":/HornetMain/res/icon/filled/portrait.png",
             "childs": [
               {
                 "type": "ArrowButton",
@@ -443,7 +443,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -478,7 +478,7 @@
           {
             "type": "PanelButton",
             "title": "PanelButton",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png"
+            "icon": ":/HornetMain/res/icon/filled/portrait.png"
           }
         ]
       },
@@ -491,13 +491,13 @@
           {
             "type": "SplitButton",
             "title": "Split",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png",
+            "icon": ":/HornetMain/res/icon/filled/portrait.png",
             "childs": [
               {
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -519,7 +519,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -548,7 +548,7 @@
           {
             "type": "SplitButton",
             "title": "Split",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png",
+            "icon": ":/HornetMain/res/icon/filled/portrait.png",
             "childs": [
               {
                 "type": "ArrowButton",
@@ -560,7 +560,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -595,7 +595,7 @@
           {
             "type": "PanelButton",
             "title": "PanelButton",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png"
+            "icon": ":/HornetMain/res/icon/filled/portrait.png"
           }
         ]
       },
@@ -608,13 +608,13 @@
           {
             "type": "SplitButton",
             "title": "Split",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png",
+            "icon": ":/HornetMain/res/icon/filled/portrait.png",
             "childs": [
               {
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -636,7 +636,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -665,7 +665,7 @@
           {
             "type": "SplitButton",
             "title": "Split",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png",
+            "icon": ":/HornetMain/res/icon/filled/portrait.png",
             "childs": [
               {
                 "type": "ArrowButton",
@@ -677,7 +677,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -712,7 +712,7 @@
           {
             "type": "PanelButton",
             "title": "PanelButton",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png"
+            "icon": ":/HornetMain/res/icon/filled/portrait.png"
           }
         ]
       }
@@ -721,8 +721,8 @@
   {
     "type": "Tab",
     "title": "Item 3",
-    "icon": ":/toolbar/res/toolbar-button-home-normal.png",
-    "iconCheck": ":/toolbar/res/toolbar-button-home-check.png",
+    "icon": ":/HornetMain/res/icon/unfilled/home.png",
+    "iconCheck": ":/HornetMain/res/icon/filled/home.png",
     "childs": [
       {
         "type": "Panel",
@@ -733,13 +733,13 @@
           {
             "type": "SplitButton",
             "title": "Split",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png",
+            "icon": ":/HornetMain/res/icon/filled/portrait.png",
             "childs": [
               {
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -761,7 +761,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -790,7 +790,7 @@
           {
             "type": "SplitButton",
             "title": "Split",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png",
+            "icon": ":/HornetMain/res/icon/filled/portrait.png",
             "childs": [
               {
                 "type": "ArrowButton",
@@ -802,7 +802,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -837,7 +837,7 @@
           {
             "type": "PanelButton",
             "title": "PanelButton",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png"
+            "icon": ":/HornetMain/res/icon/filled/portrait.png"
           }
         ]
       },
@@ -850,13 +850,13 @@
           {
             "type": "SplitButton",
             "title": "Split",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png",
+            "icon": ":/HornetMain/res/icon/filled/portrait.png",
             "childs": [
               {
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -878,7 +878,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -907,7 +907,7 @@
           {
             "type": "SplitButton",
             "title": "Split",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png",
+            "icon": ":/HornetMain/res/icon/filled/portrait.png",
             "childs": [
               {
                 "type": "ArrowButton",
@@ -919,7 +919,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -954,7 +954,7 @@
           {
             "type": "PanelButton",
             "title": "PanelButton",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png"
+            "icon": ":/HornetMain/res/icon/filled/portrait.png"
           }
         ]
       },
@@ -967,13 +967,13 @@
           {
             "type": "SplitButton",
             "title": "Split",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png",
+            "icon": ":/HornetMain/res/icon/filled/portrait.png",
             "childs": [
               {
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -995,7 +995,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -1024,7 +1024,7 @@
           {
             "type": "SplitButton",
             "title": "Split",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png",
+            "icon": ":/HornetMain/res/icon/filled/portrait.png",
             "childs": [
               {
                 "type": "ArrowButton",
@@ -1036,7 +1036,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -1071,7 +1071,7 @@
           {
             "type": "PanelButton",
             "title": "PanelButton",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png"
+            "icon": ":/HornetMain/res/icon/filled/portrait.png"
           }
         ]
       }
@@ -1080,8 +1080,8 @@
   {
     "type": "Tab",
     "title": "Item 4",
-    "icon": ":/toolbar/res/toolbar-button-home-normal.png",
-    "iconCheck": ":/toolbar/res/toolbar-button-home-check.png",
+    "icon": ":/HornetMain/res/icon/unfilled/home.png",
+    "iconCheck": ":/HornetMain/res/icon/filled/home.png",
     "childs": [
       {
         "type": "Panel",
@@ -1092,13 +1092,13 @@
           {
             "type": "SplitButton",
             "title": "Split",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png",
+            "icon": ":/HornetMain/res/icon/filled/portrait.png",
             "childs": [
               {
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -1120,7 +1120,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -1149,7 +1149,7 @@
           {
             "type": "SplitButton",
             "title": "Split",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png",
+            "icon": ":/HornetMain/res/icon/filled/portrait.png",
             "childs": [
               {
                 "type": "ArrowButton",
@@ -1161,7 +1161,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -1196,7 +1196,7 @@
           {
             "type": "PanelButton",
             "title": "PanelButton",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png"
+            "icon": ":/HornetMain/res/icon/filled/portrait.png"
           }
         ]
       },
@@ -1209,13 +1209,13 @@
           {
             "type": "SplitButton",
             "title": "Split",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png",
+            "icon": ":/HornetMain/res/icon/filled/portrait.png",
             "childs": [
               {
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -1237,7 +1237,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -1266,7 +1266,7 @@
           {
             "type": "SplitButton",
             "title": "Split",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png",
+            "icon": ":/HornetMain/res/icon/filled/portrait.png",
             "childs": [
               {
                 "type": "ArrowButton",
@@ -1278,7 +1278,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -1313,7 +1313,7 @@
           {
             "type": "PanelButton",
             "title": "PanelButton",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png"
+            "icon": ":/HornetMain/res/icon/filled/portrait.png"
           }
         ]
       },
@@ -1326,13 +1326,13 @@
           {
             "type": "SplitButton",
             "title": "Split",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png",
+            "icon": ":/HornetMain/res/icon/filled/portrait.png",
             "childs": [
               {
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -1354,7 +1354,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -1383,7 +1383,7 @@
           {
             "type": "SplitButton",
             "title": "Split",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png",
+            "icon": ":/HornetMain/res/icon/filled/portrait.png",
             "childs": [
               {
                 "type": "ArrowButton",
@@ -1395,7 +1395,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -1430,7 +1430,7 @@
           {
             "type": "PanelButton",
             "title": "PanelButton",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png"
+            "icon": ":/HornetMain/res/icon/filled/portrait.png"
           }
         ]
       }
@@ -1439,8 +1439,8 @@
   {
     "type": "Tab",
     "title": "Item 5",
-    "icon": ":/toolbar/res/toolbar-button-home-normal.png",
-    "iconCheck": ":/toolbar/res/toolbar-button-home-check.png",
+    "icon": ":/HornetMain/res/icon/unfilled/home.png",
+    "iconCheck": ":/HornetMain/res/icon/filled/home.png",
     "childs": [
       {
         "type": "Panel",
@@ -1451,13 +1451,13 @@
           {
             "type": "SplitButton",
             "title": "Split",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png",
+            "icon": ":/HornetMain/res/icon/filled/portrait.png",
             "childs": [
               {
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -1479,7 +1479,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -1508,7 +1508,7 @@
           {
             "type": "SplitButton",
             "title": "Split",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png",
+            "icon": ":/HornetMain/res/icon/filled/portrait.png",
             "childs": [
               {
                 "type": "ArrowButton",
@@ -1520,7 +1520,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -1555,7 +1555,7 @@
           {
             "type": "PanelButton",
             "title": "PanelButton",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png"
+            "icon": ":/HornetMain/res/icon/filled/portrait.png"
           }
         ]
       },
@@ -1568,13 +1568,13 @@
           {
             "type": "SplitButton",
             "title": "Split",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png",
+            "icon": ":/HornetMain/res/icon/filled/portrait.png",
             "childs": [
               {
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -1596,7 +1596,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -1625,7 +1625,7 @@
           {
             "type": "SplitButton",
             "title": "Split",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png",
+            "icon": ":/HornetMain/res/icon/filled/portrait.png",
             "childs": [
               {
                 "type": "ArrowButton",
@@ -1637,7 +1637,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -1672,7 +1672,7 @@
           {
             "type": "PanelButton",
             "title": "PanelButton",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png"
+            "icon": ":/HornetMain/res/icon/filled/portrait.png"
           }
         ]
       },
@@ -1685,13 +1685,13 @@
           {
             "type": "SplitButton",
             "title": "Split",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png",
+            "icon": ":/HornetMain/res/icon/filled/portrait.png",
             "childs": [
               {
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -1713,7 +1713,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -1742,7 +1742,7 @@
           {
             "type": "SplitButton",
             "title": "Split",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png",
+            "icon": ":/HornetMain/res/icon/filled/portrait.png",
             "childs": [
               {
                 "type": "ArrowButton",
@@ -1754,7 +1754,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -1789,7 +1789,7 @@
           {
             "type": "PanelButton",
             "title": "PanelButton",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png"
+            "icon": ":/HornetMain/res/icon/filled/portrait.png"
           }
         ]
       }
@@ -1798,8 +1798,8 @@
   {
     "type": "Tab",
     "title": "Item 6",
-    "icon": ":/toolbar/res/toolbar-button-home-normal.png",
-    "iconCheck": ":/toolbar/res/toolbar-button-home-check.png",
+    "icon": ":/HornetMain/res/icon/unfilled/home.png",
+    "iconCheck": ":/HornetMain/res/icon/filled/home.png",
     "childs": [
       {
         "type": "Panel",
@@ -1810,13 +1810,13 @@
           {
             "type": "SplitButton",
             "title": "Split",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png",
+            "icon": ":/HornetMain/res/icon/filled/portrait.png",
             "childs": [
               {
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -1838,7 +1838,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -1867,7 +1867,7 @@
           {
             "type": "SplitButton",
             "title": "Split",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png",
+            "icon": ":/HornetMain/res/icon/filled/portrait.png",
             "childs": [
               {
                 "type": "ArrowButton",
@@ -1879,7 +1879,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -1914,7 +1914,7 @@
           {
             "type": "PanelButton",
             "title": "PanelButton",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png"
+            "icon": ":/HornetMain/res/icon/filled/portrait.png"
           }
         ]
       },
@@ -1927,13 +1927,13 @@
           {
             "type": "SplitButton",
             "title": "Split",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png",
+            "icon": ":/HornetMain/res/icon/filled/portrait.png",
             "childs": [
               {
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -1955,7 +1955,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -1984,7 +1984,7 @@
           {
             "type": "SplitButton",
             "title": "Split",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png",
+            "icon": ":/HornetMain/res/icon/filled/portrait.png",
             "childs": [
               {
                 "type": "ArrowButton",
@@ -1996,7 +1996,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -2031,7 +2031,7 @@
           {
             "type": "PanelButton",
             "title": "PanelButton",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png"
+            "icon": ":/HornetMain/res/icon/filled/portrait.png"
           }
         ]
       },
@@ -2044,13 +2044,13 @@
           {
             "type": "SplitButton",
             "title": "Split",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png",
+            "icon": ":/HornetMain/res/icon/filled/portrait.png",
             "childs": [
               {
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -2072,7 +2072,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -2101,7 +2101,7 @@
           {
             "type": "SplitButton",
             "title": "Split",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png",
+            "icon": ":/HornetMain/res/icon/filled/portrait.png",
             "childs": [
               {
                 "type": "ArrowButton",
@@ -2113,7 +2113,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -2148,7 +2148,7 @@
           {
             "type": "PanelButton",
             "title": "PanelButton",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png"
+            "icon": ":/HornetMain/res/icon/filled/portrait.png"
           }
         ]
       }
@@ -2157,8 +2157,8 @@
   {
     "type": "Tab",
     "title": "Item 7",
-    "icon": ":/toolbar/res/toolbar-button-home-normal.png",
-    "iconCheck": ":/toolbar/res/toolbar-button-home-check.png",
+    "icon": ":/HornetMain/res/icon/unfilled/home.png",
+    "iconCheck": ":/HornetMain/res/icon/filled/home.png",
     "childs": [
       {
         "type": "Panel",
@@ -2169,13 +2169,13 @@
           {
             "type": "SplitButton",
             "title": "Split",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png",
+            "icon": ":/HornetMain/res/icon/filled/portrait.png",
             "childs": [
               {
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -2197,7 +2197,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -2226,7 +2226,7 @@
           {
             "type": "SplitButton",
             "title": "Split",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png",
+            "icon": ":/HornetMain/res/icon/filled/portrait.png",
             "childs": [
               {
                 "type": "ArrowButton",
@@ -2238,7 +2238,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -2273,7 +2273,7 @@
           {
             "type": "PanelButton",
             "title": "PanelButton",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png"
+            "icon": ":/HornetMain/res/icon/filled/portrait.png"
           }
         ]
       },
@@ -2286,13 +2286,13 @@
           {
             "type": "SplitButton",
             "title": "Split",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png",
+            "icon": ":/HornetMain/res/icon/filled/portrait.png",
             "childs": [
               {
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -2314,7 +2314,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -2343,7 +2343,7 @@
           {
             "type": "SplitButton",
             "title": "Split",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png",
+            "icon": ":/HornetMain/res/icon/filled/portrait.png",
             "childs": [
               {
                 "type": "ArrowButton",
@@ -2355,7 +2355,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -2390,7 +2390,7 @@
           {
             "type": "PanelButton",
             "title": "PanelButton",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png"
+            "icon": ":/HornetMain/res/icon/filled/portrait.png"
           }
         ]
       },
@@ -2403,13 +2403,13 @@
           {
             "type": "SplitButton",
             "title": "Split",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png",
+            "icon": ":/HornetMain/res/icon/filled/portrait.png",
             "childs": [
               {
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -2431,7 +2431,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -2460,7 +2460,7 @@
           {
             "type": "SplitButton",
             "title": "Split",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png",
+            "icon": ":/HornetMain/res/icon/filled/portrait.png",
             "childs": [
               {
                 "type": "ArrowButton",
@@ -2472,7 +2472,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -2507,7 +2507,7 @@
           {
             "type": "PanelButton",
             "title": "PanelButton",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png"
+            "icon": ":/HornetMain/res/icon/filled/portrait.png"
           }
         ]
       }
@@ -2516,8 +2516,8 @@
   {
     "type": "Tab",
     "title": "Item 8",
-    "icon": ":/toolbar/res/toolbar-button-home-normal.png",
-    "iconCheck": ":/toolbar/res/toolbar-button-home-check.png",
+    "icon": ":/HornetMain/res/icon/unfilled/home.png",
+    "iconCheck": ":/HornetMain/res/icon/filled/home.png",
     "childs": [
       {
         "type": "Panel",
@@ -2528,13 +2528,13 @@
           {
             "type": "SplitButton",
             "title": "Split",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png",
+            "icon": ":/HornetMain/res/icon/filled/portrait.png",
             "childs": [
               {
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -2556,7 +2556,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -2585,7 +2585,7 @@
           {
             "type": "SplitButton",
             "title": "Split",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png",
+            "icon": ":/HornetMain/res/icon/filled/portrait.png",
             "childs": [
               {
                 "type": "ArrowButton",
@@ -2597,7 +2597,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -2632,7 +2632,7 @@
           {
             "type": "PanelButton",
             "title": "PanelButton",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png"
+            "icon": ":/HornetMain/res/icon/filled/portrait.png"
           }
         ]
       },
@@ -2645,13 +2645,13 @@
           {
             "type": "SplitButton",
             "title": "Split",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png",
+            "icon": ":/HornetMain/res/icon/filled/portrait.png",
             "childs": [
               {
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -2673,7 +2673,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -2702,7 +2702,7 @@
           {
             "type": "SplitButton",
             "title": "Split",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png",
+            "icon": ":/HornetMain/res/icon/filled/portrait.png",
             "childs": [
               {
                 "type": "ArrowButton",
@@ -2714,7 +2714,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -2749,7 +2749,7 @@
           {
             "type": "PanelButton",
             "title": "PanelButton",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png"
+            "icon": ":/HornetMain/res/icon/filled/portrait.png"
           }
         ]
       },
@@ -2762,13 +2762,13 @@
           {
             "type": "SplitButton",
             "title": "Split",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png",
+            "icon": ":/HornetMain/res/icon/filled/portrait.png",
             "childs": [
               {
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -2790,7 +2790,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -2819,7 +2819,7 @@
           {
             "type": "SplitButton",
             "title": "Split",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png",
+            "icon": ":/HornetMain/res/icon/filled/portrait.png",
             "childs": [
               {
                 "type": "ArrowButton",
@@ -2831,7 +2831,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -2866,7 +2866,7 @@
           {
             "type": "PanelButton",
             "title": "PanelButton",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png"
+            "icon": ":/HornetMain/res/icon/filled/portrait.png"
           }
         ]
       }
@@ -2875,8 +2875,8 @@
   {
     "type": "Tab",
     "title": "Item 9",
-    "icon": ":/toolbar/res/toolbar-button-home-normal.png",
-    "iconCheck": ":/toolbar/res/toolbar-button-home-check.png",
+    "icon": ":/HornetMain/res/icon/unfilled/home.png",
+    "iconCheck": ":/HornetMain/res/icon/filled/home.png",
     "childs": [
       {
         "type": "Panel",
@@ -2887,13 +2887,13 @@
           {
             "type": "SplitButton",
             "title": "Split",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png",
+            "icon": ":/HornetMain/res/icon/filled/portrait.png",
             "childs": [
               {
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -2915,7 +2915,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -2944,7 +2944,7 @@
           {
             "type": "SplitButton",
             "title": "Split",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png",
+            "icon": ":/HornetMain/res/icon/filled/portrait.png",
             "childs": [
               {
                 "type": "ArrowButton",
@@ -2956,7 +2956,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -2991,7 +2991,7 @@
           {
             "type": "PanelButton",
             "title": "PanelButton",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png"
+            "icon": ":/HornetMain/res/icon/filled/portrait.png"
           }
         ]
       },
@@ -3004,13 +3004,13 @@
           {
             "type": "SplitButton",
             "title": "Split",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png",
+            "icon": ":/HornetMain/res/icon/filled/portrait.png",
             "childs": [
               {
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -3032,7 +3032,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -3061,7 +3061,7 @@
           {
             "type": "SplitButton",
             "title": "Split",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png",
+            "icon": ":/HornetMain/res/icon/filled/portrait.png",
             "childs": [
               {
                 "type": "ArrowButton",
@@ -3073,7 +3073,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -3108,7 +3108,7 @@
           {
             "type": "PanelButton",
             "title": "PanelButton",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png"
+            "icon": ":/HornetMain/res/icon/filled/portrait.png"
           }
         ]
       },
@@ -3121,13 +3121,13 @@
           {
             "type": "SplitButton",
             "title": "Split",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png",
+            "icon": ":/HornetMain/res/icon/filled/portrait.png",
             "childs": [
               {
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -3149,7 +3149,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -3178,7 +3178,7 @@
           {
             "type": "SplitButton",
             "title": "Split",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png",
+            "icon": ":/HornetMain/res/icon/filled/portrait.png",
             "childs": [
               {
                 "type": "ArrowButton",
@@ -3190,7 +3190,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -3225,7 +3225,7 @@
           {
             "type": "PanelButton",
             "title": "PanelButton",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png"
+            "icon": ":/HornetMain/res/icon/filled/portrait.png"
           }
         ]
       }
@@ -3234,8 +3234,8 @@
   {
     "type": "Tab",
     "title": "Item 10",
-    "icon": ":/toolbar/res/toolbar-button-home-normal.png",
-    "iconCheck": ":/toolbar/res/toolbar-button-home-check.png",
+    "icon": ":/HornetMain/res/icon/unfilled/home.png",
+    "iconCheck": ":/HornetMain/res/icon/filled/home.png",
     "childs": [
       {
         "type": "Panel",
@@ -3246,13 +3246,13 @@
           {
             "type": "SplitButton",
             "title": "Split",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png",
+            "icon": ":/HornetMain/res/icon/filled/portrait.png",
             "childs": [
               {
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -3274,7 +3274,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -3303,7 +3303,7 @@
           {
             "type": "SplitButton",
             "title": "Split",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png",
+            "icon": ":/HornetMain/res/icon/filled/portrait.png",
             "childs": [
               {
                 "type": "ArrowButton",
@@ -3315,7 +3315,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -3350,7 +3350,7 @@
           {
             "type": "PanelButton",
             "title": "PanelButton",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png"
+            "icon": ":/HornetMain/res/icon/filled/portrait.png"
           }
         ]
       },
@@ -3363,13 +3363,13 @@
           {
             "type": "SplitButton",
             "title": "Split",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png",
+            "icon": ":/HornetMain/res/icon/filled/portrait.png",
             "childs": [
               {
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -3391,7 +3391,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -3420,7 +3420,7 @@
           {
             "type": "SplitButton",
             "title": "Split",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png",
+            "icon": ":/HornetMain/res/icon/filled/portrait.png",
             "childs": [
               {
                 "type": "ArrowButton",
@@ -3432,7 +3432,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -3467,7 +3467,7 @@
           {
             "type": "PanelButton",
             "title": "PanelButton",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png"
+            "icon": ":/HornetMain/res/icon/filled/portrait.png"
           }
         ]
       },
@@ -3480,13 +3480,13 @@
           {
             "type": "SplitButton",
             "title": "Split",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png",
+            "icon": ":/HornetMain/res/icon/filled/portrait.png",
             "childs": [
               {
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -3508,7 +3508,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -3537,7 +3537,7 @@
           {
             "type": "SplitButton",
             "title": "Split",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png",
+            "icon": ":/HornetMain/res/icon/filled/portrait.png",
             "childs": [
               {
                 "type": "ArrowButton",
@@ -3549,7 +3549,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -3584,7 +3584,7 @@
           {
             "type": "PanelButton",
             "title": "PanelButton",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png"
+            "icon": ":/HornetMain/res/icon/filled/portrait.png"
           }
         ]
       }
@@ -3593,8 +3593,8 @@
   {
     "type": "Tab",
     "title": "Item 11",
-    "icon": ":/toolbar/res/toolbar-button-home-normal.png",
-    "iconCheck": ":/toolbar/res/toolbar-button-home-check.png",
+    "icon": ":/HornetMain/res/icon/unfilled/home.png",
+    "iconCheck": ":/HornetMain/res/icon/filled/home.png",
     "childs": [
       {
         "type": "Panel",
@@ -3605,13 +3605,13 @@
           {
             "type": "SplitButton",
             "title": "Split",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png",
+            "icon": ":/HornetMain/res/icon/filled/portrait.png",
             "childs": [
               {
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -3633,7 +3633,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -3662,7 +3662,7 @@
           {
             "type": "SplitButton",
             "title": "Split",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png",
+            "icon": ":/HornetMain/res/icon/filled/portrait.png",
             "childs": [
               {
                 "type": "ArrowButton",
@@ -3674,7 +3674,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -3709,7 +3709,7 @@
           {
             "type": "PanelButton",
             "title": "PanelButton",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png"
+            "icon": ":/HornetMain/res/icon/filled/portrait.png"
           }
         ]
       },
@@ -3722,13 +3722,13 @@
           {
             "type": "SplitButton",
             "title": "Split",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png",
+            "icon": ":/HornetMain/res/icon/filled/portrait.png",
             "childs": [
               {
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -3750,7 +3750,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -3779,7 +3779,7 @@
           {
             "type": "SplitButton",
             "title": "Split",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png",
+            "icon": ":/HornetMain/res/icon/filled/portrait.png",
             "childs": [
               {
                 "type": "ArrowButton",
@@ -3791,7 +3791,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -3826,7 +3826,7 @@
           {
             "type": "PanelButton",
             "title": "PanelButton",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png"
+            "icon": ":/HornetMain/res/icon/filled/portrait.png"
           }
         ]
       },
@@ -3839,13 +3839,13 @@
           {
             "type": "SplitButton",
             "title": "Split",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png",
+            "icon": ":/HornetMain/res/icon/filled/portrait.png",
             "childs": [
               {
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -3867,7 +3867,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -3896,7 +3896,7 @@
           {
             "type": "SplitButton",
             "title": "Split",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png",
+            "icon": ":/HornetMain/res/icon/filled/portrait.png",
             "childs": [
               {
                 "type": "ArrowButton",
@@ -3908,7 +3908,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -3943,7 +3943,7 @@
           {
             "type": "PanelButton",
             "title": "PanelButton",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png"
+            "icon": ":/HornetMain/res/icon/filled/portrait.png"
           }
         ]
       }
@@ -3952,8 +3952,8 @@
   {
     "type": "Tab",
     "title": "Item 12",
-    "icon": ":/toolbar/res/toolbar-button-home-normal.png",
-    "iconCheck": ":/toolbar/res/toolbar-button-home-check.png",
+    "icon": ":/HornetMain/res/icon/unfilled/home.png",
+    "iconCheck": ":/HornetMain/res/icon/filled/home.png",
     "childs": [
       {
         "type": "Panel",
@@ -3964,13 +3964,13 @@
           {
             "type": "SplitButton",
             "title": "Split",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png",
+            "icon": ":/HornetMain/res/icon/filled/portrait.png",
             "childs": [
               {
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -3992,7 +3992,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -4021,7 +4021,7 @@
           {
             "type": "SplitButton",
             "title": "Split",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png",
+            "icon": ":/HornetMain/res/icon/filled/portrait.png",
             "childs": [
               {
                 "type": "ArrowButton",
@@ -4033,7 +4033,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -4068,7 +4068,7 @@
           {
             "type": "PanelButton",
             "title": "PanelButton",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png"
+            "icon": ":/HornetMain/res/icon/filled/portrait.png"
           }
         ]
       },
@@ -4081,13 +4081,13 @@
           {
             "type": "SplitButton",
             "title": "Split",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png",
+            "icon": ":/HornetMain/res/icon/filled/portrait.png",
             "childs": [
               {
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -4109,7 +4109,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -4138,7 +4138,7 @@
           {
             "type": "SplitButton",
             "title": "Split",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png",
+            "icon": ":/HornetMain/res/icon/filled/portrait.png",
             "childs": [
               {
                 "type": "ArrowButton",
@@ -4150,7 +4150,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -4185,7 +4185,7 @@
           {
             "type": "PanelButton",
             "title": "PanelButton",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png"
+            "icon": ":/HornetMain/res/icon/filled/portrait.png"
           }
         ]
       },
@@ -4198,13 +4198,13 @@
           {
             "type": "SplitButton",
             "title": "Split",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png",
+            "icon": ":/HornetMain/res/icon/filled/portrait.png",
             "childs": [
               {
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -4226,7 +4226,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -4255,7 +4255,7 @@
           {
             "type": "SplitButton",
             "title": "Split",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png",
+            "icon": ":/HornetMain/res/icon/filled/portrait.png",
             "childs": [
               {
                 "type": "ArrowButton",
@@ -4267,7 +4267,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": "D:/VMShare/Hornet/src/HornetMain/res/collapse.png",
+                "iconArrow": ":/FancyWidgets/res/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -4302,7 +4302,7 @@
           {
             "type": "PanelButton",
             "title": "PanelButton",
-            "icon": "D:\\VMShare\\Hornet\\src\\HornetMain\\res\\toolbar-button-cube-check.png"
+            "icon": ":/HornetMain/res/icon/filled/portrait.png"
           }
         ]
       }

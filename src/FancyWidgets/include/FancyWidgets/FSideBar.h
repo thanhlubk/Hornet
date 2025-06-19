@@ -20,7 +20,7 @@ public:
 
     void observeWidget(QWidget* child);
     void setScrollIcon(const QString& icon, bool bKeep=false);
-    void setCollapseIcon(const QString& icon, bool bKeep=false);
+    // void setCollapseIcon(const QString& icon, bool bKeep=false);
 
     void readJson(const QString &jsonFile);
     void createTabSetting(const QString& icon1, const QString& icon2);

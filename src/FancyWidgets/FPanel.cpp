@@ -16,7 +16,7 @@ FPanel::FPanel(QWidget* parent)
 
     setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
 
-    m_pButtonHeader = new FArrowButton("View", "", "D:/VMShare/Hornet/src/HornetMain/res/collapse.png", false, this);
+    m_pButtonHeader = new FArrowButton("View", "", ":/FancyWidgets/res/forward.png", false, this);
     m_pButtonHeader->enableBold(true);
     m_pButtonHeader->enableMoveAnimation(true);
 

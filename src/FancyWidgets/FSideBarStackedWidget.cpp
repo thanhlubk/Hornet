@@ -30,6 +30,9 @@ FSideBarStackedWidget::FSideBarStackedWidget(QWidget* parent)
         emit this->collapseChanged(); 
     });
 
+    m_bKeep = false;
+    m_strIconCollapse = ":/FancyWidgets/res/close.png";
+
     SET_UP_THEME(FSideBarStackedWidget)
 }
 
@@ -263,12 +266,12 @@ bool FSideBarStackedWidget::isNearRightEdge(const QPoint& pos) const
     return (width() - pos.x()) < edgeMargin;
 }
 
-void FSideBarStackedWidget::setCollapseIcon(const QString &icon, bool keep)
-{
-    m_bKeep = keep;
-    m_strIconCollapse = icon;
-    updateCollapseIcon();
-}
+// void FSideBarStackedWidget::setCollapseIcon(const QString &icon, bool keep)
+// {
+//     m_bKeep = keep;
+//     m_strIconCollapse = icon;
+//     updateCollapseIcon();
+// }
 
 void FSideBarStackedWidget::updateCollapseIcon()
 {
@@ -313,7 +316,8 @@ void FSideBarStackedWidget::updateStyleCurrentPage()
         {
             pListContent->setSpacing(0);
             pListContent->reserveScrollBarSpace(getDisplaySize(6).toInt() + getDisplaySize(4).toInt()/2);
-            auto strScrollbarStyle = FUtil::getStyleScrollbarVertical2(getDisplaySize(6).toInt(), getDisplaySize(4).toInt()/2, getDisplaySize(4).toInt()/2, 0, "D:/VMShare/Hornet/src/HornetMain/res/up.png", "D:/VMShare/Hornet/src/HornetMain/res/down.png", getColorTheme(1).name(), getColorTheme(1).name());
+
+            auto strScrollbarStyle = FUtil::getStyleScrollbarVertical2(getDisplaySize(6).toInt(), getDisplaySize(4).toInt()/2, getDisplaySize(4).toInt()/2, 0, ":/FancyWidgets/res/up.png", ":/FancyWidgets/res/down.png", getColorTheme(1).name(), getColorTheme(1).name());
 
             pListContent->setStyleSheet("QListWidget { background: transparent; padding-left: 0px; padding-right: 0px; padding-top: 0px; padding-bottom: 0px;} QListWidget::item { outline: none; border: none; }" + strScrollbarStyle);
         }

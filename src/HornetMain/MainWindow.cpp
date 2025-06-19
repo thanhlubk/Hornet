@@ -24,9 +24,9 @@ MainWindow::MainWindow(QWidget* parent)
     });
 
     // Test
-    ui->autoSize->setScrollIcon(":/toolbar/res/toolbar-button-arrow-check.png");
-    ui->autoSize->setCollapseIcon(":/toolbar/res/close.png");
-    ui->autoSize->readJson("D:\\VMShare\\Hornet\\src\\HornetMain\\res\\tabbar.json");
+    ui->autoSize->setScrollIcon(":/HornetMain/res/icon/filled/scroll-up.png");
+    // ui->autoSize->setCollapseIcon(":/toolbar/res/close.png");
+    ui->autoSize->readJson(":/HornetMain/res/template/SideBar.json");
     // for (int i = 1; i <= 20; ++i) {
     //     ui->autoSize->createTab(i, ":/toolbar/res/toolbar-button-home-normal.png", ":/toolbar/res/toolbar-button-home-check.png", QString("page %1").arg(i), false);
     // }
@@ -74,7 +74,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::initTheme()
 {
-    FThemeManager::instance().load(":/theme/res/themes.json", ":/theme/res/numeric_display.json");
+    FThemeManager::instance().load(":/HornetMain/res/theme/Themes.json", ":/HornetMain/res/theme/NumericDisplay.json");
     FThemeManager::instance().setTheme("Dark");
 }
 

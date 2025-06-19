@@ -1,18 +1,23 @@
 <RCC>
-  <qresource prefix="/toolbar">
-    <file>res/toolbar-button-cube-normal.png</file>
-    <file>res/toolbar-button-cube-check.png</file>
-    <file>res/toolbar-button-home-normal.png</file>
-    <file>res/toolbar-button-home-check.png</file>
-    <file>res/toolbar-button-arrow-normal.png</file>
-    <file>res/toolbar-button-arrow-check.png</file>
-    <file>res/collapse.png</file>
-    <file>res/close.png</file>
-    <file>res/down.png</file>
-    <file>res/up.png</file>
-  </qresource>
-  <qresource prefix="/theme">
-    <file>res/themes.json</file>
-    <file>res/numeric_display.json</file>
+  <qresource prefix="/HornetMain">
+    <file>res/icon/filled/arrow.png</file>
+    <file>res/icon/filled/folder.png</file>
+    <file>res/icon/filled/home.png</file>
+    <file>res/icon/filled/portrait.png</file>
+    <file>res/icon/filled/setting.png</file>
+    <file>res/icon/filled/scroll-up.png</file>
+
+    <file>res/icon/unfilled/arrow.png</file>
+    <file>res/icon/unfilled/folder.png</file>
+    <file>res/icon/unfilled/home.png</file>
+    <file>res/icon/unfilled/portrait.png</file>
+    <file>res/icon/unfilled/setting.png</file>
+    <file>res/icon/unfilled/scroll-up.png</file>
+
+    <file>res/theme/NumericDisplay.json</file>
+    <file>res/theme/Themes.json</file>
+
+    <file>res/template/SideBar.json</file>
+
   </qresource>
 </RCC>
