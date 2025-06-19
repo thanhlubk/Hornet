@@ -1,0 +1,29 @@
+{
+  "Dark": {
+    "backgroundApp": "#FF202020",
+    "backgroundSection1": "#FF272727",
+    "backgroundSection2": "#FF323232",
+    "backgroundSection3": "#FF454545",
+    "widgetNormal": "#FF2E2E2E",
+    "widgetHover": "#FF3B3B3B",
+    "widgetCheck": "#FF494949",
+    "textHeader1": "#FFFFFFFF",
+    "textHeader2": "#FFCFCFCF",
+    "textNormal": "#FF9F9F9F",
+    "textSub": "#FFA4A4A4",
+    "dominant": "#FFE9C329"
+  },
+  "Light": {
+    "backgroundApp": "#ff5733",
+    "backgroundSection1": "#33c4ff",
+    "backgroundSection2": "#ffffff",
+    "widgetNormal": "#000000",
+    "widgetHover": "#000000",
+    "widgetCheck": "#000000",
+    "textHeader1": "#000000",
+    "textHeader2": "#000000",
+    "textNormal": "#000000",
+    "textSub": "#000000",
+    "dominant": "#000000"
+  }
+}

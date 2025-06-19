@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>800</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QVBoxLayout" name="verticalLayout_2">
+    <property name="spacing">
+     <number>0</number>
+    </property>
+    <property name="leftMargin">
+     <number>0</number>
+    </property>
+    <property name="topMargin">
+     <number>0</number>
+    </property>
+    <property name="rightMargin">
+     <number>0</number>
+    </property>
+    <property name="bottomMargin">
+     <number>0</number>
+    </property>
+    <item>
+     <widget class="FTitleBar" name="titleBar" native="true"/>
+    </item>
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout">
+      <property name="spacing">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <item>
+       <widget class="FSideBar" name="autoSize" native="true"/>
+      </item>
+      <item>
+       <layout class="QVBoxLayout" name="verticalLayout">
+        <item>
+         <widget class="GLViewWindow" name="glViewWidget" native="true"/>
+        </item>
+        <item>
+         <widget class="FancyButton" name="fancyButton">
+          <property name="text">
+           <string>Fancy Button</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="previousButton">
+          <property name="text">
+           <string>Next</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="nextButton">
+          <property name="text">
+           <string>Previous</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="animationButton">
+          <property name="text">
+           <string>Animation</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </item>
+   </layout>
+  </widget>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>FancyButton</class>
+   <extends>QPushButton</extends>
+   <header>FancyWidgets/FancyButton.h</header>
+  </customwidget>
+  <customwidget>
+   <class>GLViewWindow</class>
+   <extends>QWidget</extends>
+   <header>HornetView/GLViewWindow.h</header>
+  </customwidget>
+  <customwidget>
+   <class>FTitleBar</class>
+   <extends>QWidget</extends>
+   <header>FancyWidgets/FTitleBar.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>FSideBar</class>
+   <extends>QWidget</extends>
+   <header>FancyWidgets/FSideBar.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>

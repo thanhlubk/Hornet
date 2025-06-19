@@ -1,0 +1,18 @@
+<RCC>
+  <qresource prefix="/toolbar">
+    <file>res/toolbar-button-cube-normal.png</file>
+    <file>res/toolbar-button-cube-check.png</file>
+    <file>res/toolbar-button-home-normal.png</file>
+    <file>res/toolbar-button-home-check.png</file>
+    <file>res/toolbar-button-arrow-normal.png</file>
+    <file>res/toolbar-button-arrow-check.png</file>
+    <file>res/collapse.png</file>
+    <file>res/close.png</file>
+    <file>res/down.png</file>
+    <file>res/up.png</file>
+  </qresource>
+  <qresource prefix="/theme">
+    <file>res/themes.json</file>
+    <file>res/numeric_display.json</file>
+  </qresource>
+</RCC>

@@ -1,0 +1,47 @@
+# Build directories
+/build/
+/bin/
+CMakeFiles/
+CMakeCache.txt
+*.VC.db
+*.VC.opendb
+
+# Configure directories
+/temp/
+
+# Lib directories
+/lib/
+/plugins/
+
+# Dev directories
+/*.user
+/.vs/
+
+# Qt-specific
+*.pro.user
+*.qrc.depends
+*.qm
+Makefile*
+*.autosave
+
+# Compiled
+*.exe
+*.dll
+*.so
+*.a
+*.lib
+*.obj
+*.o
+*.pch
+
+# IDE files
+/.vscode/
+.idea/
+*.sln
+
+# Backup
+*~
+*.bak
+*.tmp
+.DS_Store
+Thumbs.db
