@@ -160,14 +160,12 @@ private:
     std::unordered_map<int, int> m_mapItemPageIdx;
 
     QSet<int> m_setInitializedPages;
-    QString m_strIconCollapse;
     QPoint m_pointStartPos;
 
     FSideBarStackedFilletFrame* m_pFrameTop;
     FSideBarStackedFilletFrame* m_pFrameBottom;
     QPushButton* m_pCollapseButton;
 
-    bool m_bKeep;
     bool m_bCollapsed;
     bool m_bResizing;
     int m_iStartWidth;

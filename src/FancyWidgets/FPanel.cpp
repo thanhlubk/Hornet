@@ -16,8 +16,8 @@ FPanel::FPanel(QWidget* parent)
 
     setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
 
-    m_pButtonHeader = new FArrowButton("View", "", ":/FancyWidgets/res/forward.png", false, this);
-    m_pButtonHeader->enableBold(true);
+    m_pButtonHeader = new FArrowButton("View", "", ":/FancyWidgets/res/icon/small/forward.png", false, this);
+    m_pButtonHeader->enableBold(false);
     m_pButtonHeader->enableMoveAnimation(true);
 
     // Content: QListWidget

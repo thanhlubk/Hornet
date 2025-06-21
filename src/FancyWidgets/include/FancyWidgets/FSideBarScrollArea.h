@@ -73,7 +73,6 @@ public:
     void addPinItem(QWidget* item);
     void resizeEvent(QResizeEvent* event);
     void uncheckAllTab();
-    void setScrollIcon(const QString& icon, bool keep=false);
 
 signals:
     void scrollingPositionChanged(int top, int bottom, bool pin);
@@ -103,7 +102,4 @@ private:
     QVector<QWidget*> m_vePinnedButton;
     QVector<FSideBarTabFilletFrame*> m_veFrame;
     QVector<FSideBarTabFilletFrame*> m_vePinnedFrame;
-    QString m_strIconScroll;
-    
-    bool m_bKeep;
 };

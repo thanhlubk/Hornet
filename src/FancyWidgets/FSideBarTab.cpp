@@ -35,7 +35,7 @@ void FSideBarTab::applyTheme() {
     updateBackground(false);
 
     setFixedHeight(getDisplaySize(4).toInt());
-	FUtil::setFontWidget(m_pTextLabel, getDisplaySize(1).toInt(), true);
+	FUtil::setFontWidget(m_pTextLabel, getDisplaySize(1).toInt(), false);
     m_pIconLabel->setFixedSize(getDisplaySize(5).toInt(), getDisplaySize(4).toInt());
     m_pTextLabel->setFixedSize(getDisplaySize(5).toInt(), getDisplaySize(4).toInt());
 }
@@ -69,6 +69,25 @@ void FSideBarTab::paintEvent(QPaintEvent* event)
     opt.initFrom(this);
     QPainter p(this);
     style()->drawPrimitive(QStyle::PE_Widget, &opt, &p, this);
+
+    if (m_bCheck)
+    {
+        QPen pen(getColorTheme(4), 4, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin);
+        QBrush brush(getColorTheme(4), Qt::SolidPattern);
+
+        QPainter painter(this);
+        painter.setPen(pen);
+        painter.setBrush(brush);
+
+        painter.setRenderHint(QPainter::Antialiasing, true);
+
+        QPoint point1{ 2, getDisplaySize(4).toInt()/2 - 11 };
+        QPoint point2{ 2, getDisplaySize(4).toInt()/2 + 11 };
+        painter.drawLine(point1, point2);
+        painter.save();
+        painter.restore(); // Restore state
+        painter.end();
+    }
 }
 
 void FSideBarTab::setIcon(const QIcon& iconNormal, const QIcon& iconChecked)
@@ -104,7 +123,6 @@ void FSideBarTab::updateIconAndStyle(bool active)
     
     QPixmap pix = icon.pixmap(getDisplaySize(0).toInt(), getDisplaySize(0).toInt()); 
     m_pIconLabel->setPixmap(pix);
-    // m_pTextLabel->setStyleSheet(QString("QLabel { background: transparent; color: %1; border-radius: %2px;}").arg(getColorTheme(2).name(), QString::number(getDisplaySize(3).toInt())));
 
     if (isChecked())
     {
@@ -130,8 +148,6 @@ void FSideBarTab::updateBackground(bool active)
 {
     if (m_bCheck)
         active = true;
-    
-    // setStyleSheet(QString("QWidget { background: %4; border-radius: %2px; margin-right: %3px; margin-left: %3px;} QLabel { background: transparent; color: %1; border-radius: %2px;}").arg(active ? getColorTheme(3).name(): getColorTheme(2).name(), QString::number(getDisplaySize(3).toInt()), QString::number(getDisplaySize(2).toInt()), active ? getColorTheme(1).name() : getColorTheme(0).name()));
 
     setStyleSheet(QString("QWidget { background: %4; border-radius: %2px; margin-right: %3px;} QLabel { background: transparent; color: %1; border-radius: %2px;}").arg(active ? getColorTheme(3).name(): getColorTheme(2).name(), QString::number(getDisplaySize(3).toInt()), QString::number(getDisplaySize(2).toInt()), active ? getColorTheme(1).name() : getColorTheme(0).name()));
 
@@ -198,7 +214,7 @@ void FSideBarTab::resizeEvent(QResizeEvent* event)
     if (m_pFrame)
     {
         m_pFrame->setFixedSize(width() + getDisplaySize(2).toInt(), height());
-        m_pFrame->move(getDisplaySize(2).toInt() + 1, 0);
+        m_pFrame->move(width()/2 + getDisplaySize(2).toInt(), 0);
         m_pFrame->lower();
     }
 }

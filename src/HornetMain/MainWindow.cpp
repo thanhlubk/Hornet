@@ -24,7 +24,7 @@ MainWindow::MainWindow(QWidget* parent)
     });
 
     // Test
-    ui->autoSize->setScrollIcon(":/HornetMain/res/icon/filled/scroll-up.png");
+    // ui->autoSize->setScrollIcon(":/HornetMain/res/icon/filled/scroll-up.png");
     // ui->autoSize->setCollapseIcon(":/toolbar/res/close.png");
     ui->autoSize->readJson(":/HornetMain/res/template/SideBar.json");
     // for (int i = 1; i <= 20; ++i) {
@@ -38,8 +38,10 @@ MainWindow::MainWindow(QWidget* parent)
     ui->glViewWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
 
     // Remove native title bar
-    // setWindowFlags(Qt::FramelessWindowHint | Qt::Window);
-    // setAttribute(Qt::WA_TranslucentBackground, false);
+    setWindowFlags(Qt::FramelessWindowHint | Qt::Window);
+    setAttribute(Qt::WA_TranslucentBackground, false);
+
+    ui->titleBar->setAppTitleIcon("", ":/HornetMain/res/icon/custom/bee.png");
 
     // Connect signal
     connect(ui->titleBar, &FTitleBar::signalClose, this, &MainWindow::close);

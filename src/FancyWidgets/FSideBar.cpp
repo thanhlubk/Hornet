@@ -248,10 +248,10 @@ void FSideBar::readJson(const QString& jsonFile)
     }
 }
 
-void FSideBar::setScrollIcon(const QString &iconPath, bool bKeep)
-{
-    m_pScrollArea->setScrollIcon(iconPath, bKeep);
-}
+// void FSideBar::setScrollIcon(const QString &iconPath, bool bKeep)
+// {
+//     m_pScrollArea->setScrollIcon(iconPath, bKeep);
+// }
 
 // void FSideBar::setCollapseIcon(const QString &iconPath, bool bKeep)
 // {

@@ -12,7 +12,7 @@
 #include <QJsonDocument>
 
 FSideBarStackedWidget::FSideBarStackedWidget(QWidget* parent)
-    : QStackedWidget(parent), FThemeableWidget(), m_bCollapsed(true), m_bKeep(true), m_iStartWidth(0), m_iCollapseWidth(220), m_bResizing(false)
+    : QStackedWidget(parent), FThemeableWidget(), m_bCollapsed(true), m_iStartWidth(0), m_iCollapseWidth(220), m_bResizing(false)
 {
     m_pFrameTop = new FSideBarStackedFilletFrame(this);
     m_pFrameBottom = new FSideBarStackedFilletFrame(this);
@@ -29,9 +29,6 @@ FSideBarStackedWidget::FSideBarStackedWidget(QWidget* parent)
     {
         emit this->collapseChanged(); 
     });
-
-    m_bKeep = false;
-    m_strIconCollapse = ":/FancyWidgets/res/close.png";
 
     SET_UP_THEME(FSideBarStackedWidget)
 }
@@ -52,11 +49,7 @@ void FSideBarStackedWidget::applyTheme()
         m_pFrameBottom->setBrushColor(getColorTheme(0));
     }
 
-    if (!m_bKeep)
-    {
-        updateCollapseIcon();
-    }
-
+    updateCollapseIcon();
     updateStyleCurrentPage();
 }
 
@@ -266,21 +259,9 @@ bool FSideBarStackedWidget::isNearRightEdge(const QPoint& pos) const
     return (width() - pos.x()) < edgeMargin;
 }
 
-// void FSideBarStackedWidget::setCollapseIcon(const QString &icon, bool keep)
-// {
-//     m_bKeep = keep;
-//     m_strIconCollapse = icon;
-//     updateCollapseIcon();
-// }
-
 void FSideBarStackedWidget::updateCollapseIcon()
 {
-    QIcon icon;
-    if (!m_bKeep)
-        icon = FUtil::changeIconColor(m_strIconCollapse, getColorTheme(1));
-    else
-        icon = QIcon(m_strIconCollapse);
-
+    QIcon icon = FUtil::changeIconColor(":/FancyWidgets/res/icon/small/close.png", getColorTheme(1));
     m_pCollapseButton->setIcon(icon);
     m_pCollapseButton->setIconSize(QSize(getDisplaySize(3).toInt(), getDisplaySize(3).toInt())); // Adjust size as needed
 }
@@ -317,7 +298,7 @@ void FSideBarStackedWidget::updateStyleCurrentPage()
             pListContent->setSpacing(0);
             pListContent->reserveScrollBarSpace(getDisplaySize(6).toInt() + getDisplaySize(4).toInt()/2);
 
-            auto strScrollbarStyle = FUtil::getStyleScrollbarVertical2(getDisplaySize(6).toInt(), getDisplaySize(4).toInt()/2, getDisplaySize(4).toInt()/2, 0, ":/FancyWidgets/res/up.png", ":/FancyWidgets/res/down.png", getColorTheme(1).name(), getColorTheme(1).name());
+            auto strScrollbarStyle = FUtil::getStyleScrollbarVertical2(getDisplaySize(6).toInt(), getDisplaySize(4).toInt()/2, getDisplaySize(4).toInt()/2, 0, ":/FancyWidgets/res/icon/small/up.png", ":/FancyWidgets/res/icon/small/down.png", getColorTheme(1).name(), getColorTheme(1).name());
 
             pListContent->setStyleSheet("QListWidget { background: transparent; padding-left: 0px; padding-right: 0px; padding-top: 0px; padding-bottom: 0px;} QListWidget::item { outline: none; border: none; }" + strScrollbarStyle);
         }

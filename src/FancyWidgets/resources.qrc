@@ -1,11 +1,24 @@
 <RCC>
   <qresource prefix="/FancyWidgets">
-    <file>res/forward.png</file>
-    <file>res/close.png</file>
-    <file>res/down.png</file>
-    <file>res/up.png</file>
-    <file>res/plus.png</file>
-    <file>res/minus.png</file>
-    <file>res/tick.png</file>
+    <file>res/icon/small/forward.png</file>
+    <file>res/icon/small/close.png</file>
+    <file>res/icon/small/down.png</file>
+    <file>res/icon/small/up.png</file>
+    <file>res/icon/small/plus.png</file>
+    <file>res/icon/small/minus.png</file>
+    <file>res/icon/small/tick.png</file>
+    <file>res/icon/small/search.png</file>
+    <file>res/icon/small/window.png</file>
+    <file>res/icon/small/scroll-up.png</file>
+
+
+    <file>res/icon/normal/forward.png</file>
+    <file>res/icon/normal/close.png</file>
+    <file>res/icon/normal/plus.png</file>
+    <file>res/icon/normal/minus.png</file>
+    <file>res/icon/normal/tick.png</file>
+    <file>res/icon/normal/search.png</file>
+    <file>res/icon/normal/window.png</file>
+    
   </qresource>
 </RCC>

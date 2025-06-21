@@ -11,7 +11,9 @@
     "textHeader2": "#FFCFCFCF",
     "textNormal": "#FF9F9F9F",
     "textSub": "#FFA4A4A4",
-    "dominant": "#FFE9C329"
+    "dominant": "#FFFAB005",
+    "success": "#FF52C41A",
+    "fail": "#FFFF4D4F"
   },
   "Light": {
     "backgroundApp": "#ff5733",
@@ -24,6 +26,8 @@
     "textHeader2": "#000000",
     "textNormal": "#000000",
     "textSub": "#000000",
-    "dominant": "#000000"
+    "dominant": "#000000",
+    "success": "#FF52C41A",
+    "fail": "#FFFF4D4F"
   }
 }

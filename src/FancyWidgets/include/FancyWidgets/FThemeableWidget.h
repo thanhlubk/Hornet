@@ -61,7 +61,7 @@ public:
     }
     ThemeStyle themeStyle() const { return m_eThemeStyle; }
 
-    void setRole(Role role) { m_eRole = role; }
+    void setRole(Role role) { m_eRole = role; applyTheme(); }
     Role role() const { return m_eRole; }
 
 private:

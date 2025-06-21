@@ -9,7 +9,7 @@
 #define SCROLL_STEP 5
 
 FSideBarScrollArea::FSideBarScrollArea(QWidget* parent) 
-    : QWidget(parent), FThemeableWidget(), m_pCurrentWidget(nullptr), m_bKeep(true)
+    : QWidget(parent), FThemeableWidget(), m_pCurrentWidget(nullptr)
 {
     m_pMainLayout = new QVBoxLayout(this);
     m_pMainLayout->setSpacing(0);
@@ -63,11 +63,7 @@ void FSideBarScrollArea::applyTheme() {
     m_pScrollDownButton->setStyleSheet(QString("background-color: %2; border: none; border-radius: %1px; text-align: center;").arg(QString::number(getDisplaySize(3).toInt()), getColorTheme(1).name()));
     setStyleSheet("background-color: transparent; border: none; ");
 
-    if (!m_bKeep)
-    {
-        // m_iconScroll = FUtil::changeIconColor(m_iconScroll, getColorTheme(2));
-        updateScrollIcon();
-    }
+    updateScrollIcon();
 
     m_pScrollUpButton->resize(26, getDisplaySize(0).toInt()); // Set button size
     m_pScrollDownButton->resize(26, getDisplaySize(0).toInt()); // Set button size
@@ -283,15 +279,6 @@ void FSideBarScrollArea::uncheckAllTab()
     updateTabView(nullptr);
 }
 
-void FSideBarScrollArea::setScrollIcon(const QString &icon, bool keep)
-{
-    m_bKeep = keep;
-    m_strIconScroll = icon;
-    // m_iconScroll = FUtil::changeIconColor(icon, getColorTheme(2));
-
-    updateScrollIcon();
-}
-
 void FSideBarScrollArea::clickTab()
 {
     auto pSender = qobject_cast<FSideBarTab*>(sender());
@@ -318,12 +305,7 @@ void FSideBarScrollArea::updateFrameColor()
 
 void FSideBarScrollArea::updateScrollIcon()
 {
-    QIcon icon;
-    if (!m_bKeep)
-        icon = FUtil::changeIconColor(m_strIconScroll, getColorTheme(2));
-    else
-        icon = QIcon(m_strIconScroll);
-
+    QIcon icon = FUtil::changeIconColor(":/FancyWidgets/res/icon/small/scroll-up.png", getColorTheme(2));
     m_pScrollUpButton->setIcon(icon);
     m_pScrollUpButton->setIconSize(QSize(getDisplaySize(0).toInt(), getDisplaySize(0).toInt())); // Adjust size as needed
 

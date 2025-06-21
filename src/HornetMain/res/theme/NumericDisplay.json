@@ -14,5 +14,7 @@
   "separatorWidth": 1,
   "scrollbarWidth": 8,
   "sidebarTabHeight": 58,
-  "sidebarTabWidth": 69
+  "sidebarTabWidth": 69,
+  "searchbarWidth": 300,
+  "titlebarHeight": 48
 }

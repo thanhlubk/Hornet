@@ -32,6 +32,10 @@ struct Theme
 
     QColor dominant;
 
+    QColor success;
+    QColor fail;
+
+
     Theme()
     {
         transparent = QColor(0, 0, 0, 0);
@@ -62,6 +66,8 @@ struct NumericDisplay
 
     int sidebarTabHeight;
     int sidebarTabWidth;
+    int searchbarWidth;
+    int titlebarHeight;
 };
 
 class FANCYWIDGETS_EXPORT FThemeManager : public QObject {

@@ -3,9 +3,8 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 
-FThemeManager::FThemeManager() {
-    // m_mapThemes["Void"] = Theme();
-    // m_strCurrentTheme = "Void";
+FThemeManager::FThemeManager()
+{
 }
 
 FThemeManager& FThemeManager::instance() {
@@ -63,6 +62,8 @@ void FThemeManager::loadThemeJson(const QString &theme)
         SET_COLOR(textNormal);
         SET_COLOR(textSub);
         SET_COLOR(dominant);
+        SET_COLOR(success);
+        SET_COLOR(fail);
 
         addTheme(strThemeName, theme);
     }
@@ -105,6 +106,8 @@ void FThemeManager::loadDisplayJson(const QString &display)
     SET_DISPLAY(scrollbarWidth);
     SET_DISPLAY(sidebarTabHeight);
     SET_DISPLAY(sidebarTabWidth);
+    SET_DISPLAY(searchbarWidth);
+    SET_DISPLAY(titlebarHeight);
 
     #undef SET_DISPLAY
 }

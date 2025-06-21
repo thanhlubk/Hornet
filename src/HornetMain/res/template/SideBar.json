@@ -1,7 +1,7 @@
 [
   {
     "type": "Tab",
-    "title": "Item 1",
+    "title": "Apps",
     "icon": ":/HornetMain/res/icon/unfilled/home.png",
     "iconCheck": ":/HornetMain/res/icon/filled/home.png",
     "childs": [
@@ -21,7 +21,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -43,7 +43,7 @@
                 "type": "ExpandableButton",
                 "title": "ExpandableExpandableExpandableExpandableExpandableExpandableExpandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -84,7 +84,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -138,7 +138,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -160,7 +160,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -201,7 +201,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -255,7 +255,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -277,7 +277,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -318,7 +318,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -361,7 +361,7 @@
   },
   {
     "type": "Tab",
-    "title": "Item 2",
+    "title": "AI Hub 2",
     "icon": ":/HornetMain/res/icon/unfilled/home.png",
     "iconCheck": ":/HornetMain/res/icon/filled/home.png",
     "childs": [
@@ -380,7 +380,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -402,7 +402,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -443,7 +443,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -497,7 +497,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -519,7 +519,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -560,7 +560,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -614,7 +614,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -636,7 +636,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -677,7 +677,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -720,7 +720,7 @@
   },
   {
     "type": "Tab",
-    "title": "Item 3",
+    "title": "AI Hub 3",
     "icon": ":/HornetMain/res/icon/unfilled/home.png",
     "iconCheck": ":/HornetMain/res/icon/filled/home.png",
     "childs": [
@@ -739,7 +739,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -761,7 +761,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -802,7 +802,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -856,7 +856,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -878,7 +878,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -919,7 +919,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -973,7 +973,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -995,7 +995,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -1036,7 +1036,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -1079,7 +1079,7 @@
   },
   {
     "type": "Tab",
-    "title": "Item 4",
+    "title": "AI Hub 4",
     "icon": ":/HornetMain/res/icon/unfilled/home.png",
     "iconCheck": ":/HornetMain/res/icon/filled/home.png",
     "childs": [
@@ -1098,7 +1098,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -1120,7 +1120,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -1161,7 +1161,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -1215,7 +1215,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -1237,7 +1237,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -1278,7 +1278,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -1332,7 +1332,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -1354,7 +1354,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -1395,7 +1395,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -1438,7 +1438,7 @@
   },
   {
     "type": "Tab",
-    "title": "Item 5",
+    "title": "AI Hub 5",
     "icon": ":/HornetMain/res/icon/unfilled/home.png",
     "iconCheck": ":/HornetMain/res/icon/filled/home.png",
     "childs": [
@@ -1457,7 +1457,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -1479,7 +1479,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -1520,7 +1520,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -1574,7 +1574,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -1596,7 +1596,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -1637,7 +1637,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -1691,7 +1691,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -1713,7 +1713,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -1754,7 +1754,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -1797,7 +1797,7 @@
   },
   {
     "type": "Tab",
-    "title": "Item 6",
+    "title": "AI Hub 6",
     "icon": ":/HornetMain/res/icon/unfilled/home.png",
     "iconCheck": ":/HornetMain/res/icon/filled/home.png",
     "childs": [
@@ -1816,7 +1816,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -1838,7 +1838,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -1879,7 +1879,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -1933,7 +1933,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -1955,7 +1955,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -1996,7 +1996,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -2050,7 +2050,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -2072,7 +2072,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -2113,7 +2113,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -2156,7 +2156,7 @@
   },
   {
     "type": "Tab",
-    "title": "Item 7",
+    "title": "AI Hub 7",
     "icon": ":/HornetMain/res/icon/unfilled/home.png",
     "iconCheck": ":/HornetMain/res/icon/filled/home.png",
     "childs": [
@@ -2175,7 +2175,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -2197,7 +2197,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -2238,7 +2238,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -2292,7 +2292,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -2314,7 +2314,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -2355,7 +2355,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -2409,7 +2409,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -2431,7 +2431,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -2472,7 +2472,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -2515,7 +2515,7 @@
   },
   {
     "type": "Tab",
-    "title": "Item 8",
+    "title": "AI Hub 8",
     "icon": ":/HornetMain/res/icon/unfilled/home.png",
     "iconCheck": ":/HornetMain/res/icon/filled/home.png",
     "childs": [
@@ -2534,7 +2534,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -2556,7 +2556,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -2597,7 +2597,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -2651,7 +2651,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -2673,7 +2673,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -2714,7 +2714,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -2768,7 +2768,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -2790,7 +2790,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -2831,7 +2831,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -2874,7 +2874,7 @@
   },
   {
     "type": "Tab",
-    "title": "Item 9",
+    "title": "AI Hub 9",
     "icon": ":/HornetMain/res/icon/unfilled/home.png",
     "iconCheck": ":/HornetMain/res/icon/filled/home.png",
     "childs": [
@@ -2893,7 +2893,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -2915,7 +2915,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -2956,7 +2956,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -3010,7 +3010,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -3032,7 +3032,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -3073,7 +3073,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -3127,7 +3127,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -3149,7 +3149,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -3190,7 +3190,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -3233,7 +3233,7 @@
   },
   {
     "type": "Tab",
-    "title": "Item 10",
+    "title": "AI Hub 10",
     "icon": ":/HornetMain/res/icon/unfilled/home.png",
     "iconCheck": ":/HornetMain/res/icon/filled/home.png",
     "childs": [
@@ -3252,7 +3252,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -3274,7 +3274,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -3315,7 +3315,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -3369,7 +3369,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -3391,7 +3391,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -3432,7 +3432,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -3486,7 +3486,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -3508,7 +3508,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -3549,7 +3549,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -3592,7 +3592,7 @@
   },
   {
     "type": "Tab",
-    "title": "Item 11",
+    "title": "AI Hub 11",
     "icon": ":/HornetMain/res/icon/unfilled/home.png",
     "iconCheck": ":/HornetMain/res/icon/filled/home.png",
     "childs": [
@@ -3611,7 +3611,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -3633,7 +3633,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -3674,7 +3674,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -3728,7 +3728,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -3750,7 +3750,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -3791,7 +3791,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -3845,7 +3845,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -3867,7 +3867,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -3908,7 +3908,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -3951,7 +3951,7 @@
   },
   {
     "type": "Tab",
-    "title": "Item 12",
+    "title": "AI Hub 12",
     "icon": ":/HornetMain/res/icon/unfilled/home.png",
     "iconCheck": ":/HornetMain/res/icon/filled/home.png",
     "childs": [
@@ -3970,7 +3970,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -3992,7 +3992,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -4033,7 +4033,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -4087,7 +4087,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -4109,7 +4109,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -4150,7 +4150,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -4204,7 +4204,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -4226,7 +4226,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [
@@ -4267,7 +4267,7 @@
                 "type": "ExpandableButton",
                 "title": "Expandable",
                 "icon": "",
-                "iconArrow": ":/FancyWidgets/res/forward.png",
+                "iconArrow": ":/FancyWidgets/res/icon/small/forward.png",
                 "move": true,
                 "rotate": false,
                 "childs": [

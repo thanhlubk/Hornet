@@ -5,19 +5,29 @@
     <file>res/icon/filled/home.png</file>
     <file>res/icon/filled/portrait.png</file>
     <file>res/icon/filled/setting.png</file>
-    <file>res/icon/filled/scroll-up.png</file>
+    <file>res/icon/filled/group.png</file>
+    <file>res/icon/filled/lab.png</file>
+    <file>res/icon/filled/tools.png</file>
+    <file>res/icon/filled/hierarchy.png</file>
 
     <file>res/icon/unfilled/arrow.png</file>
     <file>res/icon/unfilled/folder.png</file>
     <file>res/icon/unfilled/home.png</file>
     <file>res/icon/unfilled/portrait.png</file>
     <file>res/icon/unfilled/setting.png</file>
-    <file>res/icon/unfilled/scroll-up.png</file>
+    <file>res/icon/unfilled/group.png</file>
+    <file>res/icon/unfilled/lab.png</file>
+    <file>res/icon/unfilled/tools.png</file>
+    <file>res/icon/unfilled/hierarchy.png</file>
+
+    <file>res/icon/custom/hornet.png</file>
+    <file>res/icon/custom/bee.png</file>
 
     <file>res/theme/NumericDisplay.json</file>
     <file>res/theme/Themes.json</file>
 
     <file>res/template/SideBar.json</file>
 
+    <file>res/font/OpenSans.ttf</file>
   </qresource>
 </RCC>
