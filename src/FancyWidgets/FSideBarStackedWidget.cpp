@@ -298,9 +298,11 @@ void FSideBarStackedWidget::updateStyleCurrentPage()
             pListContent->setSpacing(0);
             pListContent->reserveScrollBarSpace(getDisplaySize(6).toInt() + getDisplaySize(4).toInt()/2);
 
-            auto strScrollbarStyle = FUtil::getStyleScrollbarVertical2(getDisplaySize(6).toInt(), getDisplaySize(4).toInt()/2, getDisplaySize(4).toInt()/2, 0, ":/FancyWidgets/res/icon/small/up.png", ":/FancyWidgets/res/icon/small/down.png", getColorTheme(1).name(), getColorTheme(1).name());
+            auto strScrollbarVerticalStyle = FUtil::getStyleScrollbarVertical2(getDisplaySize(6).toInt(), getDisplaySize(4).toInt()/2, getDisplaySize(4).toInt()/2, 0, ":/FancyWidgets/res/icon/small/up.png", ":/FancyWidgets/res/icon/small/down.png", getColorTheme(1).name(), getColorTheme(1).name());
 
-            pListContent->setStyleSheet("QListWidget { background: transparent; padding-left: 0px; padding-right: 0px; padding-top: 0px; padding-bottom: 0px;} QListWidget::item { outline: none; border: none; }" + strScrollbarStyle);
+            auto strScrollbarHorizontalStyle = FUtil::getStyleScrollbarHorizontal1(getDisplaySize(6).toInt(), 0, 0, 0, getColorTheme(1).name(), getColorTheme(1).name());
+
+            pListContent->setStyleSheet("QListWidget { background: transparent; padding-left: 0px; padding-right: 0px; padding-top: 0px; padding-bottom: 0px;} QListWidget::item { outline: none; border: none; }" + strScrollbarVerticalStyle + strScrollbarHorizontalStyle);
         }
     }
 

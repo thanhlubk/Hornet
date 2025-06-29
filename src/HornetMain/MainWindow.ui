@@ -42,7 +42,7 @@
        <number>0</number>
       </property>
       <item>
-       <widget class="FSideBar" name="autoSize" native="true"/>
+       <widget class="FSideBar" name="sideBar" native="true"/>
       </item>
       <item>
        <layout class="QVBoxLayout" name="verticalLayout">
@@ -77,6 +77,9 @@
           </property>
          </widget>
         </item>
+        <item>
+         <widget class="FTabBarContainer" name="tabBar" native="true"/>
+        </item>
        </layout>
       </item>
      </layout>
@@ -105,6 +108,12 @@
    <class>FSideBar</class>
    <extends>QWidget</extends>
    <header>FancyWidgets/FSideBar.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>FTabBarContainer</class>
+   <extends>QWidget</extends>
+   <header>FancyWidgets/FTabBarContainer.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

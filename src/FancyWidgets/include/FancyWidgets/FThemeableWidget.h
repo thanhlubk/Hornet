@@ -1,6 +1,7 @@
 #pragma once
 #include "FancyWidgetsExport.h"
 #include "FThemeManager.h"
+#include <QVariant>
 
 #define SET_UP_COLOR(index, style, name) if (idx == index && static_cast<ThemeStyle>(themeStyle()) == ThemeStyle::##style) \
     return GET_THEME_COLOR(##name); \

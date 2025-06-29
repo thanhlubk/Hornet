@@ -5,15 +5,18 @@
 #include <HornetView/GLViewWindow.h>
 #include "ui_MainWindow.h"
 #include "SecondDialog.h"
-#include <QParallelAnimationGroup>
-#include <QThread>
-#include <QColor>
+#include <QTextEdit>
+#include <FancyWidgets/FOutputWidget.h>
 
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent), ui(new Ui::MainWindow)
 {
     // Init data
     initTheme();
+
+    // Remove native title bar
+    setWindowFlags(Qt::FramelessWindowHint | Qt::Window);
+    setAttribute(Qt::WA_TranslucentBackground, false);
 
     // Setup UI
     ui->setupUi(this);
@@ -24,24 +27,44 @@ MainWindow::MainWindow(QWidget* parent)
     });
 
     // Test
-    // ui->autoSize->setScrollIcon(":/HornetMain/res/icon/filled/scroll-up.png");
-    // ui->autoSize->setCollapseIcon(":/toolbar/res/close.png");
-    ui->autoSize->readJson(":/HornetMain/res/template/SideBar.json");
-    // for (int i = 1; i <= 20; ++i) {
-    //     ui->autoSize->createTab(i, ":/toolbar/res/toolbar-button-home-normal.png", ":/toolbar/res/toolbar-button-home-check.png", QString("page %1").arg(i), false);
-    // }
-
-    // for (int i = 1; i <= 2; ++i) {
-    //     ui->autoSize->createTab(i + 100, ":/toolbar/res/toolbar-button-home-normal.png", ":/toolbar/res/toolbar-button-home-check.png", QString("page %1").arg(i + 100), true);
-    // }
-
+    ui->horizontalLayout->setContentsMargins(4, 0, 4, 4);
+    ui->horizontalLayout->setSpacing(4);
+    ui->sideBar->readJson(":/HornetMain/res/template/SideBar.json");
     ui->glViewWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-
-    // Remove native title bar
-    setWindowFlags(Qt::FramelessWindowHint | Qt::Window);
-    setAttribute(Qt::WA_TranslucentBackground, false);
-
     ui->titleBar->setAppTitleIcon("", ":/HornetMain/res/icon/custom/bee.png");
+    ui->tabBar->setFixedHeight(200);
+    ui->tabBar->addTabBar(100);
+    ui->tabBar->addTabBar(100);
+
+    for (auto i = 0; i < 6; i++)
+    {
+        FOutputWidget *output = new FOutputWidget(this);
+        output->enableInput(true); // Enable input area
+        output->appendMessage("Info: Build started", Qt::white);
+        output->appendMessage("Warning: Missing include", Qt::yellow);
+        output->appendMessage("Error: Failed to compile", Qt::red);
+
+        connect(output, &FOutputWidget::userInputSubmitted, this, [](const QString &cmd)
+                {
+                    qDebug() << "User typed:" << cmd;
+                    // Handle commands or routing here
+                });
+
+        QString title = QString("Output %1").arg(QString::number(i));
+        if (i > 2)
+            ui->tabBar->addPane(1, title, output);
+        else
+            ui->tabBar->addPane(0, title, output);
+    }
+    
+
+    // ui->tabWidget_2->setFixedHeight(200);
+
+    // ui->tabWidget->addTab(new QTextEdit("Tab 1 in Widget 1"), "Tab 1");
+    // ui->tabWidget->addTab(new QTextEdit("Tab 2 in Widget 1"), "Tab 2");
+    // ui->tabWidget_2->addTab(new QTextEdit("Tab A in Widget 2"), "Tab A");
+    // ui->tabWidget_2->addTab(new QTextEdit("Tab B in Widget 2"), "Tab B");
+
 
     // Connect signal
     connect(ui->titleBar, &FTitleBar::signalClose, this, &MainWindow::close);
@@ -53,20 +76,6 @@ MainWindow::MainWindow(QWidget* parent)
         maximized = !maximized;
         maximized ? this->showMaximized() : this->showNormal();
     });
-
-    // popup1 = new MyPopupWidget(this);
-    // popup2 = new MyPopupWidget(this);
-
-    // QObject::connect(popup1, &MyPopupWidget::requestOpenChildPopup, popup2, &MyPopupWidget::appear);
-
-    // connect(ui->animationButton, &QPushButton::clicked, popup1, &MyPopupWidget::appear);
-    
-    // QIcon icon("D:/up.svg");
-    // QPixmap pix = icon.pixmap(24, 24);
-    // qDebug() << "Loaded:" << !pix.isNull();
-
-    // QColor trans(0, 0, 0, 0);
-    // qDebug() << "color:" << trans.name(QColor::HexArgb);
 }
 
 MainWindow::~MainWindow()
@@ -79,54 +88,3 @@ void MainWindow::initTheme()
     FThemeManager::instance().load(":/HornetMain/res/theme/Themes.json", ":/HornetMain/res/theme/NumericDisplay.json");
     FThemeManager::instance().setTheme("Dark");
 }
-
-// MyPopupWidget::MyPopupWidget(QWidget* parent)
-//     : QWidget(parent, Qt::Popup) // Important: Qt::Popup makes it behave like a dropdown
-// {
-//     auto* layout = new QVBoxLayout(this);
-//     auto* btn = new QPushButton("Open Another Popup", this);
-//     auto* btn2 = new MyClickableWidget(this);
-
-//     layout->addWidget(btn);
-//     layout->addWidget(btn2);
-
-//     setLayout(layout);
-
-//     connect(btn, &QPushButton::clicked, this, [this]() {
-//         emit requestOpenChildPopup(); // notify that a child popup should be opened
-//     });
-
-//     connect(btn2, &MyClickableWidget::customSignal, this, [this]() {
-//         emit requestOpenChildPopup(); // notify that a child popup should be opened
-//     });
-// }
-
-// MyPopupWidget::~MyPopupWidget() {
-//     qDebug() << "MyPopupWidget destroyed";
-// }
-
-// void MyPopupWidget::appear()
-// {
-//     auto pSender = qobject_cast<QWidget*>(sender());
-//     QPoint globalPos = pSender->mapToGlobal(pSender->rect().bottomLeft());
-//     move(globalPos);
-//     setFocus();
-//     show();
-//     raise();
-// }
-
-// MyClickableWidget::MyClickableWidget(QWidget* parent)
-//     : QWidget(parent)
-// {
-//     setFixedSize(120, 30);
-//     setStyleSheet("background-color: lightgreen; border: 1px solid black;");
-//     setCursor(Qt::PointingHandCursor);
-//     setFocusPolicy(Qt::StrongFocus);
-// }
-
-// void MyClickableWidget::mousePressEvent(QMouseEvent* event)
-// {
-//     QWidget::mousePressEvent(event);  // Call base class handler
-//     // emit clicked(); // ✅ Emit the signal
-//     QMetaObject::invokeMethod(this, "customSignal", Qt::QueuedConnection);
-// }

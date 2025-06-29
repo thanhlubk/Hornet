@@ -29,5 +29,11 @@ namespace FUtil
     
     FANCYWIDGETS_EXPORT QString toCamelCase(const QString& str);
 
-    FANCYWIDGETS_EXPORT QString getStyleScrollbarVertical2(int width, int space, int paddingLeft, int paddingRight, const QString& arrowUpPath, const QString& arrowDownPath, const QString& colorBar, const QString& colorHover);
+    FANCYWIDGETS_EXPORT QString getStyleScrollbarVertical1(int width, int space, int paddingLeft, int paddingRight, const QString& colorBar, const QString& colorHover);
+    FANCYWIDGETS_EXPORT QString getStyleScrollbarVertical2(int width, int space, int paddingLeft, int paddingRight, const QString &arrowUpPath, const QString &arrowDownPath, const QString &colorBar, const QString &colorHover);
+    FANCYWIDGETS_EXPORT QString getStyleScrollbarHorizontal1(int width, int space, int paddingLeft, int paddingRight, const QString& colorBar, const QString& colorHover);
+    FANCYWIDGETS_EXPORT QString getStyleScrollbarHorizontal2(int width, int space, int paddingLeft, int paddingRight, const QString &arrowUpPath, const QString &arrowDownPath, const QString &colorBar, const QString &colorHover);
+
+
+    FANCYWIDGETS_EXPORT QIcon createNumberIcon(int number, QColor colorBackground, QColor colorNumber);
 }

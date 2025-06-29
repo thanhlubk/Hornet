@@ -12,8 +12,6 @@ int main(int argc, char *argv[]) {
 #endif
 
     int fontId = QFontDatabase::addApplicationFont(":/HornetMain/res/font/OpenSans.ttf");
-    // int fontId = QFontDatabase::addApplicationFont(":/HornetMain/res/font/seguisb.ttf");
-    // int fontId = QFontDatabase::addApplicationFont(":/HornetMain/res/font/segoeui.ttf");
 
     QString family = QFontDatabase::applicationFontFamilies(fontId).value(0);
     if (!family.isEmpty()) {

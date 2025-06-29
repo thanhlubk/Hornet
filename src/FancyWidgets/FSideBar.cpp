@@ -66,6 +66,7 @@ QColor FSideBar::getColorTheme(int idx)
 
 QVariant FSideBar::getDisplaySize(int idx)
 {
+    SET_UP_DISPLAY_SIZE(0, Primary, offsetSize1);
     return QVariant(0);
 }
 
@@ -134,14 +135,23 @@ QWidget* FSideBar::createPage(const QString &xml)
 }
 #endif
 
-void FSideBar::updateContainerWidth() {
+void FSideBar::updateContainerWidth()
+{
     int totalWidth = 0;
-    for (int i = 0; i < m_pLayout->count(); ++i) {
+    bool bRemoveSpacing = false;
+    for (int i = 0; i < m_pLayout->count(); ++i)
+    {
         QWidget* widget = m_pLayout->itemAt(i)->widget();
-        if (widget) {
+        if (widget)
+        {
             totalWidth += widget->width();
+            if (qobject_cast<FSideBarStackedWidget*>(widget) && widget->width() == 0)
+                bRemoveSpacing = true;
         }
     }
+
+    if (bRemoveSpacing)
+        totalWidth -= getDisplaySize(0).toInt();
 
     resize(totalWidth, height());         // only update width
     setFixedWidth(totalWidth);            // lock it so parent layout respects it

@@ -10,7 +10,11 @@
     <file>res/icon/small/search.png</file>
     <file>res/icon/small/window.png</file>
     <file>res/icon/small/scroll-up.png</file>
-
+    <file>res/icon/small/scroll-down.png</file>
+    <file>res/icon/small/scroll-left.png</file>
+    <file>res/icon/small/scroll-right.png</file>
+    <file>res/icon/small/backward.png</file>
+    <file>res/icon/small/sent.png</file>
 
     <file>res/icon/normal/forward.png</file>
     <file>res/icon/normal/close.png</file>

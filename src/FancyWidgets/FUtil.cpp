@@ -2,6 +2,7 @@
 #include <QBitmap>
 #include <QFileInfo>
 #include <QDir>
+#include <QApplication>
 
 namespace FUtil
 {
@@ -179,6 +180,12 @@ namespace FUtil
         return parts.join(" ");
     }
 
+    QString getStyleScrollbarVertical1(int width, int space, int paddingLeft, int paddingRight, const QString &colorBar, const QString &colorHover)
+    {
+        auto style = sStyleScrollbarVertical1.arg(colorBar, colorHover, QString::number(width / 2), QString::number(width + paddingLeft + paddingRight), QString::number(paddingRight), QString::number(paddingLeft), QString::number(space));
+        return style;
+    }
+
     QString getStyleScrollbarVertical2(int width, int space, int paddingLeft, int paddingRight, const QString& arrowUpPath, const QString& arrowDownPath, const QString& colorBar, const QString& colorHover)
     {
 	    auto arrowUp = FUtil::getIconColorPath(arrowUpPath, colorBar);
@@ -187,4 +194,48 @@ namespace FUtil
         return style;
     }
 
+    QString getStyleScrollbarHorizontal1(int height, int space, int paddingTop, int paddingBottom, const QString &colorBar, const QString &colorHover)
+    {
+        auto style = sStyleScrollbarHorizontal1.arg(colorBar, colorHover, QString::number(height / 2), QString::number(height + paddingTop + paddingBottom), QString::number(paddingTop), QString::number(paddingBottom), QString::number(space));
+        return style;
+    }
+
+    QString getStyleScrollbarHorizontal2(int height, int space, int paddingTop, int paddingBottom, const QString &arrowLeftPath, const QString &arrowRightPath, const QString &colorBar, const QString &colorHover)
+    {
+        auto arrowLeft = FUtil::getIconColorPath(arrowLeftPath, colorBar);
+        auto arrowRight = FUtil::getIconColorPath(arrowRightPath, colorBar);
+        auto style = sStyleScrollbarHorizontal2.arg(colorBar, colorHover, arrowLeft, arrowRight, QString::number(height), QString::number(height / 2), QString::number(height + paddingTop + paddingBottom), QString::number(paddingTop), QString::number(paddingBottom), QString::number(height + space));
+        return style;
+    }
+
+    QIcon createNumberIcon(int number, QColor colorBackground, QColor colorNumber)
+    {
+        // Create a QPixmap for the icon (e.g., 32x32 pixels)
+        QPixmap pixmap(100, 100);
+        pixmap.fill(Qt::transparent); // Transparent background
+
+        // Create a QPainter to draw on the pixmap
+        QPainter painter(&pixmap);
+        painter.setRenderHint(QPainter::Antialiasing); // Smooth edges
+
+        // Draw a blue filled circle
+        QFont font = QApplication::font(); // Get the application's font
+        font.setPointSize(50);             // Set font size to 14
+        font.setBold(false);                // Optional: Make it bold for better visibility
+        painter.setFont(font);
+        painter.setPen(Qt::NoPen);         // No outline
+        painter.setBrush(colorBackground);     // Blue color (#0066CC)
+        painter.drawEllipse(0, 0, 100, 100);   // Full pixmap size circle
+
+        // Set font for the number
+        painter.setPen(colorNumber); // White color for text
+
+        // Convert number to string and draw it centered
+        QString text = QString::number(number);
+        QRect textRect(0, 0, 100, 100);
+        painter.drawText(textRect, Qt::AlignCenter, text);
+
+        // Create and return a QIcon from the pixmap
+        return QIcon(pixmap);
+    }
 }
