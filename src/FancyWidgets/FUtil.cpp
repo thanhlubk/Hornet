@@ -3,6 +3,7 @@
 #include <QFileInfo>
 #include <QDir>
 #include <QApplication>
+#include <QPainterPath>
 
 namespace FUtil
 {
@@ -42,6 +43,7 @@ namespace FUtil
         return folders;
     }
 
+    // Custom icon
     QSize getIconLargestSize(const QIcon& icon)
     {
         // Get the list of available sizes
@@ -75,14 +77,12 @@ namespace FUtil
         return pxColor;
     }
 
-    // Custom icon
     QIcon changeIconColor(const QIcon& icon, QColor color)
     {
         if (!color.isValid())
             return QIcon();
 
-        auto largestSize = getIconLargestSize(icon);
-        QPixmap pixmap = icon.pixmap(largestSize);
+        QPixmap pixmap = getPixmapFromIcon(icon);
 
         return changeIconColor(pixmap, color);
     }
@@ -237,5 +237,150 @@ namespace FUtil
 
         // Create and return a QIcon from the pixmap
         return QIcon(pixmap);
+    }
+
+    QPixmap getPixmapFromIcon(const QIcon &icon)
+    {
+        if (icon.isNull())
+            return QPixmap();
+
+        // Get the largest available size for the icon
+        QSize largestSize = icon.availableSizes().isEmpty() ? QSize(100, 100) : icon.availableSizes().first();
+        return icon.pixmap(largestSize);
+    }
+
+    QPixmap getPixmapFromIcon(const QString &strPath)
+    {
+        if (strPath.isEmpty())
+            return QPixmap();
+
+        // Load the pixmap from the file path
+        QPixmap pixmap(strPath);
+        if (pixmap.isNull())
+            return QPixmap();
+
+        // Return the loaded pixmap
+        return pixmap;
+    }
+
+    void fillRoundedRect(QPainter *painter, const QRectF &rect, const QColor &color, qreal topLeftRadius, qreal topRightRadius, qreal bottomRightRadius, qreal bottomLeftRadius)
+    {
+        // Save painter state
+        painter->save();
+
+        // Enable antialiasing for smooth corners
+        painter->setRenderHint(QPainter::Antialiasing);
+        // Create a QPainterPath for the custom rounded rectangle
+        QPainterPath path;
+        qreal x = rect.x();
+        qreal y = rect.y();
+        qreal width = rect.width();
+        qreal height = rect.height();
+
+        topLeftRadius = std::max<qreal>(0, topLeftRadius);
+        topRightRadius = std::max<qreal>(0, topRightRadius);
+        bottomRightRadius = std::max<qreal>(0, bottomRightRadius);
+        bottomLeftRadius = std::max<qreal>(0, bottomLeftRadius);
+
+        // Start at the top-left corner (just after the top-left corner to prepare for arc or line)
+        path.moveTo(x + topLeftRadius, y);
+
+        // Top-right corner (rounded if topRightRadius > 0, else sharp)
+        if (topRightRadius == 0)
+            path.lineTo(x + width, y);
+        else
+            path.arcTo(x + width - 2 * topRightRadius, y, 2 * topRightRadius, 2 * topRightRadius, 90, -90);
+
+        // Bottom-right corner (rounded if bottomRightRadius > 0, else sharp)
+        if (bottomRightRadius == 0)
+            path.lineTo(x + width, y + height);
+        else
+            path.arcTo(x + width - 2 * bottomRightRadius, y + height - 2 * bottomRightRadius, 2 * bottomRightRadius, 2 * bottomRightRadius, 0, -90);
+
+        // Bottom-left corner (rounded if bottomLeftRadius > 0, else sharp)
+        if (bottomLeftRadius == 0)
+            path.lineTo(x, y + height);
+        else
+            path.arcTo(x, y + height - 2 * bottomLeftRadius, 2 * bottomLeftRadius, 2 * bottomLeftRadius, 270, -90);
+
+        // Top-left corner (rounded if topLeftRadius > 0, else sharp)
+        if (topLeftRadius == 0)
+            path.lineTo(x, y);
+        else
+            path.arcTo(x, y, 2 * topLeftRadius, 2 * topLeftRadius, 180, -90);
+
+        // Close the path
+        path.closeSubpath();
+
+        // Draw the path
+        painter->fillPath(path, QBrush(color)); // fill only; never paints outside rect
+        painter->restore();
+    }
+    
+    void drawRoundedRect(QPainter *painter, const QRectF &rect, qreal borderWidth, QColor borderColor, qreal topLeftRadius, qreal topRightRadius, qreal bottomRightRadius, qreal bottomLeftRadius)
+    {
+        // Save painter state
+        painter->save();
+
+        // Enable antialiasing for smooth corners
+        painter->setRenderHint(QPainter::Antialiasing);
+
+        // Set the pen for the border
+        QPen pen(borderColor, borderWidth);
+        pen.setCapStyle(Qt::FlatCap);
+        painter->setPen(pen);
+
+        // Create a QPainterPath for the custom rounded rectangle
+        QPainterPath path;
+        qreal x = rect.x();
+        qreal y = rect.y();
+        qreal width = rect.width();
+        qreal height = rect.height();
+        qreal haftBorderWidth = borderWidth / 2;
+
+        // Start at the top-left corner (just after the top-left corner to prepare for arc or line)
+        path.moveTo(x + topLeftRadius, y + haftBorderWidth);
+
+        // Top-right corner (rounded if topRightRadius > 0, else sharp)
+        if (topRightRadius > 0)
+            path.arcTo(x + width - haftBorderWidth - 2 * topRightRadius, y + haftBorderWidth, 2 * topRightRadius, 2 * topRightRadius, 90, -90);
+        else
+        {
+            path.lineTo(x + width, y + haftBorderWidth);
+            path.lineTo(x + width - haftBorderWidth, y + haftBorderWidth);
+        }
+
+        // Bottom-right corner (rounded if bottomRightRadius > 0, else sharp)
+        if (bottomRightRadius > 0)
+            path.arcTo(x + width - haftBorderWidth - 2 * bottomRightRadius, y + height - 2 * bottomRightRadius - haftBorderWidth, 2 * bottomRightRadius, 2 * bottomRightRadius, 0, -90);
+        else
+        {
+            path.lineTo(x + width - haftBorderWidth, y + height);
+            path.lineTo(x + width - haftBorderWidth, y + height - haftBorderWidth);
+        }
+
+        // Bottom-left corner (rounded if bottomLeftRadius > 0, else sharp)
+        if (bottomLeftRadius > 0)
+            path.arcTo(x + haftBorderWidth, y + height - haftBorderWidth - 2 * bottomLeftRadius, 2 * bottomLeftRadius, 2 * bottomLeftRadius, 270, -90);
+        else
+        {
+            path.lineTo(x, y + height - haftBorderWidth);
+            path.lineTo(x + haftBorderWidth, y + height - haftBorderWidth);
+        }
+
+        // Top-left corner (rounded if topLeftRadius > 0, else sharp)
+        if (topLeftRadius > 0)
+            path.arcTo(x + haftBorderWidth, y + haftBorderWidth, 2 * topLeftRadius, 2 * topLeftRadius, 180, -90);
+        else
+            path.lineTo(x + haftBorderWidth, y + haftBorderWidth);
+
+        // Close the path
+        path.closeSubpath();
+
+        // Draw the path
+        painter->drawPath(path);
+
+        // Restore painter state
+        painter->restore();
     }
 }

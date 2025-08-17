@@ -309,8 +309,7 @@ void FSideBarScrollArea::updateScrollIcon()
     m_pScrollUpButton->setIcon(icon);
     m_pScrollUpButton->setIconSize(QSize(getDisplaySize(0).toInt(), getDisplaySize(0).toInt())); // Adjust size as needed
 
-    auto size = FUtil::getIconLargestSize(icon);
-    auto pixmap = icon.pixmap(size);
+    auto pixmap = FUtil::getPixmapFromIcon(icon);
     QTransform transform;
     transform.rotate(180); // Rotate by 180 degrees
     QPixmap rotatedPixmap = pixmap.transformed(transform); // Apply transformation

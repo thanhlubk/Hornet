@@ -15,6 +15,8 @@
     <file>res/icon/small/scroll-right.png</file>
     <file>res/icon/small/backward.png</file>
     <file>res/icon/small/sent.png</file>
+    <file>res/icon/small/round.png</file>
+    <file>res/icon/small/downward.png</file>
 
     <file>res/icon/normal/forward.png</file>
     <file>res/icon/normal/close.png</file>

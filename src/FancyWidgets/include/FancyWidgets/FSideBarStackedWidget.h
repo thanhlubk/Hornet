@@ -10,7 +10,6 @@
 #include <QPushButton>
 #include <QMouseEvent>
 #include <QListWidget>
-#include <QScrollBar>
 #include "FThemeableWidget.h"
 #include "FThemeManager.h"
 #include <QJsonArray>
@@ -84,33 +83,6 @@ protected:
     }
 };
 
-class ScrollAwareListWidget : public QListWidget {
-    Q_OBJECT
-public:
-    explicit ScrollAwareListWidget(QWidget* parent = nullptr) : QListWidget(parent)
-    {
-        m_iReserveSpace = 0;
-        connect(this->verticalScrollBar(), &QScrollBar::rangeChanged, this, &ScrollAwareListWidget::updateViewPort);
-    }
-
-    void reserveScrollBarSpace(int reserveSpace) 
-    {
-        m_iReserveSpace = reserveSpace;
-        updateViewPort(0, 0);
-    }
-
-private slots:
-    void updateViewPort(int min, int max)
-    {
-        if (max > 0)
-            this->setViewportMargins(0, 0, 0, 0);
-        else
-            this->setViewportMargins(0, 0, m_iReserveSpace, 0);
-    }
-private:
-    int m_iReserveSpace;
-};
-
 class FANCYWIDGETS_EXPORT FSideBarStackedWidget : public QStackedWidget, public FThemeableWidget
 {
     Q_OBJECT
@@ -128,10 +100,8 @@ public:
     bool isCollapsed() const;   
     void setCollapsed(bool collapse);
     int getCollapseWidth();
-    // void setCollapseIcon(const QString& icon, bool keep);
-
-    // QWidget* addPageTest(const QString& xml);
-    QWidget* addPageTest2(const QJsonArray& jsonArray, const QString& title);
+    QWidget* addPageJson(const QJsonArray& jsonArray, const QString& title);
+    QWidget* addPage(PageFactory factory, const QString& title);
 
 signals:
     void collapseChanged();
@@ -149,6 +119,7 @@ protected:
     void addPanelButton(const QJsonObject& obj, QWidget* parent);
     void addExpandableButton(const QJsonObject &obj, QWidget *parent);
     void addArrowButton(const QJsonObject &obj, QWidget *parent);
+    QWidget* createPageLayout(const QString &title, QWidget *widget);
 
 private:
     void updateCollapseIcon();

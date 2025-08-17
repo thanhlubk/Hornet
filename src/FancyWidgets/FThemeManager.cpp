@@ -54,6 +54,7 @@ void FThemeManager::loadThemeJson(const QString &theme)
         SET_COLOR(backgroundApp);
         SET_COLOR(backgroundSection1);
         SET_COLOR(backgroundSection2);
+        SET_COLOR(backgroundSection3);
         SET_COLOR(widgetNormal);
         SET_COLOR(widgetHover);
         SET_COLOR(widgetCheck);

@@ -1,6 +1,7 @@
 #pragma once
 #include "FancyWidgetsExport.h"
 #include "FTabBar.h"
+#include "FSplitter.h"
 #include <QWidget>
 #include <QSplitter>
 #include <QHBoxLayout>
@@ -28,6 +29,6 @@ protected:
 
 private:
     void updateStyleContainer(QWidget* widget);
-    
-    QSplitter* m_pSplitter;
+
+    FSplitter* m_pSplitter;
 };

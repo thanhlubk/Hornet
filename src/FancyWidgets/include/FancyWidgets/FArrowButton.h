@@ -7,7 +7,7 @@
 #include "FThemeableWidget.h"
 #include <QHBoxLayout>
 
-class FArrowButton : public QWidget, public FThemeableWidget
+class FANCYWIDGETS_EXPORT FArrowButton : public QWidget, public FThemeableWidget
 {
     Q_OBJECT
     Q_PROPERTY(int rotation READ rotation WRITE setRotation)

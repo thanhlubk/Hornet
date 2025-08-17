@@ -75,6 +75,15 @@ static QString sStyleScrollbarHorizontal2("QScrollBar:horizontal { border: none;
 	"QScrollBar::up-arrow:horizontal, QScrollBar::down-arrow:horizontal { width: 0; height: 0; }\n"
 	"QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal { background: none; }\n");
 
+#define GET_JSON_VALUE(object, variable, key) if (object.contains(#key) && !object[#key].isNull()) \
+    variable = object[#key]; \
+
+#define GET_JSON_VALUE_INT(object, variable, key) if (object.contains(#key) && !object[#key].isNull()) \
+    variable = object[#key].toInt(); \
+
+#define GET_JSON_VALUE_DOUBLE(object, variable, key) if (object.contains(#key) && !object[#key].isNull()) \
+	variable = object[#key].toDouble(); \
+
 #define GET_JSON_VALUE_STRING(object, variable, key) if (object.contains(#key) && !object[#key].isNull()) \
     variable = object[#key].toString(); \
 

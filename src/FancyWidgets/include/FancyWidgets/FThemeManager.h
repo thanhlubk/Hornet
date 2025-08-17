@@ -20,6 +20,7 @@ struct Theme
     QColor backgroundApp; //COLOR_GRAY_1
     QColor backgroundSection1; //COLOR_GRAY_3
     QColor backgroundSection2; //COLOR_GRAY_2
+    QColor backgroundSection3;
 
     QColor widgetNormal; //COLOR_GRAY_6
     QColor widgetHover; //COLOR_GRAY_7

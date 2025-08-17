@@ -1,8 +1,9 @@
 #pragma once
 #include "FancyWidgetsExport.h"
 #include <QWidget>
+#include <array>
 
-class FANCYWIDGETS_EXPORT FHorizontalSeparator : public QWidget {
+class FANCYWIDGETS_EXPORT FSeparator : public QWidget {
     Q_OBJECT
     Q_PROPERTY(QColor colorLine READ colorLine WRITE setColorLine)
     Q_PROPERTY(QColor colorBackground READ colorBackground WRITE setColorBackground)
@@ -12,7 +13,7 @@ class FANCYWIDGETS_EXPORT FHorizontalSeparator : public QWidget {
     Q_PROPERTY(int offsetRight READ offsetRight WRITE setOffsetRight)
 
 public:
-    explicit FHorizontalSeparator(QWidget* parent = nullptr);
+    explicit FSeparator(Qt::Orientation orientation, QWidget *parent = nullptr);
 
     void setColorLine(const QColor& color);
     QColor colorLine() const;
@@ -26,15 +27,20 @@ public:
     int offsetLeft() const;
     void setOffsetRight(int offset);
     int offsetRight() const;
+    void setOffsetTop(int offset);
+    int offsetTop() const;
+    void setOffsetBottom(int offset);
+    int offsetBottom() const;
+    void setOffset(int offsetStart, int offsetEnd);
 
 protected:
     void paintEvent(QPaintEvent* event) override;
 
 private:
+    Qt::Orientation m_eOrientation;
     QColor m_colorLine;
     QColor m_colorBackground;
     float m_fLineWidth;
     int m_iLinePosition;
-    int m_iOffsetLeft;
-    int m_iOffsetRight;
+    std::array<int, 2> m_arrOffset; // [left, right] or [top, bottom]
 };

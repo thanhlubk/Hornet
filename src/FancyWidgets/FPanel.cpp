@@ -7,7 +7,12 @@
 #include <QPainter>
 #include <QPainterPath>
 
-FPanel::FPanel(QWidget* parent)
+FPanel::FPanel(QWidget *parent)
+    : FPanel(ContentMode::Wrap, parent)
+{
+}
+
+FPanel::FPanel(ContentMode mode, QWidget *parent)
     : QWidget(parent), FThemeableWidget(), m_bRun(false)
 {
     m_pLayout = new QVBoxLayout(this);
@@ -21,19 +26,12 @@ FPanel::FPanel(QWidget* parent)
     m_pButtonHeader->enableMoveAnimation(true);
 
     // Content: QListWidget
-    m_pListContent = new FNoScrollListWidget(this);
-    m_pListContent->setViewMode(QListView::ListMode);           // List mode
-    m_pListContent->setFlow(QListView::LeftToRight);            // Flow left to right
-    m_pListContent->setWrapping(true);                          // Wrap into rows
-    m_pListContent->setResizeMode(QListView::Adjust);           // Adjust on resize
-    m_pListContent->setWordWrap(true);
-    m_pListContent->setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
+    m_pListContent = new FListWidgetNoScroll(this);
     m_pListContent->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
     m_pListContent->setMinimumHeight(0);       // Allows collapsing to zero
     m_pListContent->setMaximumHeight(0);     // Initial max width
     m_pListContent->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    m_pListContent->setFocusPolicy(Qt::NoFocus);
-    m_pListContent->setFrameStyle(QFrame::NoFrame);
+    setContentMode(mode);
 
     m_pLayout->addWidget(m_pButtonHeader);
     m_pLayout->addWidget(m_pListContent);
@@ -51,7 +49,12 @@ FPanel::FPanel(QWidget* parent)
 
 void FPanel::applyTheme() 
 {
-    m_pListContent->setSpacing(getDisplaySize(0).toInt());
+    // m_pListContent->setContentsMargins(20, 0, 0, 0);
+    if (m_pListContent->viewMode() == QListView::IconMode)
+        m_pListContent->setSpacing(getDisplaySize(0).toInt());
+    else
+        m_pListContent->setSpacing(getDisplaySize(0).toInt()/2);
+
     m_pListContent->enableSpacingBorder(false);
     m_pListContent->setStyleSheet(QString("QListWidget {background-color: %1; } QListWidget::item { outline: none; border: none; } QListWidget::item:selected { background: %1; outline: none; } QListWidget::item:focus { outline: none; }").arg(getColorTheme(1).name(QColor::HexArgb)));
 
@@ -68,7 +71,7 @@ QColor FPanel::getColorTheme(int idx)
 
 QVariant FPanel::getDisplaySize(int idx)
 {
-    SET_UP_DISPLAY_SIZE(0, Primary, offsetSize1);
+    SET_UP_DISPLAY_SIZE(0, Primary, offsetSize2);
 
     return QVariant(0);
 }
@@ -115,13 +118,13 @@ void FPanel::updateContainerHeight() {
     setFixedHeight(totalHeight);            // lock it so parent layout respects it
 }
 
-void FPanel::onArrowToggled(bool expanded) 
+void FPanel::onArrowToggled(bool bExpanded) 
 {
     m_bRun = true;
     int startHeight = m_iExpandHeight;
     int endHeight = 0;
     int animationTime = 200;
-    if (expanded)
+    if (bExpanded)
     {
         endHeight = startHeight;
         startHeight = 0;
@@ -151,6 +154,7 @@ void FPanel::onArrowToggled(bool expanded)
     connect(anim, &QAbstractAnimation::finished, this, & FPanel::updateContainerHeight);
     connect(anim, &QAbstractAnimation::finished, this, [=]() {
         this->setRun(false);  // manually recalculate total width
+        emit expanded(bExpanded); // emit signal after animation is done
     });
 }
 
@@ -213,10 +217,29 @@ void FPanel::setRun(bool run)
     m_bRun = run;
 }
 
+void FPanel::setContentMode(ContentMode wrap)
+{
+    if (wrap == ContentMode::Wrap)
+    {
+        m_pListContent->setViewMode(QListView::IconMode); // List mode
+        m_pListContent->setFlow(QListView::LeftToRight);  // Flow left to right
+        m_pListContent->setWrapping(true);               // Wrap into rows
+    }
+    else if (wrap == ContentMode::VerticalList)
+    {
+        m_pListContent->setViewMode(QListView::ListMode); // List mode
+        m_pListContent->setFlow(QListView::TopToBottom);  // Flow left to right
+        m_pListContent->setWrapping(false);               // No wrapping
+    }
+    else if (wrap == ContentMode::HorizontalList)
+    {
+        m_pListContent->setViewMode(QListView::IconMode); // List mode
+        m_pListContent->setFlow(QListView::LeftToRight);  // Flow left to right
+        m_pListContent->setWrapping(false);               // No wrapping
+    }
+}
+
 void FPanel::addWidget(QWidget* widget)
 {
-    QListWidgetItem* item = new QListWidgetItem(m_pListContent);
-    item->setSizeHint(widget->size());
-    m_pListContent->addItem(item);
-    m_pListContent->setItemWidget(item, widget);
+    m_pListContent->addWidget(widget);
 }

@@ -8,7 +8,7 @@
 FTabBarContainer::FTabBarContainer(QWidget *parent)
     : QWidget(parent), FThemeableWidget()
 {
-    m_pSplitter = new QSplitter(Qt::Horizontal, this);
+    m_pSplitter = new FSplitter(Qt::Horizontal, this);
     m_pSplitter->setChildrenCollapsible(false); // Prevent full collapse
     auto* layout = new QHBoxLayout(this);
     layout->setContentsMargins(0, 0, 0, 0);
@@ -22,6 +22,7 @@ FTabBarContainer::FTabBarContainer(QWidget *parent)
 void FTabBarContainer::applyTheme()
 {
     // setStyleSheet(QString("QTabWidget::pane { background: %1; border:none; }").arg(getColorTheme(0).name()));
+    m_pSplitter->setHandleSeparatorColor(getColorTheme(2));
     const QObjectList &listChild = m_pSplitter->children();
     for (QObject *pChild : listChild)
     {
@@ -29,14 +30,13 @@ void FTabBarContainer::applyTheme()
         if (pWidget)
             updateStyleContainer(pWidget);
     }
-
-    m_pSplitter->setHandleWidth(getDisplaySize(2).toInt()); // Optional: custom handle width
 }
 
 QColor FTabBarContainer::getColorTheme(int idx)
 {
     SET_UP_COLOR(0, Default, backgroundSection1);
     SET_UP_COLOR(1, Default, dominant);
+    SET_UP_COLOR(2, Default, transparent);
 
     return QColor(qRgb(0, 0, 0));
 }

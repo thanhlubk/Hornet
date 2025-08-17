@@ -1,5 +1,5 @@
 #include <FancyWidgets/FSideBar.h>
-#include <FancyWidgets/FHorizontalSeparator.h>
+#include <FancyWidgets/FSeparator.h>
 #include <FancyWidgets/FUtil.h>
 #include <QEvent>
 #include <QThread>
@@ -100,7 +100,7 @@ QWidget* FSideBar::createPage(const QString &xml)
     FUtil::setFontWidget(pLabel, GET_FONT_SIZE(HeaderSize1), true);
     pLabel->setStyleSheet("background: yellow");
 
-    auto pSeparator = new FHorizontalSeparator(page);
+    auto pSeparator = new FSeparator(page);
     pSeparator->setFixedHeight(10);
     pSeparator->setLineWidth(2);
     pSeparator->setLinePosition(3);
@@ -157,14 +157,13 @@ void FSideBar::updateContainerWidth()
     setFixedWidth(totalWidth);            // lock it so parent layout respects it
 }
 
-#if 0
-void FSideBar::createTab(int idx, const QString &icon1, const QString &icon2, const QString& xml, bool bPin)
+void FSideBar::createTab(const QString &title, const QString &icon1, const QString &icon2, std::function<QWidget *()> widgetFactory, bool bPin)
 {
     FSideBarTab* button = new FSideBarTab(m_pScrollArea);
     button->setIcon(icon1, icon2);
 
     // Temp name
-    button->setTitle(QString("Item %1").arg(idx));
+    button->setTitle(title);
 
     if (m_pScrollArea)
     {
@@ -174,15 +173,12 @@ void FSideBar::createTab(int idx, const QString &icon1, const QString &icon2, co
             m_pScrollArea->addPinItem(button);
     }
 
-    // m_pStackedWidget->registerPage(idx, [this, xml]() {
-    //     return this->m_pStackedWidget->addPageTest(xml);
-    // });
+    auto idx = m_pStackedWidget->registerPage([this, widgetFactory, title]()
+        { return this->m_pStackedWidget->addPage(widgetFactory, title); });
 
-    connect(button, &FSideBarTab::clicked, [=]() {
-        m_pStackedWidget->setCurrentLazyIndex(idx);
-    });
+    connect(button, &FSideBarTab::clicked, [=]()
+            { m_pStackedWidget->setCurrentLazyIndex(idx); });
 }
-#endif
 
 void FSideBar::createTabSetting(const QString &icon1, const QString &icon2)
 {
@@ -248,7 +244,7 @@ void FSideBar::readJson(const QString& jsonFile)
             QJsonArray panelsArray = jsonObj["childs"].toArray();
 
             auto idx = m_pStackedWidget->registerPage([this, panelsArray, strTitle]() {
-                return this->m_pStackedWidget->addPageTest2(panelsArray, strTitle);
+                return this->m_pStackedWidget->addPageJson(panelsArray, strTitle);
             });
 
             connect(button, &FSideBarTab::clicked, [=]() {

@@ -25,9 +25,10 @@ public:
     void readJson(const QString &jsonFile);
     void createTabSetting(const QString& icon1, const QString& icon2);
     void createTabOutline(const QString& icon1, const QString& icon2);
+    void createTab(const QString &title, const QString &icon1, const QString &icon2, std::function<QWidget *()> widgetFactory, bool bPin);
 
-protected:
-    bool eventFilter(QObject* watched, QEvent* event) override;
+protected: 
+    bool eventFilter(QObject *watched, QEvent *event) override;
     // QWidget* createPage(const QString& xml);
 
 public slots:
