@@ -26,6 +26,9 @@ public:
 protected:
     void initTheme();
 
+private slots:
+    void on_fancyButton_clicked();
+
 private:
     Ui::MainWindow *ui;
 };

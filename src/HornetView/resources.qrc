@@ -1,0 +1,15 @@
+<RCC>
+  <qresource prefix="shader/vertex">
+    <file alias="node">shaders/VSNode.glsl</file>
+    <file alias="element">shaders/VSElement.glsl</file>
+    <file alias="coordinate">shaders/VSCoordinate.glsl</file>
+    <file alias="force">shaders/VSForce.glsl</file>
+  </qresource>
+
+  <qresource prefix="shader/fragment">
+    <file alias="node">shaders/FSNode.glsl</file>
+    <file alias="element">shaders/FSElement.glsl</file>
+    <file alias="coordinate">shaders/FSCoordinate.glsl</file>
+    <file alias="force">shaders/FSForce.glsl</file>
+  </qresource>
+</RCC>
