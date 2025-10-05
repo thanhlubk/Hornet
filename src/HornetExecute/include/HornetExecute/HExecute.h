@@ -10,11 +10,11 @@
 #  define HORNETEXECUTE_EXPORT
 #endif
 
-#include <HornetBase/HDataBase.h>
+// #include <HornetBase/HDataBase.h>
 
 class HORNETEXECUTE_EXPORT HExecute {
 public:
     void Execute();
 private:
-    HDataBase helper;
+    // HDataBase helper;
 };

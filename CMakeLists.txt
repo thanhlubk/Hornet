@@ -1,7 +1,11 @@
 # Top-level CMakeLists.txt for Hornet with cross-platform layout support
 
 cmake_minimum_required(VERSION 3.16)
-project(Hornet)
+project(Hornet VERSION 1.0 LANGUAGES CXX)
+
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)  # Enforces that C++20 must be used
+set(CMAKE_CXX_EXTENSIONS OFF)        # Optional: disables compiler-specific extensions like GNU++20
 
 # Detect platform
 if(WIN32)

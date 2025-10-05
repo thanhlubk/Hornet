@@ -17,6 +17,8 @@
 #include <QTextStream>
 #include <QStringList>
 #include <HornetView/HViewDef.h>
+#include <HornetBase/DatabaseSession.h>
+#include <HornetBase/HINode.h>
 
 // ---- tiny helpers ----
 static inline bool isCommentOrEmpty(const QString &s)
@@ -524,6 +526,133 @@ MainWindow::MainWindow(QWidget* parent)
         maximized = !maximized;
         maximized ? this->showMaximized() : this->showNormal();
     });
+
+
+    /// test database
+    DatabaseSession db;
+
+    db.beginTransaction();
+    db.emplace<HINode>(1);
+    db.emplace<HINode>(2);
+    db.emplace<HINode>(3);
+    db.emplace<HINode>(4);
+    db.emplace<HINode>(5);
+
+    db.emplace<HIElemTest>(6);
+    db.emplace<HIElemTest>(7);
+    db.commitTransaction();
+
+    auto stats = db.stats();
+    qDebug() << "categories=" << stats.store_count
+             << " object=" << stats.objects
+             << " bytes_used~" << stats.bytes_used << "\n";
+
+    if (auto *a = db.get<HINode>(1))
+    {
+        qDebug() << a->id() << "\n";
+    }
+    if (auto *b = db.get<HINode>(5))
+    {
+        qDebug() << b->id() << "\n";
+    }
+
+    db.beginTransaction();
+    // Delete A(1) — this will compact that chunk
+    db.erase<HIElemTest>(6);
+    db.commitTransaction();
+
+    // Iterate A in memory order
+    // db.for_each_in_memory_order<A>([](Id id, A& a) { /* ... */ });
+    auto stats2 = db.stats();
+    qDebug() << "categories=" << stats2.store_count
+             << " object=" << stats2.objects
+             << " bytes_used~" << stats2.bytes_used << "\n";
+
+    db.beginTransaction();
+    db.emplace<HIElemTest>(11);
+    db.emplace<HIElemTest>(12);
+    db.commitTransaction();
+
+    auto stats3 = db.stats();
+    qDebug() << "categories=" << stats3.store_count
+             << " object=" << stats3.objects
+             << " bytes_used~" << stats3.bytes_used << "\n";
+
+    auto *noMix = db.getPoolUnique(CategoryType::CatNode);
+    if (noMix)
+    {
+        for (auto any : noMix->range())
+        {
+            auto item = std::launder(reinterpret_cast<HINode *>(any));
+
+            qDebug() << "No mix id is =" << item->id() << "\n";
+        }
+    }
+
+    auto *doMix = db.getPoolMix(CategoryType::CatElement);
+    if (doMix)
+    {
+        for (auto any : doMix->range())
+        {
+            auto item2 = std::launder(reinterpret_cast<HIElemTest *>(any));
+            qDebug() << "Do mix id is =" << item2->id() << "\n";
+        }
+    }
+
+    db.undo();
+    db.undo();
+
+    auto stats4 = db.stats();
+    qDebug() << "categories=" << stats4.store_count
+             << " object=" << stats4.objects
+             << " bytes_used~" << stats4.bytes_used << "\n";
+
+    auto *noMix2 = db.getPoolUnique(CategoryType::CatNode);
+    if (noMix2)
+    {
+        for (auto any : noMix2->range())
+        {
+            auto item = std::launder(reinterpret_cast<HINode *>(any));
+
+            qDebug() << "No mix id is =" << item->id() << "\n";
+        }
+    }
+
+    auto *doMix2 = db.getPoolMix(CategoryType::CatElement);
+    if (doMix2)
+    {
+        for (auto any : doMix2->range())
+        {
+            auto item2 = std::launder(reinterpret_cast<HIElemTest *>(any));
+            qDebug() << "Do mix id is =" << item2->id() << "\n";
+        }
+    }
+    db.redo();
+    auto stats5 = db.stats();
+    qDebug() << "categories=" << stats5.store_count
+             << " object=" << stats5.objects
+             << " bytes_used~" << stats5.bytes_used << "\n";
+
+    auto *noMix3 = db.getPoolUnique(CategoryType::CatNode);
+    if (noMix3)
+    {
+        for (auto any : noMix3->range())
+        {
+            auto item = std::launder(reinterpret_cast<HINode *>(any));
+
+            qDebug() << "No mix id is =" << item->id() << "\n";
+        }
+    }
+
+    auto *doMix3 = db.getPoolMix(CategoryType::CatElement);
+    if (doMix3)
+    {
+        for (auto any : doMix3->range())
+        {
+            auto item2 = std::launder(reinterpret_cast<HIElemTest *>(any));
+            qDebug() << "Do mix id is =" << item2->id() << "\n";
+        }
+    }
 }
 
 MainWindow::~MainWindow()
