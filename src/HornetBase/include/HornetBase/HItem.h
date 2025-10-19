@@ -13,20 +13,35 @@ struct AssociateParam
     ItemType eType;
     uint16_t iFlag;
     uint16_t iStatus;
+
+    AssociateParam()
+        : eCategory(CategoryType::CatUnknown),
+          eType(ItemType::ItemUnkown),
+          iFlag(0),
+          iStatus(0) {}
 };
 #pragma pack(pop)
 
 class HORNETBASE_EXPORT HCursor
 {
     friend class HItem;
+    friend class DatabaseSession;
+    friend class Pool;
+    friend class PoolMix;
+    friend class PoolUnique;
+    template <class T>
+    friend class ChunkItem;
+    friend struct Chunk;
+
+public:
+    HCursor();
+    virtual ~HCursor() = default;
 
 protected:
-    HCursor(Id id, CategoryType cat, ItemType type);
     HCursor(const HCursor &) = delete;
     HCursor &operator=(const HCursor &) = delete;
     HCursor(HCursor &&) noexcept = default;
     HCursor &operator=(HCursor &&) noexcept = default;
-    virtual ~HCursor() = default;
 
 public:
     Id id() const noexcept;
@@ -36,6 +51,7 @@ public:
 private:
     AssociateParam stAssoc;
     Id iId;
+    HItem *m_pItem = nullptr; // back-pointer to owning HItem (internal only)
 };
 
 struct HItemCreatorToken
@@ -51,19 +67,19 @@ public:
     CategoryType category() const noexcept;
     ItemType type() const noexcept;
     Id id() const noexcept;
-    HCursor *getCursor() noexcept;
+    HCursor *getCursor() const noexcept;
 
     virtual ~HItem() = default;
 
 protected:
-    HItem(Id id, HItemCreatorToken, CategoryType cat, ItemType k) noexcept;
+    HItem(Id id, HCursor *cursor, HItemCreatorToken, CategoryType cat, ItemType k) noexcept;
     HItem(const HItem &) = delete;
     HItem &operator=(const HItem &) = delete;
     HItem(HItem &&) noexcept = default;
     HItem &operator=(HItem &&) noexcept = default;
 
 private: 
-    HCursor m_stCursor;
+    HCursor* m_pCursor;
 };
 
 template <class T>

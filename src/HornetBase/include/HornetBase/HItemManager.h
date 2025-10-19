@@ -5,6 +5,28 @@
 #include <array>
 #include <vector>
 #include "HItem.h"
+// #include "DatabaseSession.h"
+
+class DatabaseSession;
+
+using CaptureFn = std::string (*)(const void *, DatabaseSession *pDb);              // obj -> bytes
+using RestoreFn = void (*)(void *, const std::string &bytes, DatabaseSession *pDb); // bytes -> obj
+using DestroyFn = void (*)(void *);
+using MoveFn = void (*)(void *dst, void *src);
+using ConstructFn = void (*)(void *dst, Id id, HCursor *cursor, HItemCreatorToken);
+
+struct ItemTypeDescriptor
+{
+    CategoryType cat{};
+    ItemType kind{ItemType::ItemEnd};
+    std::size_t size{0};
+    std::size_t align{0};
+    DestroyFn destroy{};
+    MoveFn move{};
+    ConstructFn construct{};
+    CaptureFn capture{};
+    RestoreFn restore{};
+};
 
 // Singleton class to hold the ItemType to CategoryType mapping
 class HORNETBASE_EXPORT HItemManager
@@ -25,45 +47,45 @@ public:
     bool registerInfor(CategoryType cat, ItemType kind);
 
     // capture to bytes (no-op if unregistered)
-    std::string captureTransaction(ItemType k, const void *obj) const;
+    std::string captureTransaction(ItemType k, const void *obj, DatabaseSession *pDb) const;
     // restore from bytes (no-op if unregistered)
-    void restoreTransaction(ItemType k, void *obj, const std::string &bytes) const;
+    void restoreTransaction(ItemType k, void *obj, const std::string &bytes, DatabaseSession *pDb) const;
 
     template <class T>
     bool registerTransaction()
     {
         const auto idx = static_cast<std::size_t>(ItemTypeOf<T>);
-        m_arrCapture[idx] = [](const void *p) -> std::string
+        m_arrCapture[idx] = [](const void *p, DatabaseSession *pDb) -> std::string
         {
             const T &self = *reinterpret_cast<const T *>(p);
-            return T::captureTransactionItem(self);
+            return T::captureTransactionItem(self, pDb);
         };
-        m_arrRestore[idx] = [](void *p, const std::string &bytes)
+        m_arrRestore[idx] = [](void *p, const std::string &bytes, DatabaseSession *pDb)
         {
             T &self = *reinterpret_cast<T *>(p);
-            T::restoreTransactionItem(self, bytes);
+            T::restoreTransactionItem(self, bytes, pDb);
         };
         return true;
     }
 
-    using CaptureFn = std::string (*)(const void *);            // obj -> bytes
-    using RestoreFn = void (*)(void *, const std::string &bytes); // bytes -> obj
-    using DestroyFn = void (*)(void *);
-    using MoveFn = void (*)(void *dst, void *src);
-    using ConstructFn = void (*)(void *dst, Id id, HItemCreatorToken);
+    // using CaptureFn = std::string (*)(const void *, DatabaseSession *pDb);              // obj -> bytes
+    // using RestoreFn = void (*)(void *, const std::string &bytes, DatabaseSession *pDb); // bytes -> obj
+    // using DestroyFn = void (*)(void *);
+    // using MoveFn = void (*)(void *dst, void *src);
+    // using ConstructFn = void (*)(void *dst, Id id, HCursor *cursor, HItemCreatorToken);
 
-    struct ItemTypeDescriptor
-    {
-        CategoryType cat{};
-        ItemType kind{ItemType::ItemEnd};
-        std::size_t size{0};
-        std::size_t align{0};
-        DestroyFn destroy{};
-        MoveFn move{};
-        ConstructFn construct{};
-        CaptureFn capture{};
-        RestoreFn restore{};
-    };
+    // struct ItemTypeDescriptor
+    // {
+    //     CategoryType cat{};
+    //     ItemType kind{ItemType::ItemEnd};
+    //     std::size_t size{0};
+    //     std::size_t align{0};
+    //     DestroyFn destroy{};
+    //     MoveFn move{};
+    //     ConstructFn construct{};
+    //     CaptureFn capture{};
+    //     RestoreFn restore{};
+    // };
 
     template <class T>
     bool registerType(CategoryType cat, ItemType kind)
@@ -85,8 +107,8 @@ public:
                 else
                     ::new (dst) T(*reinterpret_cast<T *>(src));
             },
-            [](void *dst, Id id, HItemCreatorToken tok)
-            { ::new (dst) T(id, tok); },
+            [](void *dst, Id id, HCursor *cursor, HItemCreatorToken tok)
+            { ::new (dst) T(id, cursor, tok); },
             m_arrCapture[idx], m_arrRestore[idx]};
         // keep your category map as-is
         registerInfor(cat, kind);

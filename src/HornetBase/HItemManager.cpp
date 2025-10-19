@@ -31,26 +31,26 @@ bool HItemManager::registerInfor(CategoryType cat, ItemType kind)
     return false;
 }
 
-std::string HItemManager::captureTransaction(ItemType k, const void *obj) const
+std::string HItemManager::captureTransaction(ItemType k, const void *obj, DatabaseSession *pDb) const
 {
     auto idx = static_cast<std::size_t>(k);
     if (idx < m_arrCapture.size() && m_arrCapture[idx])
     {
-        return m_arrCapture[idx](obj);
+        return m_arrCapture[idx](obj, pDb);
     }
     return {};
 }
 
-void HItemManager::restoreTransaction(ItemType k, void *obj, const std::string &bytes) const
+void HItemManager::restoreTransaction(ItemType k, void *obj, const std::string &bytes, DatabaseSession *pDb) const
 {
     auto idx = static_cast<std::size_t>(k);
     if (idx < m_arrRestore.size() && m_arrRestore[idx])
     {
-        m_arrRestore[idx](obj, bytes);
+        m_arrRestore[idx](obj, bytes, pDb);
     }
 }
 
-const HItemManager::ItemTypeDescriptor *HItemManager::descriptor(ItemType k) const
+const ItemTypeDescriptor *HItemManager::descriptor(ItemType k) const
 {
     auto idx = static_cast<std::size_t>(k);
     if (idx < m_arrTypeDesc.size() && m_arrTypeDesc[idx].has_value())

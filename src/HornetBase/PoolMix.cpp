@@ -3,17 +3,17 @@
 #include <algorithm>
 #include <stdexcept>
 
-PoolMix::PoolMix(CategoryType cat, std::size_t chunk_bytes, bool lazy_first_chunk)
-    : Pool(cat), chunk_bytes_(chunk_bytes), lazy_first_chunk_(lazy_first_chunk)
+PoolMix::PoolMix(CategoryType cat, ChunkCursor *chunkCursor, std::size_t chunk_bytes, bool lazy_first_chunk)
+    : Pool(cat, chunkCursor), chunk_bytes_(chunk_bytes), lazy_first_chunk_(lazy_first_chunk)
 {
     if (!lazy_first_chunk_)
         new_chunk();
 }
 
-PoolMix::PoolMix(std::size_t chunk_bytes, bool lazy_first_chunk)
-    : PoolMix(CategoryType::CatUnknown, chunk_bytes, lazy_first_chunk)
-{
-}
+// PoolMix::PoolMix(std::size_t chunk_bytes, bool lazy_first_chunk)
+//     : PoolMix(CategoryType::CatUnknown, chunk_bytes, lazy_first_chunk)
+// {
+// }
 
 // ---- Pool overrides ----
 void PoolMix::clear()
@@ -21,7 +21,11 @@ void PoolMix::clear()
     for (auto &kv : index_)
     {
         const MixLoc &loc = kv.second;
+
+        // Erase cursor first then Destroy object
         void *ptr = static_cast<void *>(chunks_[loc.chunk].buf.get() + loc.offset);
+        if (auto *item = static_cast<HItem *>(ptr))
+            m_pChunkCursor->erase(item->getCursor());
         loc.ops->destroy(ptr);
     }
     index_.clear();
@@ -44,7 +48,7 @@ std::size_t PoolMix::count() const
     return count_;
 }
 
-void PoolMix::restoreBytes(TransactionManager::TransactionOperation tx)
+void PoolMix::restoreBytes(TransactionManager::TransactionOperation tx, DatabaseSession *pDb)
 {
     switch (tx.type)
     {
@@ -57,13 +61,13 @@ void PoolMix::restoreBytes(TransactionManager::TransactionOperation tx)
     case TransactionManager::TransactionType::Modify:
         if (void *p = getRaw(tx.itemType, tx.id))
         {
-            HItemManager::getInstance().restoreTransaction(tx.itemType, p, tx.payloadBefore);
+            HItemManager::getInstance().restoreTransaction(tx.itemType, p, tx.payloadBefore, pDb);
         }
         break;
     }
 }
 
-void PoolMix::updateBytes(TransactionManager::TransactionOperation tx)
+void PoolMix::updateBytes(TransactionManager::TransactionOperation tx, DatabaseSession *pDb)
 {
     switch (tx.type)
     {
@@ -76,7 +80,7 @@ void PoolMix::updateBytes(TransactionManager::TransactionOperation tx)
     case TransactionManager::TransactionType::Modify:
         if (void *p = getRaw(tx.itemType, tx.id))
         {
-            HItemManager::getInstance().restoreTransaction(tx.itemType, p, tx.payloadAfter);
+            HItemManager::getInstance().restoreTransaction(tx.itemType, p, tx.payloadAfter, pDb);
         }
         break;
     }
@@ -110,7 +114,11 @@ bool PoolMix::eraseRaw(ItemType ti, Id id)
         return false;
     MixLoc loc = it->second;
     MixChunk &c = chunks_[loc.chunk];
+
+    // Erase cursor first then Destroy object
     void *ptr = static_cast<void *>(c.buf.get() + loc.offset);
+    if (auto *item = static_cast<HItem *>(ptr))
+        m_pChunkCursor->erase(item->getCursor());
     loc.ops->destroy(ptr);
 
     index_.erase(it);
@@ -137,7 +145,7 @@ bool PoolMix::emplaceRaw(ItemType ti, Id id, HItemCreatorToken tok)
     if (chunks_.empty())
         new_chunk();
 
-    const HItemManager::ItemTypeDescriptor *ops = HItemManager::getInstance().descriptor(ti);
+    const ItemTypeDescriptor *ops = HItemManager::getInstance().descriptor(ti);
     if (!ops)
         throw std::runtime_error("Unknown ItemType in emplaceRaw");
 
@@ -163,7 +171,8 @@ bool PoolMix::emplaceRaw(ItemType ti, Id id, HItemCreatorToken tok)
     }
 
     void *dst = static_cast<void *>(c->buf.get() + aligned);
-    ops->construct(dst, id, tok);
+    HCursor *pCursor = m_pChunkCursor->emplace();
+    ops->construct(dst, id, pCursor, tok);
 
     c->used = aligned + ops->size;
     c->ids.push_back(key);
@@ -219,6 +228,11 @@ void PoolMix::compact_all()
         void *dst = static_cast<void *>(new_chunks.back().buf.get() + aligned);
         void *src = static_cast<void *>(chunks_[it.loc.chunk].buf.get() + it.loc.offset);
         ops->move(dst, src);
+
+        // rebind cursor(owner) to the new address
+        auto *moved = static_cast<HItem *>(dst);
+        moved->getCursor()->m_pItem = moved;
+
         ops->destroy(src);
         new_chunks.back().used = aligned + ops->size;
         new_chunks.back().ids.push_back(it.key);

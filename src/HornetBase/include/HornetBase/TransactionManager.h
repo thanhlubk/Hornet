@@ -11,6 +11,7 @@ class HORNETBASE_EXPORT TransactionManager
 public:
     enum class TransactionType : std::uint8_t
     {
+        Unknown = 0,
         Emplace = 1,
         Erase = 2,
         Modify = 3
@@ -18,11 +19,20 @@ public:
 
     struct TransactionOperation
     {
-        TransactionType type{};
-        ItemType itemType{};
-        Id id{0};
+        TransactionType type;
+        ItemType itemType;
+        Id id;
         std::string payloadBefore;
         std::string payloadAfter;
+
+        TransactionOperation()
+        {
+            type = TransactionType::Unknown;
+            itemType = ItemType::ItemUnkown;
+            id = 0;
+            payloadBefore.clear();
+            payloadAfter.clear();
+        }
     };
 
     struct Transaction

@@ -1,7 +1,9 @@
+#pragma once
 #include <string>
 #include <string_view>
 #include <type_traits>
 #include <vector>
+#include <array>
 #include <list>
 #include <set>
 #include <map>
@@ -10,6 +12,11 @@
 #include <cstdint>
 #include <cassert>
 #include <cstring> // for std::memcpy used in writeRaw/readRaw
+#include "HBaseDef.h"
+// #include "DatabaseSession.h"
+
+class DatabaseSession;
+class HCursor;
 
 namespace MeasureHelper
 {
@@ -37,6 +44,21 @@ namespace MeasureHelper
     inline size_t measure(const std::string &obj)
     {
         return sizeof(uint64_t) + obj.size(); // length + bytes
+    }
+
+    // --- NEW: measure for enum (serialize underlying type size)
+    template <class E>
+    inline size_t measure(const E &e) requires std::is_enum_v<E>
+    {
+        using U = std::underlying_type_t<E>;
+        U u = static_cast<U>(e);
+        return measure(u); // reuse arithmetic path
+    }
+
+    // --- measure for HCursor* as (ItemType + Id)
+    inline size_t measure(HCursor *const &)
+    {
+        return sizeof(ItemType) + sizeof(Id);
     }
 
     // array
@@ -145,7 +167,7 @@ namespace TransactionHelper
 
     // ==== arithmetic ====
     template <class T, std::enable_if_t<std::is_arithmetic_v<T>, int> = 0>
-    inline bool transactionDataExchange(bool capture, std::string &buf, size_t &off, T &v)
+    inline bool transactionDataExchange(bool capture, std::string &buf, size_t &off, T &v, DatabaseSession *pDb)
     {
         if (capture)
         {
@@ -158,9 +180,32 @@ namespace TransactionHelper
         }
     }
 
+    // ---- NEW: enum exchange via underlying integer ----
+    template <class E, std::enable_if_t<std::is_enum_v<E>, int> = 0>
+    inline bool transactionDataExchange(bool capture, std::string &buf, size_t &off, E &e, DatabaseSession *pDb)
+    {
+        using U = std::underlying_type_t<E>;
+        if (capture)
+        {
+            U u = static_cast<U>(e);
+            return transactionDataExchange(true, buf, off, u, pDb);
+        }
+        else
+        {
+            U u{};
+            if (!transactionDataExchange(false, buf, off, u, pDb))
+                return false;
+            e = static_cast<E>(u);
+            return true;
+        }
+    }
+
+    // ---- HCursor* exchange as (ItemType, Id) <-> pointer
+    bool transactionDataExchange(bool capture, std::string &buf, size_t &off, HCursor *&p, DatabaseSession *pDb);
+
     // ==== std::array ====
     template <class T, size_t N>
-    inline bool transactionDataExchange(bool capture, std::string &buf, size_t &off, std::array<T, N> &a)
+    inline bool transactionDataExchange(bool capture, std::string &buf, size_t &off, std::array<T, N> &a, DatabaseSession *pDb)
     {
         if constexpr (std::is_trivially_copyable_v<T>)
         {
@@ -175,7 +220,7 @@ namespace TransactionHelper
         else
         {
             for (auto &e : a)
-                if (!transactionDataExchange(capture, buf, off, e))
+                if (!transactionDataExchange(capture, buf, off, e, pDb))
                     return false;
             return true;
         }
@@ -183,10 +228,10 @@ namespace TransactionHelper
 
     // ==== std::vector ====
     template <class T>
-    inline bool transactionDataExchange(bool capture, std::string &buf, size_t &off, std::vector<T> &v)
+    inline bool transactionDataExchange(bool capture, std::string &buf, size_t &off, std::vector<T> &v, DatabaseSession *pDb)
     {
         uint64_t n = capture ? static_cast<uint64_t>(v.size()) : 0;
-        if (!transactionDataExchange(capture, buf, off, n))
+        if (!transactionDataExchange(capture, buf, off, n, pDb))
             return false;
         if (!capture)
             v.resize(static_cast<size_t>(n));
@@ -204,7 +249,7 @@ namespace TransactionHelper
         else
         {
             for (size_t i = 0; i < static_cast<size_t>(n); ++i)
-                if (!transactionDataExchange(capture, buf, off, v[i]))
+                if (!transactionDataExchange(capture, buf, off, v[i], pDb))
                     return false;
             return true;
         }
@@ -212,15 +257,15 @@ namespace TransactionHelper
 
     // ==== std::list ====
     template <class T>
-    inline bool transactionDataExchange(bool capture, std::string &buf, size_t &off, std::list<T> &lst)
+    inline bool transactionDataExchange(bool capture, std::string &buf, size_t &off, std::list<T> &lst, DatabaseSession *pDb)
     {
         uint64_t n = capture ? static_cast<uint64_t>(lst.size()) : 0;
-        if (!transactionDataExchange(capture, buf, off, n))
+        if (!transactionDataExchange(capture, buf, off, n, pDb))
             return false;
         if (capture)
         {
             for (auto &e : lst)
-                if (!transactionDataExchange(true, buf, off, e))
+                if (!transactionDataExchange(true, buf, off, e, pDb))
                     return false;
             return true;
         }
@@ -230,7 +275,7 @@ namespace TransactionHelper
             for (size_t i = 0; i < static_cast<size_t>(n); ++i)
             {
                 T tmp{};
-                if (!transactionDataExchange(false, buf, off, tmp))
+                if (!transactionDataExchange(false, buf, off, tmp, pDb))
                     return false;
                 lst.push_back(std::move(tmp));
             }
@@ -240,16 +285,16 @@ namespace TransactionHelper
 
     // ==== std::set (ordered) ====
     template <class T, class Cmp, class Alloc>
-    inline bool transactionDataExchange(bool capture, std::string &buf, size_t &off, std::set<T, Cmp, Alloc> &s)
+    inline bool transactionDataExchange(bool capture, std::string &buf, size_t &off, std::set<T, Cmp, Alloc> &s, DatabaseSession *pDb)
     {
         uint64_t n = capture ? static_cast<uint64_t>(s.size()) : 0;
-        if (!transactionDataExchange(capture, buf, off, n))
+        if (!transactionDataExchange(capture, buf, off, n, pDb))
             return false;
         if (capture)
         {
             // const_cast is OK: capture branch won’t mutate the element
             for (auto &e : s)
-                if (!transactionDataExchange(true, buf, off, const_cast<T &>(e)))
+                if (!transactionDataExchange(true, buf, off, const_cast<T &>(e), pDb))
                     return false;
             return true;
         }
@@ -259,7 +304,7 @@ namespace TransactionHelper
             for (size_t i = 0; i < static_cast<size_t>(n); ++i)
             {
                 T tmp{};
-                if (!transactionDataExchange(false, buf, off, tmp))
+                if (!transactionDataExchange(false, buf, off, tmp, pDb))
                     return false;
                 s.insert(std::move(tmp));
             }
@@ -269,18 +314,18 @@ namespace TransactionHelper
 
     // ==== std::map (ordered) ====
     template <class K, class V, class Cmp, class Alloc>
-    inline bool transactionDataExchange(bool capture, std::string &buf, size_t &off, std::map<K, V, Cmp, Alloc> &m)
+    inline bool transactionDataExchange(bool capture, std::string &buf, size_t &off, std::map<K, V, Cmp, Alloc> &m, DatabaseSession *pDb)
     {
         uint64_t n = capture ? static_cast<uint64_t>(m.size()) : 0;
-        if (!transactionDataExchange(capture, buf, off, n))
+        if (!transactionDataExchange(capture, buf, off, n, pDb))
             return false;
         if (capture)
         {
             for (auto &kv : m)
             {
-                if (!transactionDataExchange(true, buf, off, const_cast<K &>(kv.first)))
+                if (!transactionDataExchange(true, buf, off, const_cast<K &>(kv.first), pDb))
                     return false;
-                if (!transactionDataExchange(true, buf, off, const_cast<V &>(kv.second)))
+                if (!transactionDataExchange(true, buf, off, const_cast<V &>(kv.second), pDb))
                     return false;
             }
             return true;
@@ -292,9 +337,9 @@ namespace TransactionHelper
             {
                 K k{};
                 V v{};
-                if (!transactionDataExchange(false, buf, off, k))
+                if (!transactionDataExchange(false, buf, off, k, pDb))
                     return false;
-                if (!transactionDataExchange(false, buf, off, v))
+                if (!transactionDataExchange(false, buf, off, v, pDb))
                     return false;
                 m.emplace(std::move(k), std::move(v));
             }
@@ -305,17 +350,17 @@ namespace TransactionHelper
     // ==== std::set (unordered) ====
     template <class T, class Hash, class Eq, class Alloc>
     inline bool transactionDataExchange(bool capture, std::string &buf, size_t &off,
-                                 std::unordered_set<T, Hash, Eq, Alloc> &s)
+                                        std::unordered_set<T, Hash, Eq, Alloc> &s, DatabaseSession *pDb)
     {
         uint64_t n = capture ? static_cast<uint64_t>(s.size()) : 0;
-        if (!transactionDataExchange(capture, buf, off, n))
+        if (!transactionDataExchange(capture, buf, off, n, pDb))
             return false;
 
         if (capture)
         {
             for (auto const &e : s)
             {
-                if (!transactionDataExchange(true, buf, off, const_cast<T &>(e)))
+                if (!transactionDataExchange(true, buf, off, const_cast<T &>(e), pDb))
                     return false;
             }
             return true;
@@ -326,7 +371,7 @@ namespace TransactionHelper
             for (size_t i = 0; i < static_cast<size_t>(n); ++i)
             {
                 T tmp{};
-                if (!transactionDataExchange(false, buf, off, tmp))
+                if (!transactionDataExchange(false, buf, off, tmp, pDb))
                     return false;
                 s.insert(std::move(tmp));
             }
@@ -337,19 +382,19 @@ namespace TransactionHelper
     // ==== std::map (unordered) ====
     template <class K, class V, class Hash, class Eq, class Alloc>
     inline bool transactionDataExchange(bool capture, std::string &buf, size_t &off,
-                                 std::unordered_map<K, V, Hash, Eq, Alloc> &m)
+                                        std::unordered_map<K, V, Hash, Eq, Alloc> &m, DatabaseSession *pDb)
     {
         uint64_t n = capture ? static_cast<uint64_t>(m.size()) : 0;
-        if (!transactionDataExchange(capture, buf, off, n))
+        if (!transactionDataExchange(capture, buf, off, n, pDb))
             return false;
 
         if (capture)
         {
             for (auto const &kv : m)
             {
-                if (!transactionDataExchange(true, buf, off, const_cast<K &>(kv.first)))
+                if (!transactionDataExchange(true, buf, off, const_cast<K &>(kv.first), pDb))
                     return false;
-                if (!transactionDataExchange(true, buf, off, const_cast<V &>(kv.second)))
+                if (!transactionDataExchange(true, buf, off, const_cast<V &>(kv.second), pDb))
                     return false;
             }
             return true;
@@ -361,9 +406,9 @@ namespace TransactionHelper
             {
                 K k{};
                 V v{};
-                if (!transactionDataExchange(false, buf, off, k))
+                if (!transactionDataExchange(false, buf, off, k, pDb))
                     return false;
-                if (!transactionDataExchange(false, buf, off, v))
+                if (!transactionDataExchange(false, buf, off, v, pDb))
                     return false;
                 m.emplace(std::move(k), std::move(v));
             }
@@ -372,10 +417,10 @@ namespace TransactionHelper
     }
 
     // ==== std::string ====
-    inline bool transactionDataExchange(bool capture, std::string &buf, size_t &off, std::string &s)
+    inline bool transactionDataExchange(bool capture, std::string &buf, size_t &off, std::string &s, DatabaseSession *pDb)
     {
         uint64_t n = capture ? static_cast<uint64_t>(s.size()) : 0;
-        if (!transactionDataExchange(capture, buf, off, n))
+        if (!transactionDataExchange(capture, buf, off, n, pDb))
             return false;
         if (capture)
         {
@@ -404,7 +449,7 @@ namespace TransactionHelper
 
     // Capture a sequence of members into a single buffer (pre-sized, single pass)
     template <class T, class... MPtrs>
-    std::string captureMembers(const T &self, MPtrs... mptrs)
+    std::string captureMembers(const T &self, DatabaseSession *pDb, MPtrs... mptrs)
     {
         static_assert((std::is_member_object_pointer_v<MPtrs> && ...), "members only");
         // compute total bytes once
@@ -412,7 +457,7 @@ namespace TransactionHelper
         std::string out;
         out.resize(total);
         size_t off = 0;
-        (transactionDataExchange(true, out, off, asMutable(self.*mptrs)), ...);
+        (transactionDataExchange(true, out, off, asMutable(self.*mptrs), pDb), ...);
         // (optional) assert all written
         // assert(off == out.size());
         return out;
@@ -420,24 +465,24 @@ namespace TransactionHelper
 
     // Restore a sequence of members from a single buffer (single pass)
     template <class T, class... MPtrs>
-    bool restoreMembers(T &self, std::string &bytes, MPtrs... mptrs)
+    bool restoreMembers(T &self, std::string &bytes, DatabaseSession *pDb, MPtrs... mptrs)
     {
         static_assert((std::is_member_object_pointer_v<MPtrs> && ...), "members only");
         size_t off = 0;
-        bool ok = (true && ... && transactionDataExchange(false, bytes, off, self.*mptrs));
+        bool ok = (true && ... && transactionDataExchange(false, bytes, off, self.*mptrs, pDb));
         // (optional) ok = ok && (off == bytes.size());
         return ok;
     }
 
 } // namespace TransactionHelper
 
-#define DEFINE_TRANSACTION_EXCHANGE(T, /* pointers-to-members... */...)                  \
-    static std::string captureTransactionItem(const T &self)                       \
-    {                                                                              \
-        return TransactionHelper::captureMembers(self, __VA_ARGS__);               \
-    }                                                                              \
-    static void restoreTransactionItem(T &self, const std::string &bytes)          \
-    {                                                                              \
-        auto &nonConstBytes = const_cast<std::string &>(bytes);                    \
-        (void)TransactionHelper::restoreMembers(self, nonConstBytes, __VA_ARGS__); \
+#define DEFINE_TRANSACTION_EXCHANGE(T, /* pointers-to-members... */...)                         \
+    static std::string captureTransactionItem(const T &self, DatabaseSession *pDb)              \
+    {                                                                                           \
+        return TransactionHelper::captureMembers(self, pDb, __VA_ARGS__);                       \
+    }                                                                                           \
+    static void restoreTransactionItem(T &self, const std::string &bytes, DatabaseSession *pDb) \
+    {                                                                                           \
+        auto &nonConstBytes = const_cast<std::string &>(bytes);                                 \
+        (void)TransactionHelper::restoreMembers(self, nonConstBytes, pDb, __VA_ARGS__);           \
     }

@@ -2,10 +2,10 @@
 #include "HornetBase/Chunk.h"
 #include "HornetBase/HItemManager.h"
 
-PoolUnique::PoolUnique(CategoryType cat,
+PoolUnique::PoolUnique(CategoryType cat, ChunkCursor *chunkCursor,
                        std::size_t chunk_bytes_per_type,
                        bool lazy_first_chunk)
-    : Pool(cat), chunk_bytes_per_type_(chunk_bytes_per_type), lazy_first_chunk_(lazy_first_chunk)
+    : Pool(cat, chunkCursor), chunk_bytes_per_type_(chunk_bytes_per_type), lazy_first_chunk_(lazy_first_chunk)
 {
 }
 
@@ -31,7 +31,7 @@ std::size_t PoolUnique::count() const
     return total;
 }
 
-void PoolUnique::restoreBytes(TransactionManager::TransactionOperation tx)
+void PoolUnique::restoreBytes(TransactionManager::TransactionOperation tx, DatabaseSession *pDb)
 {
     switch (tx.type)
     {
@@ -44,13 +44,13 @@ void PoolUnique::restoreBytes(TransactionManager::TransactionOperation tx)
     case TransactionManager::TransactionType::Modify:
         if (void *p = getRaw(tx.itemType, tx.id))
         {
-            HItemManager::getInstance().restoreTransaction(tx.itemType, p, tx.payloadBefore);
+            HItemManager::getInstance().restoreTransaction(tx.itemType, p, tx.payloadBefore, pDb);
         }
         break;
     }
 }
 
-void PoolUnique::updateBytes(TransactionManager::TransactionOperation tx)
+void PoolUnique::updateBytes(TransactionManager::TransactionOperation tx, DatabaseSession *pDb)
 {
     switch (tx.type)
     {
@@ -63,7 +63,7 @@ void PoolUnique::updateBytes(TransactionManager::TransactionOperation tx)
     case TransactionManager::TransactionType::Modify:
         if (void *p = getRaw(tx.itemType, tx.id))
         {
-            HItemManager::getInstance().restoreTransaction(tx.itemType, p, tx.payloadAfter);
+            HItemManager::getInstance().restoreTransaction(tx.itemType, p, tx.payloadAfter, pDb);
         }
         break;
     }

@@ -583,8 +583,7 @@ MainWindow::MainWindow(QWidget* parent)
     {
         for (auto any : noMix->range())
         {
-            auto item = std::launder(reinterpret_cast<HINode *>(any));
-
+            auto item = std::launder(reinterpret_cast<HCursor *>(any));
             qDebug() << "No mix id is =" << item->id() << "\n";
         }
     }
@@ -594,11 +593,17 @@ MainWindow::MainWindow(QWidget* parent)
     {
         for (auto any : doMix->range())
         {
-            auto item2 = std::launder(reinterpret_cast<HIElemTest *>(any));
+            auto item2 = std::launder(reinterpret_cast<HCursor *>(any));
             qDebug() << "Do mix id is =" << item2->id() << "\n";
         }
     }
 
+    auto pTestItem = db.get<HINode>(3);
+    if (pTestItem)
+    {
+        auto testcursor = pTestItem->getCursor();
+    }
+    
     db.undo();
     db.undo();
 
@@ -610,21 +615,18 @@ MainWindow::MainWindow(QWidget* parent)
     auto *noMix2 = db.getPoolUnique(CategoryType::CatNode);
     if (noMix2)
     {
-        for (auto any : noMix2->range())
+        for (auto cursor : noMix2->range())
         {
-            auto item = std::launder(reinterpret_cast<HINode *>(any));
-
-            qDebug() << "No mix id is =" << item->id() << "\n";
+            qDebug() << "No mix id is =" << cursor->id() << "\n";
         }
     }
 
     auto *doMix2 = db.getPoolMix(CategoryType::CatElement);
     if (doMix2)
     {
-        for (auto any : doMix2->range())
+        for (auto cursor : doMix2->range())
         {
-            auto item2 = std::launder(reinterpret_cast<HIElemTest *>(any));
-            qDebug() << "Do mix id is =" << item2->id() << "\n";
+            qDebug() << "Do mix id is =" << cursor->id() << "\n";
         }
     }
     db.redo();
@@ -636,21 +638,18 @@ MainWindow::MainWindow(QWidget* parent)
     auto *noMix3 = db.getPoolUnique(CategoryType::CatNode);
     if (noMix3)
     {
-        for (auto any : noMix3->range())
+        for (auto cursor : noMix3->range())
         {
-            auto item = std::launder(reinterpret_cast<HINode *>(any));
-
-            qDebug() << "No mix id is =" << item->id() << "\n";
+            qDebug() << "No mix id is =" << cursor->id() << "\n";
         }
     }
 
     auto *doMix3 = db.getPoolMix(CategoryType::CatElement);
     if (doMix3)
     {
-        for (auto any : doMix3->range())
+        for (auto cursor : doMix3->range())
         {
-            auto item2 = std::launder(reinterpret_cast<HIElemTest *>(any));
-            qDebug() << "Do mix id is =" << item2->id() << "\n";
+            qDebug() << "Do mix id is =" << cursor->id() << "\n";
         }
     }
 }

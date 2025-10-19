@@ -10,7 +10,7 @@ class HORNETBASE_EXPORT HINode : public HItem
     DECLARE_ITEM_STATIC_TAGS(HINode, CategoryType::CatNode, ItemType::ItemNode)
 
 public:
-    HINode(Id id, HItemCreatorToken tok);
+    HINode(Id id, HCursor *cursor, HItemCreatorToken tok);
 
     DEFINE_TRANSACTION_EXCHANGE(HINode,
                           &HINode::arr_)
@@ -27,7 +27,7 @@ class HORNETBASE_EXPORT HIElemTest : public HItem
     DECLARE_ITEM_STATIC_TAGS(HIElemTest, CategoryType::CatElement, ItemType::ItemElementTri6)
 
 public:
-    HIElemTest(Id id, HItemCreatorToken tok);
+    HIElemTest(Id id, HCursor *cursor, HItemCreatorToken tok);
     DEFINE_TRANSACTION_EXCHANGE(HIElemTest,
                                 &HIElemTest::arr_)
 public:

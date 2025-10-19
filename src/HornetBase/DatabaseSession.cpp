@@ -6,7 +6,7 @@
 
 DatabaseSession::DatabaseSession(std::size_t chunk_bytes_per_store, bool lazy_first_chunk)
     : m_iChunkBytes(chunk_bytes_per_store),
-      m_bLazy(lazy_first_chunk)
+      m_bLazy(lazy_first_chunk), m_chunkCursor(m_iChunkBytes, m_bLazy)
 {
     // default policy for each CategoryType
     m_mapCategoryPoolType[CategoryType::CatNode] = PoolType::Unique;
@@ -21,14 +21,17 @@ void DatabaseSession::add(CategoryType cat)
     if (!pPool)
     {
         if (pt == PoolType::Unique)
-            pPool = std::make_unique<PoolUnique>(cat, m_iChunkBytes, m_bLazy);
+            pPool = std::make_unique<PoolUnique>(cat, &m_chunkCursor, m_iChunkBytes, m_bLazy);
         else
-            pPool = std::make_unique<PoolMix>(cat, m_iChunkBytes, m_bLazy);
+            pPool = std::make_unique<PoolMix>(cat, &m_chunkCursor, m_iChunkBytes, m_bLazy);
     }
 }
 
 Pool *DatabaseSession::ensure(CategoryType cat)
 {
+    if (!m_transaction.isOpen())
+        return nullptr;
+
     auto it = m_mapCategoryPool.find(cat);
     if (it == m_mapCategoryPool.end())
     {
@@ -43,10 +46,25 @@ bool DatabaseSession::contain(CategoryType cat) const
     return m_mapCategoryPool.find(cat) != m_mapCategoryPool.end();
 }
 
-Pool *DatabaseSession::getPool(CategoryType cat)
+Pool *DatabaseSession::checkOutPool(CategoryType cat)
 {
+    // Normal user path requires an open transaction; engine paths (undo/redo)
+    // run under m_engineDepth>0 and are allowed to mutate without a user TX.
+    const bool bPass = (m_iTransactionPassCount > 0);
+    if (!m_transaction.isOpen() && !bPass)
+        return nullptr;
+
     auto it = m_mapCategoryPool.find(cat);
-    return (it == m_mapCategoryPool.end()) ? nullptr : it->second.get();
+    if (it == m_mapCategoryPool.end())
+    {
+        if (!bPass)
+            return nullptr;
+        // Engine path may need to recreate the store (e.g. undo of erase).
+        add(cat);
+        it = m_mapCategoryPool.find(cat);
+        if (it == m_mapCategoryPool.end()) return nullptr;
+    }
+    return it->second.get();
 }
 
 const Pool *DatabaseSession::getPool(CategoryType cat) const
@@ -55,17 +73,102 @@ const Pool *DatabaseSession::getPool(CategoryType cat) const
     return (it == m_mapCategoryPool.end()) ? nullptr : it->second.get();
 }
 
-PoolUnique *DatabaseSession::getPoolUnique(CategoryType cat)
+PoolUnique *DatabaseSession::checkOutPoolUnique(CategoryType cat)
 {
-    if (auto *p = getPool(cat))
+    if (auto *p = checkOutPool(cat))
         return dynamic_cast<PoolUnique *>(p);
     return nullptr;
 }
 
-PoolMix *DatabaseSession::getPoolMix(CategoryType cat)
+PoolMix *DatabaseSession::checkOutPoolMix(CategoryType cat)
+{
+    if (auto *p = checkOutPool(cat))
+        return dynamic_cast<PoolMix *>(p);
+    return nullptr;
+}
+
+const PoolUnique *DatabaseSession::getPoolUnique(CategoryType cat) const
 {
     if (auto *p = getPool(cat))
-        return dynamic_cast<PoolMix *>(p);
+        return dynamic_cast<const PoolUnique *>(p);
+    return nullptr;
+}
+const PoolMix *DatabaseSession::getPoolMix(CategoryType cat) const
+{
+    if (auto *p = getPool(cat))
+        return dynamic_cast<const PoolMix *>(p);
+    return nullptr;
+}
+
+bool DatabaseSession::erase(HCursor *cur)
+{
+    if (!cur)
+        return false;
+    if (!m_transaction.isOpen())
+        return false;
+
+    const ItemType ti = cur->type();
+    const Id id = cur->id();
+    CategoryType cat = HItemManager::getInstance().getCategory(ti);
+
+    Pool *store = checkOutPool(cat);
+    if (!store)
+        return false;
+
+    // Mirror clearCategory()'s per-item scheduling logic
+    auto &txmap = m_transaction.get_current_transaction();
+    Key k{ti, id};
+    if (auto it = txmap.find(k); it != txmap.end() && it->second.type == TransactionManager::TransactionType::Emplace)
+    {
+        // Emplace then erase in same tx → cancel and physical erase now
+        txmap.erase(it);
+        (void)store->eraseRaw(ti, id);
+        return true;
+    }
+
+    // If not already Modify, capture BEFORE snapshot
+    std::string before;
+    if (auto it = txmap.find(k); it == txmap.end() || it->second.type != TransactionManager::TransactionType::Modify)
+        if (auto const *p = store->getRawConst(ti, id))
+            before = HItemManager::getInstance().captureTransaction(ti, p, this);
+
+    auto &op = txmap[k];
+    if (op.type == TransactionManager::TransactionType{})
+    {
+        op.type = TransactionManager::TransactionType::Erase;
+        op.itemType = ti;
+        op.id = id;
+        op.payloadBefore = std::move(before);
+    }
+    else if (op.type == TransactionManager::TransactionType::Modify)
+    {
+        op.type = TransactionManager::TransactionType::Erase; // promote
+        op.payloadAfter.clear();
+        if (op.payloadBefore.empty())
+            op.payloadBefore = std::move(before);
+    }
+    return true;
+}
+
+bool DatabaseSession::erase(ItemType ti, Id id)
+{
+    if (!m_transaction.isOpen())
+        return false;
+    if (auto *cur = getCursor(ti, id))
+        return erase(cur);
+    return false;
+}
+
+HCursor *DatabaseSession::getCursor(ItemType ti, Id id)
+{
+    CategoryType cat = HItemManager::getInstance().getCategory(ti);
+    if (auto const *store = getPool(cat))
+    {
+        if (auto const *p = store->getRawConst(ti, id))
+        {
+            return const_cast<HCursor *>(static_cast<const HItem *>(p)->getCursor());
+        }
+    }
     return nullptr;
 }
 
@@ -74,15 +177,91 @@ void DatabaseSession::clearCategory(CategoryType cat)
     auto it = m_mapCategoryPool.find(cat);
     if (it == m_mapCategoryPool.end())
         return;
-    it->second->clear();
-    m_mapCategoryPool.erase(it);
+
+    // For safety: require an open transaction to clear data
+    if (!m_transaction.isOpen())
+        throw std::logic_error("clearCategory requires an open transaction");
+
+    Pool *store = it->second.get();
+
+    // Helper to create / merge an Erase op for (type,id)
+    auto schedule_erase = [&](ItemType ti, Id id)
+    {
+        auto &cur = m_transaction.get_current_transaction();
+        Key k{ti, id};
+        auto found = cur.find(k);
+        if (found != cur.end() && found->second.type == TransactionManager::TransactionType::Emplace)
+        {
+            // Emplace then clear → cancel and erase now
+            cur.erase(found);
+            (void)store->eraseRaw(ti, id);
+            return;
+        }
+
+        auto &op = cur[k];
+        if (op.type == TransactionManager::TransactionType{})
+        {
+            op.type = TransactionManager::TransactionType::Erase;
+            op.itemType = ti;
+            op.id = id;
+
+            if (auto const *p = store->getRawConst(ti, id))
+            {
+                op.payloadBefore = HItemManager::getInstance()
+                                       .captureTransaction(ti, p, this);
+            }
+        }
+        else if (op.type == TransactionManager::TransactionType::Modify)
+        {
+            // promote Modify -> Erase; BEFORE kept, AFTER irrelevant
+            op.type = TransactionManager::TransactionType::Erase;
+            op.payloadAfter.clear();
+        }
+        // If already Erase, nothing to do.
+    };
+
+    // Iterate all items in this category and schedule Erase ops
+    if (auto *pu = dynamic_cast<PoolUnique *>(store))
+    {
+        for (HCursor *c : pu->range())
+        {
+            if (!c)
+                continue;
+            // schedule_erase(c->stAssoc.eType, c->iId);
+            schedule_erase(c->type(), c->id());
+        }
+    }
+    else if (auto *pm = dynamic_cast<PoolMix *>(store))
+    {
+        for (HCursor *c : pm->range())
+        {
+            if (!c)
+                continue;
+            // schedule_erase(c->stAssoc.eType, c->iId);
+            schedule_erase(c->type(), c->id());
+        }
+    }
+
+    // Do NOT call store->clear() here; erasure will be applied at commit
+    // via Pool{Unique,Mix}::updateBytes(Erase) → eraseRaw(...).
 }
 
 void DatabaseSession::clear()
 {
+    if (!m_transaction.isOpen())
+        throw std::logic_error("clear requires an open transaction");
+
+    // collect categories first (don’t mutate while iterating)
+    std::vector<CategoryType> cats;
+    cats.reserve(m_mapCategoryPool.size());
     for (auto &kv : m_mapCategoryPool)
-        kv.second->clear();
-    m_mapCategoryPool.clear();
+        cats.push_back(kv.first);
+
+    for (CategoryType cat : cats)
+        clearCategory(cat);
+
+    // Note: we intentionally keep empty Pool objects alive.
+    // The actual object deletion happens at commit (updateBytes→eraseRaw).
 }
 
 DatabaseSession::Stats DatabaseSession::stats() const
@@ -120,11 +299,11 @@ void DatabaseSession::commitTransaction()
         if (op.type == TransactionManager::TransactionType::Modify ||
             op.type == TransactionManager::TransactionType::Emplace)
         {
-            if (auto *store = getPool(HItemManager::getInstance().getCategory(op.itemType)))
+            if (auto *store = checkOutPool(HItemManager::getInstance().getCategory(op.itemType)))
             {
                 if (auto const *p = store->getRawConst(op.itemType, op.id))
                 {
-                    op.payloadAfter = HItemManager::getInstance().captureTransaction(op.itemType, p);
+                    op.payloadAfter = HItemManager::getInstance().captureTransaction(op.itemType, p, this);
                 }
             }
         }
@@ -133,8 +312,8 @@ void DatabaseSession::commitTransaction()
     // Apply commit direction
     for (auto &[k, op] : cur)
     {
-        if (auto *store = getPool(HItemManager::getInstance().getCategory(op.itemType)))
-            store->updateBytes(op);
+        if (auto *store = checkOutPool(HItemManager::getInstance().getCategory(op.itemType)))
+            store->updateBytes(op, this);
     }
 
     m_transaction.commit();
@@ -148,16 +327,16 @@ void DatabaseSession::rollbackTransaction()
     auto &cur = m_transaction.get_current_transaction();
     for (auto it = cur.begin(); it != cur.end(); ++it)
     {
-        if (auto *store = getPool(HItemManager::getInstance().getCategory(it->second.itemType)))
-            store->restoreBytes(it->second);
+        if (auto *store = checkOutPool(HItemManager::getInstance().getCategory(it->second.itemType)))
+            store->restoreBytes(it->second, this);
     }
     m_transaction.rollback();
 }
 
 bool DatabaseSession::undo()
 {
-    if (m_transaction.isOpen())
-        return false;
+    // Transaction pass: allow store checkout & creation without a user TX.
+    TransactionPass pass(this);
 
     const TransactionManager::Transaction *tx = nullptr;
     if (m_transaction.undo(tx) && tx)
@@ -165,7 +344,7 @@ bool DatabaseSession::undo()
         for (auto it = tx->ops.rbegin(); it != tx->ops.rend(); ++it)
         {
             const auto &op = *it;
-            auto *store = getPool(HItemManager::getInstance().getCategory(op.itemType));
+            auto *store = checkOutPool(HItemManager::getInstance().getCategory(op.itemType));
             if (!store)
                 continue;
 
@@ -173,7 +352,7 @@ bool DatabaseSession::undo()
             {
             case TransactionManager::TransactionType::Emplace:
                 // Undo insert → erase it
-                store->restoreBytes(op);
+                store->restoreBytes(op, this);
                 break;
             case TransactionManager::TransactionType::Erase:
                 // Undo erase → recreate and apply BEFORE
@@ -181,7 +360,7 @@ bool DatabaseSession::undo()
                 break;
             case TransactionManager::TransactionType::Modify:
                 // Restore BEFORE
-                store->restoreBytes(op);
+                store->restoreBytes(op, this);
                 break;
             }
         }
@@ -192,15 +371,15 @@ bool DatabaseSession::undo()
 
 bool DatabaseSession::redo()
 {
-    if (m_transaction.isOpen())
-        return false;
+    // Transaction pass: allow store checkout & creation without a user TX.
+    TransactionPass pass(this);
 
     const TransactionManager::Transaction *tx = nullptr;
     if (m_transaction.redo(tx) && tx)
     {
         for (auto &op : tx->ops)
         {
-            auto *store = getPool(HItemManager::getInstance().getCategory(op.itemType));
+            auto *store = checkOutPool(HItemManager::getInstance().getCategory(op.itemType));
             if (!store)
                 continue;
 
@@ -212,11 +391,11 @@ bool DatabaseSession::redo()
                 break;
             case TransactionManager::TransactionType::Erase:
                 // Redo erase → commit direction
-                store->updateBytes(op);
+                store->updateBytes(op, this);
                 break;
             case TransactionManager::TransactionType::Modify:
                 // Apply AFTER
-                store->updateBytes(op);
+                store->updateBytes(op, this);
                 break;
             }
         }
@@ -229,7 +408,7 @@ bool DatabaseSession::redo()
 bool DatabaseSession::undoUpdateBytes(const TransactionManager::TransactionOperation &op)
 {
     CategoryType cat = HItemManager::getInstance().getCategory(op.itemType);
-    auto *store = getPool(cat);
+    auto *store = checkOutPool(cat);
     if (!store)
         return false;
 
@@ -239,7 +418,7 @@ bool DatabaseSession::undoUpdateBytes(const TransactionManager::TransactionOpera
 
     if (void *p = store->getRaw(op.itemType, op.id))
     {
-        HItemManager::getInstance().restoreTransaction(op.itemType, p, op.payloadBefore);
+        HItemManager::getInstance().restoreTransaction(op.itemType, p, op.payloadBefore, this);
         return true;
     }
     return false;
@@ -249,14 +428,14 @@ bool DatabaseSession::undoUpdateBytes(const TransactionManager::TransactionOpera
 bool DatabaseSession::redoUpdateBytes(const TransactionManager::TransactionOperation &op)
 {
     CategoryType cat = HItemManager::getInstance().getCategory(op.itemType);
-    auto *store = getPool(cat);
+    auto *store = checkOutPool(cat);
     if (!store)
         return false;
 
     if (void *p = store->getRaw(op.itemType, op.id))
     {
         // already exists: idempotent
-        HItemManager::getInstance().restoreTransaction(op.itemType, p, op.payloadAfter);
+        HItemManager::getInstance().restoreTransaction(op.itemType, p, op.payloadAfter, this);
         return true;
     }
 
@@ -266,7 +445,7 @@ bool DatabaseSession::redoUpdateBytes(const TransactionManager::TransactionOpera
 
     if (void *p2 = store->getRaw(op.itemType, op.id))
     {
-        HItemManager::getInstance().restoreTransaction(op.itemType, p2, op.payloadAfter);
+        HItemManager::getInstance().restoreTransaction(op.itemType, p2, op.payloadAfter, this);
         return true;
     }
     return false;

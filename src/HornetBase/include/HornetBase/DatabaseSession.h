@@ -3,6 +3,7 @@
 #include "PoolMix.h"
 #include "PoolUnique.h"
 #include "TransactionManager.h"
+#include "HItemManager.h" // safe now (no cycle)
 
 // -----------------------------------------------------------------------------
 // DatabaseSession: holds multiple Pool stores (PoolUnique / PoolMix)
@@ -24,23 +25,16 @@ public:
     DatabaseSession(DatabaseSession &&) noexcept = default;
     DatabaseSession &operator=(DatabaseSession &&) noexcept = default;
 
-    // --- Create / register stores -------------------------------------------
-    // Convenience: add by kind
-    void add(CategoryType cat);
-
-    // Create on first use if absent (kind decides what to create)
-    // If absent and no kind is specified, defaults to Unique.
-    Pool *ensure(CategoryType cat);
-
     // --- Lookup store objects ------------------------------------------------
     bool contain(CategoryType cat) const;
 
-    Pool *getPool(CategoryType cat);
     const Pool *getPool(CategoryType cat) const;
 
     // Strongly-typed access to concrete stores when you need their custom APIs:
-    PoolUnique *getPoolUnique(CategoryType cat);
-    PoolMix *getPoolMix(CategoryType cat);
+    // PoolUnique *checkOutPoolUnique(CategoryType cat);
+    // PoolMix *checkOutPoolMix(CategoryType cat);
+    const PoolUnique *getPoolUnique(CategoryType cat) const;
+    const PoolMix *getPoolMix(CategoryType cat) const;
 
     // --- Data operations (templated) -----------------------------------------
     // Emplace routes to the right derived class (PoolUnique or PoolMix).
@@ -56,6 +50,8 @@ public:
 
         HItemCreatorToken tok{};
         Pool *base = ensure(cat);
+        if (!base)
+            return false;
 
         bool bRet = false;
         if (kind == PoolType::Unique)
@@ -68,7 +64,8 @@ public:
             auto pBase = dynamic_cast<PoolMix *>(base);
             bRet = pBase->template emplace<T>(id, tok, std::forward<Args>(args)...);
         }
-        m_transaction.template noteEmplace<T>(id);
+        if (bRet)
+            m_transaction.template noteEmplace<T>(id);
 
         return bRet;
     }
@@ -83,22 +80,27 @@ public:
             return nullptr;
 
         constexpr CategoryType cat = CategoryTypeOf<T>;
-        if (auto *base = getPool(cat))
+        if (auto *base = checkOutPool(cat))
         {
             T *p = base->template get<T>(id);
-            if (p)
-            {
-                std::string payloadBefore;
-                if (auto *store = getPool(HItemManager::getInstance().getCategory(ItemTypeOf<T>)))
-                {
-                    if (auto const *p = store->getRawConst(ItemTypeOf<T>, id))
-                    {
-                        payloadBefore = HItemManager::getInstance().captureTransaction(ItemTypeOf<T>, p);
-                    }
-                }
-                m_transaction.template noteCheckOut<T>(id, payloadBefore);
+            if (!p)
+                return nullptr;
+
+            // --- NEW: if already Emplace in this tx, no BEFORE snapshot, keep Emplace op
+            if (m_transaction.template isNoteEmplace<T>(id))
                 return p;
-            }
+
+            // --- NEW: if already Modify, don't repeat the BEFORE snapshot
+            if (m_transaction.template isNoteModify<T>(id))
+                return p;
+
+            // First mutable checkout of an existing object in this tx → take BEFORE snapshot
+            std::string payloadBefore;
+            if (auto const *raw = base->getRawConst(ItemTypeOf<T>, id))
+                payloadBefore = HItemManager::getInstance().captureTransaction(ItemTypeOf<T>, raw, this);
+
+            m_transaction.template noteCheckOut<T>(id, payloadBefore); // sets Modify if no prior op
+            return p;
         }
         return nullptr;
     }
@@ -127,16 +129,16 @@ public:
             std::string payloadBefore;
             if (m_transaction.template isNoteEmplace<T>(id))
             {
-                if (auto *store = getPool(cat))
+                if (auto *store = checkOutPool(cat))
                     store->eraseRaw(ItemTypeOf<T>, id);
             }
             else if (!m_transaction.template isNoteModify<T>(id))
             {
-                if (auto *store = getPool(cat))
+                if (auto *store = checkOutPool(cat))
                 {
                     if (auto const *p = store->getRawConst(ItemTypeOf<T>, id))
                     {
-                        payloadBefore = HItemManager::getInstance().captureTransaction(ItemTypeOf<T>, p);
+                        payloadBefore = HItemManager::getInstance().captureTransaction(ItemTypeOf<T>, p, this);
                     }
                 }
             }
@@ -146,10 +148,13 @@ public:
         }
         return false;
     }
+    bool erase(HCursor *cur);
+    bool erase(ItemType ti, Id id);
+
+    HCursor *getCursor(ItemType ti, Id id);
 
     // --- Housekeeping --------------------------------------------------------
     void clearCategory(CategoryType cat);
-
     void clear();
 
     // --- Stats ---------------------------------------------------------------
@@ -162,7 +167,7 @@ public:
 
     Stats stats() const;
 
-    // ---- Transaction control ----
+    // --- Transaction control -------------------------------------------------
     bool isTransactionOpen() const noexcept;
     void beginTransaction();
     void commitTransaction();
@@ -171,6 +176,17 @@ public:
     bool redo();
 
 protected:
+    // --- Create / register stores --------------------------------------------
+    void add(CategoryType cat);
+    // Create on first use if absent (kind decides what to create)
+    // If absent and no kind is specified, defaults to Unique.
+    Pool *ensure(CategoryType cat);
+
+    // Strongly-typed access to concrete stores when you need their custom APIs:
+    Pool *checkOutPool(CategoryType cat);
+    PoolUnique *checkOutPoolUnique(CategoryType cat);
+    PoolMix *checkOutPoolMix(CategoryType cat);
+
     // Recreate an erased object and restore its BEFORE state (used by UNDO of Erase)
     bool undoUpdateBytes(const TransactionManager::TransactionOperation &op);
 
@@ -187,9 +203,20 @@ private:
         }
     };
 
+    // --- Transaction pass (undo/redo) bypass state -------------------------------------
+    // Depth (not bool) so nested/internal calls are safe and exception-proof.
+    struct TransactionPass
+    {
+        DatabaseSession* db;
+        explicit TransactionPass(DatabaseSession *s) : db(s) { ++db->m_iTransactionPassCount; }
+        ~TransactionPass() { --db->m_iTransactionPassCount; }
+    };
+
+    int m_iTransactionPassCount = 0;
     std::unordered_map<CategoryType, std::unique_ptr<Pool>, EnumHash> m_mapCategoryPool;
     std::size_t m_iChunkBytes;
     bool m_bLazy;
     TransactionManager m_transaction;
     std::unordered_map<CategoryType, PoolType, EnumHash> m_mapCategoryPoolType;
+    ChunkCursor m_chunkCursor;
 };

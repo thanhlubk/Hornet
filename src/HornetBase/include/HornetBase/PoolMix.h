@@ -7,6 +7,8 @@
 #include <utility>
 #include <stdexcept>
 
+struct ItemTypeDescriptor;
+
 // --------------------------------------------------------------------------------------
 // PoolMix: multiple types packed into shared 1 MiB chunks
 //  - Keys are (type_index, Id), so same numeric Id can exist per type
@@ -17,9 +19,9 @@ class HORNETBASE_EXPORT PoolMix : public Pool
 {
 public:
     // Preferred ctor with category
-    explicit PoolMix(CategoryType cat, std::size_t chunk_bytes = kDefaultChunkBytes, bool lazy_first_chunk = true);
+    explicit PoolMix(CategoryType cat, ChunkCursor* chunkCursor, std::size_t chunk_bytes = kDefaultChunkBytes, bool lazy_first_chunk = true);
     // Convenience ctor with default category
-    explicit PoolMix(std::size_t chunk_bytes = kDefaultChunkBytes, bool lazy_first_chunk = true);
+    // explicit PoolMix(std::size_t chunk_bytes = kDefaultChunkBytes, bool lazy_first_chunk = true);
 
     PoolMix(const PoolMix &) = delete;
     PoolMix &operator=(const PoolMix &) = delete;
@@ -40,7 +42,7 @@ public:
     {
         std::uint32_t chunk;
         std::uint32_t offset;
-        const HItemManager::ItemTypeDescriptor *ops;
+        const ItemTypeDescriptor *ops;
     };
 
     // Insert any T by (T,id); constructs T in-place and returns reference
@@ -53,7 +55,7 @@ public:
             throw std::runtime_error("(T,id) already exists");
         }
         // const TypeOps& ops = TypeOps::for_type<T>();
-        const HItemManager::ItemTypeDescriptor *desc = HItemManager::getInstance().descriptor(ItemTypeOf<T>);
+        const ItemTypeDescriptor *desc = HItemManager::getInstance().descriptor(ItemTypeOf<T>);
         if (!desc)
             throw std::runtime_error("Type not registered in HItemManager");
 
@@ -84,7 +86,8 @@ public:
         }
 
         void *ptr = static_cast<void *>(c->buf.get() + aligned);
-        T *obj = ::new (ptr) T(id, std::forward<Args>(args)...);
+        HCursor *pCursor = m_pChunkCursor->emplace();
+        T *obj = ::new (ptr) T(id, pCursor, std::forward<Args>(args)...);
         (void)obj;
 
         c->used = aligned + desc->size;
@@ -124,6 +127,12 @@ public:
             return false;
         MixLoc loc = it->second;
         MixChunk &c = chunks_[loc.chunk];
+
+        // Erase cursor first
+        if (auto *obj = get<T>(it->first.id))
+            m_pChunkCursor->erase(obj->getCursor());
+
+        // Destroy object
         void *ptr = static_cast<void *>(c.buf.get() + loc.offset);
         loc.ops->destroy(ptr);
 
@@ -190,18 +199,22 @@ public:
 
     // ---- Range-for iteration over all objects of type T in PoolMix ----
     // Iterates in hash-map order (unordered). For memory order, see optional helper below.
-    template <HItemTemplate T>
+    // ---- Range-for iteration over all objects of type T in PoolMix, yielding T* / const T* ----
+    template <HItemTemplate T, bool isConst>
     class Iterator
     {
+        using Owner = std::conditional_t<isConst, const PoolMix, PoolMix>;
+        using MapIter = std::conditional_t<isConst,
+                                           typename std::unordered_map<Key, MixLoc, KeyHash>::const_iterator,
+                                           typename std::unordered_map<Key, MixLoc, KeyHash>::const_iterator>; // const is fine for both
     public:
-        using MapIter = typename std::unordered_map<Key, MixLoc, KeyHash>::iterator;
         using difference_type = std::ptrdiff_t;
-        using value_type = T;
-        using reference = T &;
-        using pointer = T *;
+        using value_type = std::conditional_t<isConst, const T *, T *>;
+        using reference = value_type;
+        using pointer = value_type;
         using iterator_category = std::forward_iterator_tag;
 
-        Iterator(MapIter it, MapIter end, PoolMix *owner)
+        Iterator(MapIter it, MapIter end, Owner *owner)
             : it_(it), end_(end), owner_(owner), ti_(ItemTypeOf<T>)
         {
             advance_to_T();
@@ -210,9 +223,9 @@ public:
         reference operator*() const
         {
             const MixLoc &loc = it_->second;
-            return *std::launder(reinterpret_cast<T *>(owner_->chunks_[loc.chunk].buf.get() + loc.offset));
+            auto base = owner_->chunks_[loc.chunk].buf.get() + loc.offset;
+            return std::launder(reinterpret_cast<value_type>(base));
         }
-        pointer operator->() const { return std::addressof(**this); }
 
         Iterator &operator++()
         {
@@ -230,47 +243,51 @@ public:
                 ++it_;
         }
 
-        MapIter it_;
-        MapIter end_;
-        PoolMix *owner_;
+        MapIter it_, end_;
+        Owner *owner_;
         ItemType ti_;
     };
 
-    template <HItemTemplate T>
+    template <HItemTemplate T, bool isConst>
     class Range
     {
+        using Owner = std::conditional_t<isConst, const PoolMix, PoolMix>;
+        using Iter = Iterator<T, isConst>;
+
     public:
-        explicit Range(PoolMix *owner) : owner_(owner) {}
-        Iterator<T> begin() { return Iterator<T>(owner_->index_.begin(), owner_->index_.end(), owner_); }
-        Iterator<T> end() { return Iterator<T>(owner_->index_.end(), owner_->index_.end(), owner_); }
+        explicit Range(Owner *owner) : owner_(owner) {}
+        Iter begin() const { return Iter(owner_->index_.cbegin(), owner_->index_.cend(), owner_); }
+        Iter end() const { return Iter(owner_->index_.cend(), owner_->index_.cend(), owner_); }
 
     private:
-        PoolMix *owner_;
+        Owner *owner_;
     };
 
-    // Expose a typed range for range-for
     template <HItemTemplate T>
-    Range<T> range() { return Range<T>(this); }
+    Range<T, false> range() { return Range<T, false>(this); }
+
+    template <HItemTemplate T>
+    Range<T, true> range() const { return Range<T, true>(this); }
 
     // ================== Type-erased iteration over ALL objects (unordered) ==================
     class IteratorRaw
     {
+        using MapIter = std::unordered_map<Key, MixLoc, KeyHash>::const_iterator; // const iterators
     public:
-        using MapIter = typename std::unordered_map<Key, MixLoc, KeyHash>::iterator;
         using difference_type = std::ptrdiff_t;
-        using value_type = void *;
-        using reference = void *;
+        using value_type = HCursor *; // always HCursor*
+        using reference = HCursor *;
 
-        IteratorRaw(MapIter it, MapIter ed, PoolMix *owner)
+        IteratorRaw(MapIter it, MapIter ed, const PoolMix *owner)
             : it_(it), ed_(ed), owner_(owner) {}
 
-        void *operator*() const
+        HCursor *operator*() const
         {
-            const Key &k = it_->first;
             const MixLoc &l = it_->second;
-            void *p = static_cast<void *>(owner_->chunks_[l.chunk].buf.get() + l.offset);
-            // return AnyRef{ k.type, k.id, p, l.ops };
-            return p;
+            const void *p = static_cast<const void *>(owner_->chunks_[l.chunk].buf.get() + l.offset);
+            auto *item = static_cast<const HItem *>(p);
+            // HItem::getCursor() const → const HCursor* ; cast away const for your read-only cursor API
+            return const_cast<HCursor *>(item->getCursor());
         }
         IteratorRaw &operator++()
         {
@@ -281,21 +298,21 @@ public:
 
     private:
         MapIter it_, ed_;
-        PoolMix *owner_;
+        const PoolMix *owner_;
     };
 
     class RangeRaw
     {
     public:
-        explicit RangeRaw(PoolMix *owner) : owner_(owner) {}
-        IteratorRaw begin() { return IteratorRaw(owner_->index_.begin(), owner_->index_.end(), owner_); }
-        IteratorRaw end() { return IteratorRaw(owner_->index_.end(), owner_->index_.end(), owner_); }
+        explicit RangeRaw(const PoolMix *owner) : owner_(owner) {}
+        IteratorRaw begin() const { return IteratorRaw(owner_->index_.cbegin(), owner_->index_.cend(), owner_); }
+        IteratorRaw end() const { return IteratorRaw(owner_->index_.cend(), owner_->index_.cend(), owner_); }
 
     private:
-        PoolMix *owner_;
+        const PoolMix *owner_;
     };
 
-    RangeRaw range() { return RangeRaw(this); }
+    RangeRaw range() const { return RangeRaw(this); }
 
     // ---- Pool overrides ----
     void clear() override;
@@ -304,8 +321,8 @@ public:
 
     std::size_t count() const override;
 
-    void restoreBytes(TransactionManager::TransactionOperation tx) override;
-    void updateBytes(TransactionManager::TransactionOperation tx) override;
+    void restoreBytes(TransactionManager::TransactionOperation tx, DatabaseSession *pDb) override;
+    void updateBytes(TransactionManager::TransactionOperation tx, DatabaseSession *pDb) override;
 
     void *getRaw(ItemType ti, Id id) override;
     const void *getRawConst(ItemType ti, Id id) const override;

@@ -7,13 +7,15 @@
 #include <utility>
 #include <stdexcept>
 
+struct ItemTypeDescriptor;
+
 // --------------------------------------------------------------------------------------
 // Database: owns one ChunkItem<T> per type
 // --------------------------------------------------------------------------------------
 class HORNETBASE_EXPORT PoolUnique : public Pool
 {
 public:
-    explicit PoolUnique(CategoryType cat,
+    explicit PoolUnique(CategoryType cat, ChunkCursor *chunkCursor,
                         std::size_t chunk_bytes_per_type = kDefaultChunkBytes,
                         bool lazy_first_chunk = true);
 
@@ -30,12 +32,22 @@ public:
         auto it = pools_.find(ti);
         if (it == pools_.end())
         {
-            auto up = std::make_unique<ChunkItem<T>>(chunk_bytes_per_type_, lazy_first_chunk_);
+            auto up = std::make_unique<ChunkItem<T>>(chunk_bytes_per_type_, lazy_first_chunk_, m_pChunkCursor);
             auto *raw = up.get();
             pools_[ti] = std::move(up);
             return *raw;
         }
         return *static_cast<ChunkItem<T> *>(pools_[ti].get());
+    }
+
+    template <HItemTemplate T>
+    const ChunkItem<T> &pool() const
+    {
+        ItemType ti = ItemTypeOf<T>;
+        auto it = pools_.find(ti);
+        if (it == pools_.end())
+            throw std::runtime_error("No pool for requested type");
+        return *static_cast<const ChunkItem<T> *>(it->second.get());
     }
 
     template <HItemTemplate T, class... Args>
@@ -69,92 +81,84 @@ public:
         return typename ChunkItem<T>::Range{this->pool<T>()};
     }
 
+    template <HItemTemplate T>
+    typename ChunkItem<T>::RangeConst range() const
+    {
+        return typename ChunkItem<T>::RangeConst{this->pool<T>()};
+    }
+
     class IteratorRaw
     {
+        using PoolsIt = std::unordered_map<ItemType, std::unique_ptr<ChunkInterface>>::const_iterator;
+
     public:
-        using PoolsIter = typename std::unordered_map<ItemType, std::unique_ptr<ChunkInterface>>::iterator;
         using difference_type = std::ptrdiff_t;
-        using value_type = void *;
-        using reference = void *;
+        using value_type = HCursor *;
+        using reference = HCursor *;
 
-        IteratorRaw(PoolUnique *db, PoolsIter pit, PoolsIter pend)
-            : db_(db), pit_(pit), pend_(pend)
-        {
-            advance_to_next_valid();
-        }
+        IteratorRaw(const PoolUnique *db, PoolsIt pit, PoolsIt pend)
+            : db_(db), pit_(pit), pend_(pend) { advance_to_next_valid(); }
 
-        reference operator*() const { return anyPtr_; }
+        HCursor *operator*() const { return cur_; }
 
         IteratorRaw &operator++()
         {
-            // advance current cursor
             if (cursor_)
             {
                 Id id;
                 void *p = nullptr;
                 if (cursor_->next(id, p))
                 {
-                    // cur_.id = id; cur_.ptr = p;
-                    anyPtr_ = p;
-
-                    // cur_.type remains same while in the same pool
+                    cur_ = const_cast<HCursor *>(static_cast<const HItem *>(p)->getCursor());
                     return *this;
                 }
             }
-            // otherwise advance to next pool
             ++pit_;
             advance_to_next_valid();
             return *this;
         }
-
         bool operator!=(const IteratorRaw &o) const { return pit_ != o.pit_ || end_ != o.end_; }
 
     private:
         void advance_to_next_valid()
         {
-            // Walk pools until we find one that yields at least one element
             while (pit_ != pend_)
             {
-                auto *ep = pit_->second.get();
+                // If ChunkInterface offers newCursor() const, use it. Otherwise:
+                ChunkInterface *ep = const_cast<ChunkInterface *>(pit_->second.get());
                 cursor_ = ep->newCursor();
                 Id id;
                 void *p = nullptr;
                 if (cursor_ && cursor_->next(id, p))
                 {
-                    // cur_.type = pit_->first;
-                    // cur_.id = id;
-                    // cur_.ptr = p;
-                    anyPtr_ = p;
+                    cur_ = const_cast<HCursor *>(static_cast<const HItem *>(p)->getCursor());
                     end_ = false;
                     return;
                 }
                 ++pit_;
             }
-            // no pools or all empty
             end_ = true;
         }
 
-        PoolUnique *db_ = nullptr;
-        PoolsIter pit_, pend_;
+        const PoolUnique *db_ = nullptr;
+        PoolsIt pit_, pend_;
         std::unique_ptr<ChunkInterface::CursorRaw> cursor_;
-
-        void *anyPtr_ = nullptr;
-        // AnyRef cur_{ std::type_index(typeid(void)), 0, nullptr };
+        HCursor *cur_ = nullptr;
         bool end_ = false;
     };
 
     class RangeRaw
     {
     public:
-        explicit RangeRaw(PoolUnique *db) : db_(db) {}
-        IteratorRaw begin() { return IteratorRaw(db_, db_->pools_.begin(), db_->pools_.end()); }
-        IteratorRaw end() { return IteratorRaw(db_, db_->pools_.end(), db_->pools_.end()); }
+        explicit RangeRaw(const PoolUnique *db) : db_(db) {}
+        IteratorRaw begin() const { return IteratorRaw(db_, db_->pools_.cbegin(), db_->pools_.cend()); }
+        IteratorRaw end() const { return IteratorRaw(db_, db_->pools_.cend(), db_->pools_.cend()); }
 
     private:
-        PoolUnique *db_;
+        const PoolUnique *db_;
     };
 
-    RangeRaw range() { return RangeRaw(this); }
+    RangeRaw range() const { return RangeRaw(this); }
 
     // ---- Pool overrides ----
     void clear() override;
@@ -162,8 +166,8 @@ public:
     std::size_t count() const override;
 
     // transaction
-    void restoreBytes(TransactionManager::TransactionOperation tx) override;
-    void updateBytes(TransactionManager::TransactionOperation tx) override;
+    void restoreBytes(TransactionManager::TransactionOperation tx, DatabaseSession *pDb) override;
+    void updateBytes(TransactionManager::TransactionOperation tx, DatabaseSession *pDb) override;
 
     void *getRaw(ItemType ti, Id id) override;
     const void *getRawConst(ItemType ti, Id id) const override;

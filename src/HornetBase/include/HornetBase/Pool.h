@@ -1,14 +1,17 @@
 #pragma once
 #include "HBaseDef.h"
 #include "TransactionManager.h"
-
+#include "Chunk.h"
 // --------------------------------------------------------------------------------------
 // Pool: common base for PoolUnique & PoolMix with category + type erasure
 // --------------------------------------------------------------------------------------
+
+class DatabaseSession; // forward declare
+
 class Pool
 {
 public:
-    explicit Pool(CategoryType cat) : m_eCategory(cat) {}
+    explicit Pool(CategoryType cat, ChunkCursor *chunkCursor) : m_eCategory(cat), m_pChunkCursor(chunkCursor) {}
     virtual ~Pool() = default;
 
     CategoryType category() const { return m_eCategory; }
@@ -25,8 +28,8 @@ public:
     virtual std::size_t count() const = 0;
 
     // transaction
-    virtual void restoreBytes(TransactionManager::TransactionOperation transaction) = 0;
-    virtual void updateBytes(TransactionManager::TransactionOperation transaction) = 0;
+    virtual void restoreBytes(TransactionManager::TransactionOperation transaction, DatabaseSession* pDb) = 0;
+    virtual void updateBytes(TransactionManager::TransactionOperation transaction, DatabaseSession *pDb) = 0;
 
     // typed convenience wrappers (usable even via Pool*)
     template <HItemTemplate T>
@@ -49,4 +52,7 @@ public:
 
 private:
     CategoryType m_eCategory;
+    
+protected:
+    ChunkCursor *m_pChunkCursor;
 };

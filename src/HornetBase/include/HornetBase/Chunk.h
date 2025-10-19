@@ -8,6 +8,9 @@
 #include <stdexcept>
 #include <unordered_map>
 #include <type_traits>
+#include <vector>
+#include <algorithm>
+#include <cassert>
 
 // --------------------------------------------------------------------------------------
 // Chunk interfaces (type-erased)
@@ -65,6 +68,175 @@ struct Location
 };
 
 // --------------------------------------------------------------------------------------
+// Non-templated arena for HCursor (no index, no get, hole reuse, no compaction)
+// --------------------------------------------------------------------------------------
+class ChunkCursor
+{
+public:
+    explicit ChunkCursor(std::size_t chunk_bytes = kDefaultChunkBytes,
+                         bool lazy_first_chunk = true)
+        : m_chunkBytes(chunk_bytes), m_lazy(lazy_first_chunk)
+    {
+        // ensure chunk size is aligned to HCursor alignment boundary
+        const std::size_t a = alignof(HCursor);
+        if (m_chunkBytes & (a - 1))
+            m_chunkBytes = alignUp(m_chunkBytes, a);
+        if (!m_lazy)
+            allocateNewChunk();
+    }
+
+    ChunkCursor(const ChunkCursor &) = delete;
+    ChunkCursor &operator=(const ChunkCursor &) = delete;
+    ChunkCursor(ChunkCursor &&) = default;
+    ChunkCursor &operator=(ChunkCursor &&) = default;
+
+    // Create a new HCursor in-place and return its pointer.
+    // (Fields are initialized later by the HItem that owns it.)
+    HCursor *emplace()
+    {
+        // lazy first chunk
+        if (m_chunks.empty())
+            allocateNewChunk();
+
+        // reuse hole if available (LIFO)
+        if (!m_free.empty())
+        {
+            const Location loc = m_free.back();
+            m_free.pop_back();
+            void *p = static_cast<void *>(m_chunks[loc.chunk].buf.get() + loc.offset);
+            HCursor *cur = ::new (p) HCursor();
+            ++m_count;
+            return cur;
+        }
+
+        // append to current chunk (with alignment)
+        Chunk *c = &m_chunks.back();
+        const std::size_t a = alignof(HCursor);
+        const std::size_t s = sizeof(HCursor);
+        std::size_t aligned = alignUp(c->used, a);
+
+        if (aligned + s > c->capacity)
+        {
+            allocateNewChunk();
+            c = &m_chunks.back();
+            aligned = alignUp(c->used, a);
+        }
+
+        void *p = static_cast<void *>(c->buf.get() + aligned);
+        HCursor *cur = ::new (p) HCursor();
+        c->used = aligned + s;
+        ++m_count;
+        return cur;
+    }
+
+    // Destroy the given HCursor and record a hole for reuse.
+    // Pointer must have been returned by this ChunkCursor.
+    void erase(HCursor *ptr)
+    {
+        if (!ptr)
+            return;
+
+        // find owning chunk & offset (linear in #chunks; #chunks is small)
+        Location loc{};
+        if (!findLocation(ptr, loc))
+        {
+            // pointer not owned by this arena; ignore or assert as you prefer
+            // assert(false && "erase() with foreign pointer");
+            return;
+        }
+
+        ptr->~HCursor();
+        --m_count;
+        m_free.push_back(loc);
+    }
+
+    void clear()
+    {
+        // call dtors on all live objects by scanning used regions and free list
+        // Simpler approach: we only know hole locations; so destroy everything
+        // except holes. For speed, we destroy by reading at every occupied slot.
+        for (std::size_t ci = 0; ci < m_chunks.size(); ++ci)
+        {
+            Chunk &c = m_chunks[ci];
+            // Build a quick set of hole offsets for this chunk
+            // (small; number of holes << number of objects)
+            std::vector<std::uint32_t> holes;
+            holes.reserve(m_free.size());
+            for (auto &h : m_free)
+                if (h.chunk == ci)
+                    holes.push_back(h.offset);
+            std::sort(holes.begin(), holes.end());
+
+            const std::size_t a = alignof(HCursor);
+            const std::size_t s = sizeof(HCursor);
+            for (std::size_t off = 0; off + s <= c.used;)
+            {
+                std::size_t aligned = alignUp(off, a);
+                if (aligned + s > c.used)
+                    break;
+
+                // skip if this offset is a recorded hole
+                if (std::binary_search(holes.begin(), holes.end(),
+                                       static_cast<std::uint32_t>(aligned)))
+                {
+                    off = aligned + s;
+                    continue;
+                }
+
+                void *p = static_cast<void *>(c.buf.get() + aligned);
+                std::launder(reinterpret_cast<HCursor *>(p))->~HCursor();
+                off = aligned + s;
+            }
+        }
+
+        m_chunks.clear();
+        m_free.clear();
+        m_count = 0;
+        if (!m_lazy)
+            allocateNewChunk();
+    }
+
+    std::size_t count() const noexcept { return m_count; }
+
+    // bytes reserved/advanced inside chunks (includes holes)
+    std::size_t bytesUsed() const noexcept
+    {
+        std::size_t t = 0;
+        for (auto const &c : m_chunks)
+            t += c.used;
+        return t;
+    }
+
+private:
+    void allocateNewChunk() { m_chunks.emplace_back(m_chunkBytes); }
+
+    // O(#chunks) locate owning chunk and offset for a pointer
+    bool findLocation(const HCursor *p, Location &out) const
+    {
+        const std::byte *pp = reinterpret_cast<const std::byte *>(p);
+        for (std::uint32_t i = 0; i < m_chunks.size(); ++i)
+        {
+            const Chunk &c = m_chunks[i];
+            const std::byte *base = c.buf.get();
+            if (pp >= base && pp < base + c.used)
+            {
+                out.chunk = i;
+                out.offset = static_cast<std::uint32_t>(pp - base);
+                return true;
+            }
+        }
+        return false;
+    }
+
+private:
+    std::size_t m_chunkBytes;
+    bool m_lazy = true;
+    std::vector<Chunk> m_chunks;
+    std::vector<Location> m_free; // holes (chunk,offset), reused LIFO
+    std::size_t m_count = 0;
+};
+
+// --------------------------------------------------------------------------------------
 // Per-type arena: ChunkItem<T> (used by Database)
 // - 1 MiB chunks per T, append-packed, hole reuse (LIFO), lazy-first-chunk option
 // --------------------------------------------------------------------------------------
@@ -76,8 +248,8 @@ class ChunkItem final : public ChunkInterface
 public:
     using value_type = T;
 
-    explicit ChunkItem(std::size_t chunk_bytes = kDefaultChunkBytes, bool lazy_first_chunk = true)
-        : m_iChunkBytes(chunk_bytes), m_bLazyFirstChunk(lazy_first_chunk)
+    explicit ChunkItem(std::size_t chunk_bytes = kDefaultChunkBytes, bool lazy_first_chunk = true, ChunkCursor *chunkCursor = nullptr)
+        : m_iChunkBytes(chunk_bytes), m_bLazyFirstChunk(lazy_first_chunk), m_pChunkCursor(chunkCursor)
     {
         if ((m_iChunkBytes & (alignof(T) - 1)) != 0)
         {
@@ -87,6 +259,9 @@ public:
         {
             allocateNewChunk(); // eager allocation
         }
+
+        // optional safety
+        assert(m_pChunkCursor && "ChunkItem requires a valid ChunkCursor*");
     }
 
     ChunkItem(const ChunkItem &) = delete;
@@ -113,7 +288,8 @@ public:
             Location loc = m_vecFreeLocation.back();
             m_vecFreeLocation.pop_back();
             void *ptr = reinterpret_cast<void *>(m_vecChunk[loc.chunk].buf.get() + loc.offset);
-            T *obj = ::new (ptr) T(id, std::forward<Args>(args)...);
+            HCursor* pCursor = m_pChunkCursor->emplace();
+            T *obj = ::new (ptr) T(id, pCursor, std::forward<Args>(args)...);
             m_mapIndex[id] = loc;
             ++m_iCount;
             return true;
@@ -133,7 +309,8 @@ public:
         }
 
         void *ptr = reinterpret_cast<void *>(c->buf.get() + aligned);
-        T *obj = ::new (ptr) T(id, std::forward<Args>(args)...);
+        HCursor *pCursor = m_pChunkCursor->emplace();
+        T *obj = ::new (ptr) T(id, pCursor, std::forward<Args>(args)...);
         c->used = aligned + obj_size;
 
         Location loc{static_cast<std::uint32_t>(m_vecChunk.size() - 1),
@@ -159,6 +336,12 @@ public:
         auto it = m_mapIndex.find(id);
         if (it == m_mapIndex.end())
             return false;
+
+        // Erase cursor first
+        if (T *obj = get(it->first))
+            m_pChunkCursor->erase(obj->getCursor());
+
+        // Destroy object
         Location loc = it->second;
         T *obj = std::launder(reinterpret_cast<T *>(m_vecChunk[loc.chunk].buf.get() + loc.offset));
         obj->~T();
@@ -191,6 +374,8 @@ public:
             }
             void *dest = reinterpret_cast<void *>(new_chunks.back().buf.get() + aligned);
             T *dst_obj = ::new (dest) T(std::move(*src_obj));
+            // rebind the cursor owner to the new address
+            dst_obj->getCursor()->m_pItem = dst_obj;
             src_obj->~T();
             new_chunks.back().used = aligned + sizeof(T);
             new_index[id] = Location{static_cast<std::uint32_t>(new_chunks.size() - 1),
@@ -221,14 +406,14 @@ public:
         }
     }
 
-    // ---- Range-for iteration over all T in this chunk (unordered by hash map) ----
+    // ---- Pointer iterators/ranges (T* / const T*) ----
     class Iterator
     {
     public:
         using MapIter = typename std::unordered_map<Id, Location>::iterator;
         using difference_type = std::ptrdiff_t;
-        using value_type = T;
-        using reference = T &;
+        using value_type = T *;
+        using reference = T *;
         using pointer = T *;
         using iterator_category = std::forward_iterator_tag;
 
@@ -237,10 +422,8 @@ public:
         reference operator*() const
         {
             const Location &loc = it_->second;
-            return *std::launder(reinterpret_cast<T *>(owner_->m_vecChunk[loc.chunk].buf.get() + loc.offset));
+            return std::launder(reinterpret_cast<T *>(owner_->m_vecChunk[loc.chunk].buf.get() + loc.offset));
         }
-        pointer operator->() const { return std::addressof(**this); }
-
         Iterator &operator++()
         {
             ++it_;
@@ -254,15 +437,48 @@ public:
         ChunkItem *owner_;
     };
 
-    Iterator begin() { return Iterator(m_mapIndex.begin(), this); }
-    Iterator end() { return Iterator(m_mapIndex.end(), this); }
+    class IteratorConst
+    {
+    public:
+        using MapIter = typename std::unordered_map<Id, Location>::const_iterator;
+        using difference_type = std::ptrdiff_t;
+        using value_type = const T *;
+        using reference = const T *;
+        using pointer = const T *;
+        using iterator_category = std::forward_iterator_tag;
 
-    // Small helper so Database can expose a range<T>() that forwards to chunk.begin()/end()
+        IteratorConst(MapIter it, const ChunkItem *owner) : it_(it), owner_(owner) {}
+
+        reference operator*() const
+        {
+            const Location &loc = it_->second;
+            return std::launder(reinterpret_cast<const T *>(owner_->m_vecChunk[loc.chunk].buf.get() + loc.offset));
+        }
+        IteratorConst &operator++()
+        {
+            ++it_;
+            return *this;
+        }
+        bool operator==(const IteratorConst &rhs) const { return it_ == rhs.it_; }
+        bool operator!=(const IteratorConst &rhs) const { return it_ != rhs.it_; }
+
+    private:
+        MapIter it_;
+        const ChunkItem *owner_;
+    };
+
     struct Range
     {
         ChunkItem &p;
-        Iterator begin() { return p.begin(); }
-        Iterator end() { return p.end(); }
+        Iterator begin() { return Iterator(p.m_mapIndex.begin(), &p); }
+        Iterator end() { return Iterator(p.m_mapIndex.end(), &p); }
+    };
+
+    struct RangeConst
+    {
+        const ChunkItem &p;
+        IteratorConst begin() const { return IteratorConst(p.m_mapIndex.cbegin(), &p); }
+        IteratorConst end() const { return IteratorConst(p.m_mapIndex.cend(), &p); }
     };
 
     // ---- ChunkInterface overrides ----
@@ -352,4 +568,5 @@ private:
     std::unordered_map<Id, Location> m_mapIndex;
     std::vector<Location> m_vecFreeLocation;
     std::size_t m_iCount = 0;
+    ChunkCursor *m_pChunkCursor;
 };
