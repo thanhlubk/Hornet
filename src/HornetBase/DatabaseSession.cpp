@@ -14,6 +14,11 @@ DatabaseSession::DatabaseSession(std::size_t chunk_bytes_per_store, bool lazy_fi
     m_mapCategoryPoolType[CategoryType::CatGroup] = PoolType::Unique;
 }
 
+void DatabaseSession::setNotifyDispatcher(NotifyDispatcher &disp)
+{
+    m_observer = disp.attach(this, &DatabaseSession::onNotify);
+}
+
 void DatabaseSession::add(CategoryType cat)
 {
     PoolType pt = static_cast<PoolType>(m_mapCategoryPoolType.at(cat));
@@ -402,6 +407,14 @@ bool DatabaseSession::redo()
         return true;
     }
     return false;
+}
+
+void DatabaseSession::onNotify(MessageType mess, MessageParam a, MessageParam b)
+{
+    if (mess == MessageType::DataModified)
+    {
+        // Do something
+    }
 }
 
 // Recreate an erased object and restore its BEFORE state (used by UNDO of Erase)

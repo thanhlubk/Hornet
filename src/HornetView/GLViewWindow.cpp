@@ -93,6 +93,19 @@ GLViewWindow::~GLViewWindow()
     destroyGLObjects(); // delete VAO/VBO/programs, gizmo, etc.
 }
 
+void GLViewWindow::setNotifyDispatcher(NotifyDispatcher &disp)
+{
+    m_observer = disp.attach(this, &GLViewWindow::onNotify);
+}
+
+void GLViewWindow::onNotify(MessageType mess, MessageParam a, MessageParam b)
+{
+    if (mess == MessageType::DataModified)
+    {
+        // Do something
+    }
+}
+
 void GLViewWindow::setMesh(const std::vector<Node> &nodes, const std::vector<Element> &elements)
 {
     // Minimal CPU cache for picking & framing only
@@ -246,7 +259,11 @@ void GLViewWindow::paintGL()
     if (m_bDragSelect)
     {
         // Build rect in Qt widget pixels
-        const QRectF rect(QPointF(std::min(m_pointDragStartPos.x(), m_pointDragCurrentPos.x()), std::min(m_pointDragStartPos.y(), m_pointDragCurrentPos.y())), QPointF(std::max(m_pointDragStartPos.x(), m_pointDragCurrentPos.x()), std::max(m_pointDragStartPos.y(), m_pointDragCurrentPos.y())));
+        const QRectF rect(
+            QPointF(std::min(m_pointDragStartPos.x(), m_pointDragCurrentPos.x()), 
+                    std::min(m_pointDragStartPos.y(), m_pointDragCurrentPos.y())), 
+            QPointF(std::max(m_pointDragStartPos.x(), m_pointDragCurrentPos.x()), 
+                    std::max(m_pointDragStartPos.y(), m_pointDragCurrentPos.y())));
         QPainter painter(this);
         painter.setRenderHint(QPainter::Antialiasing, true); // crisp edges
         painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
@@ -383,8 +400,10 @@ void GLViewWindow::mouseReleaseEvent(QMouseEvent *event)
     if (m_bDragSelect && event->button() == Qt::LeftButton)
     {
         const QRectF rectMarquee = QRectF(
-            QPointF(std::min(m_pointDragStartPos.x(), event->position().x()), std::min(m_pointDragStartPos.y(), event->position().y())), 
-            QPointF(std::max(m_pointDragStartPos.x(), event->position().x()), std::max(m_pointDragStartPos.y(), event->position().y())));
+            QPointF(std::min(m_pointDragStartPos.x(), event->position().x()), 
+                    std::min(m_pointDragStartPos.y(), event->position().y())), 
+            QPointF(std::max(m_pointDragStartPos.x(), event->position().x()), 
+                    std::max(m_pointDragStartPos.y(), event->position().y())));
 
         if (rectMarquee.width() * rectMarquee.height() < 9)
             selectAtPoint(event->position());

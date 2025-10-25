@@ -35,6 +35,8 @@ target_compile_definitions(HornetView PRIVATE HORNETVIEW_LIBRARY)
 
 target_link_libraries(HornetView
     PUBLIC 
+    HornetBase
+    HornetUtil
     Qt6::Widgets 
     Qt6::OpenGL 
     Qt6::OpenGLWidgets 

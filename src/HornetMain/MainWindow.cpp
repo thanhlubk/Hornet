@@ -17,7 +17,6 @@
 #include <QTextStream>
 #include <QStringList>
 #include <HornetView/HViewDef.h>
-#include <HornetBase/DatabaseSession.h>
 #include <HornetBase/HINode.h>
 
 // ---- tiny helpers ----
@@ -343,8 +342,8 @@ static bool loadElementsCSV(const QString &path, std::vector<Element> &out)
     return true;
 }
 
-MainWindow::MainWindow(QWidget* parent)
-    : QMainWindow(parent), ui(new Ui::MainWindow)
+MainWindow::MainWindow(QWidget *parent)
+    : QMainWindow(parent), ui(new Ui::MainWindow), disp_(), db()
 {
     // Init data
     initTheme();
@@ -396,6 +395,7 @@ MainWindow::MainWindow(QWidget* parent)
             ui->tabBar->addPane(0, title, output);
     }
 
+    ui->glViewWidget->setNotifyDispatcher(disp_);
     ui->glViewWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
     ui->glViewWidget->modelRenderer()->setShowFaces(true);
     ui->glViewWidget->modelRenderer()->setShowEdges(true);
@@ -529,8 +529,7 @@ MainWindow::MainWindow(QWidget* parent)
 
 
     /// test database
-    DatabaseSession db;
-
+    db.setNotifyDispatcher(disp_);
     db.beginTransaction();
     db.emplace<HINode>(1);
     db.emplace<HINode>(2);
@@ -843,4 +842,6 @@ void MainWindow::on_fancyButton_clicked()
 
     ui->glViewWidget->setMesh(nodes, elems);
     ui->glViewWidget->fitView();
+
+    disp_.notify(MessageType::DataEmplaced, nodes.size(), elems.size());
 }

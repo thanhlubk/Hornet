@@ -7,6 +7,8 @@
 #include <QPushButton>
 #include <FancyWidgets/FTable.h>
 #include <FancyWidgets/FTreeWidget.h>
+#include <HornetBase/NotifyDispatcher.h>
+#include <HornetBase/DatabaseSession.h>
 
 class FancyButton;
 
@@ -31,4 +33,6 @@ private slots:
 
 private:
     Ui::MainWindow *ui;
+    DatabaseSession db;
+    NotifyDispatcher disp_;
 };

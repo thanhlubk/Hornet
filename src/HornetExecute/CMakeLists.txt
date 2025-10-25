@@ -23,7 +23,9 @@ target_include_directories(HornetExecute
 target_compile_definitions(HornetExecute PRIVATE HORNETEXECUTE_LIBRARY)
 
 target_link_libraries(HornetExecute
-    PUBLIC HornetBase HornetUtil
+    PUBLIC 
+    HornetBase 
+    HornetUtil
 )
 set_target_properties(HornetExecute PROPERTIES
     PUBLIC_HEADER "${HORNETEXECUTE_HEADERS}"

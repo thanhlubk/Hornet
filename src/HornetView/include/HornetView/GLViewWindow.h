@@ -22,6 +22,7 @@
 #include "HRenderForce.h"
 #include "HViewSelectionManager.h"
 #include "HViewDef.h"
+#include "HornetBase/NotifyDispatcher.h"
 
 class HORNETVIEW_EXPORT GLViewWindow : public QOpenGLWidget, protected QOpenGLExtraFunctions
 {
@@ -29,6 +30,9 @@ class HORNETVIEW_EXPORT GLViewWindow : public QOpenGLWidget, protected QOpenGLEx
 public:
     explicit GLViewWindow(QWidget *parent = nullptr);
     ~GLViewWindow() override;
+
+    void setNotifyDispatcher(NotifyDispatcher &disp);
+    void onNotify(MessageType mess, MessageParam a, MessageParam b);
 
     void setMesh(const std::vector<Node> &nodes, const std::vector<Element> &elements);
 
@@ -70,6 +74,8 @@ protected:
     void wheelEvent(QWheelEvent *) override;
 
 private:
+    NotifyDispatcher::Observer m_observer;
+
     void destroyGLObjects();
     bool getHitPosition(const QPointF &point, QVector3D &hit, int &elemId) const;
     void selectAtPoint(const QPointF &point);

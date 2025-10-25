@@ -1,4 +1,5 @@
 #pragma once
+#include "NotifyDispatcher.h"
 #include "HBaseDef.h"
 #include "PoolMix.h"
 #include "PoolUnique.h"
@@ -24,6 +25,8 @@ public:
     DatabaseSession &operator=(const DatabaseSession &) = delete;
     DatabaseSession(DatabaseSession &&) noexcept = default;
     DatabaseSession &operator=(DatabaseSession &&) noexcept = default;
+
+    void setNotifyDispatcher(NotifyDispatcher &disp);
 
     // --- Lookup store objects ------------------------------------------------
     bool contain(CategoryType cat) const;
@@ -175,6 +178,8 @@ public:
     bool undo();
     bool redo();
 
+    void onNotify(MessageType mt, MessageParam a, MessageParam b);
+
 protected:
     // --- Create / register stores --------------------------------------------
     void add(CategoryType cat);
@@ -219,4 +224,5 @@ private:
     TransactionManager m_transaction;
     std::unordered_map<CategoryType, PoolType, EnumHash> m_mapCategoryPoolType;
     ChunkCursor m_chunkCursor;
+    NotifyDispatcher::Observer m_observer;
 };
