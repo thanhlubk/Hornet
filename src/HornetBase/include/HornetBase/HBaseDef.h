@@ -22,20 +22,8 @@ enum class ItemType : std::uint16_t
 {
     ItemUnkown,
     ItemNode,
+    ItemNodeHeat,
     ItemElement,
-    ItemElementPoint,
-    ItemElementLine2,
-    ItemElementLine3,
-    ItemElementTri3,
-    ItemElementTri6,
-    ItemElementQuad4,
-    ItemElementQuad8,
-    ItemElementTet4,
-    ItemElementTet10,
-    ItemElementHex8,
-    ItemElementHex20,
-    ItemElementPrism6,
-    ItemElementPrism15,
 
     // Add above this
     ItemEnd,

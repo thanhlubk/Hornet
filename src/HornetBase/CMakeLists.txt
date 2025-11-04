@@ -21,6 +21,11 @@ target_include_directories(HornetBase
 
 target_compile_definitions(HornetBase PRIVATE HORNETBASE_LIBRARY)
 
+target_link_libraries(HornetBase
+    PUBLIC 
+    HornetUtil
+)
+
 set_target_properties(HornetBase PROPERTIES
     PUBLIC_HEADER "${HORNETBASE_HEADERS}"
 )

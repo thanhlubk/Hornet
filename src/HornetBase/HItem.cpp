@@ -1,4 +1,3 @@
-#pragma once
 #include "HornetBase/HItem.h"
 #include <cassert>
 #include <stdexcept>
@@ -13,16 +12,31 @@ Id HCursor::id() const noexcept
 }
 
 CategoryType HCursor::category() const noexcept 
-{ 
-    return stAssoc.eCategory; 
+{
+    if (m_pItem)
+    {
+        return m_pItem->category();
+    }
+
+    return CategoryType::CatUnknown;
 }
 
-ItemType HCursor::type() const noexcept 
-{ 
-    return stAssoc.eType; 
+ItemType HCursor::type() const noexcept
+{
+    if (m_pItem)
+    {
+        return m_pItem->type();
+    }
+
+    return ItemType::ItemUnkown;
 }
 
-HItem::HItem(Id id, HCursor *cursor, HItemCreatorToken, CategoryType cat, ItemType k) noexcept
+const HItem *HCursor::itemBase() const noexcept
+{
+    return m_pItem;
+}
+
+HItem::HItem(Id id, HCursor *cursor, HItemCreatorToken) noexcept
     : m_pCursor(cursor)
 {
     if (!m_pCursor)
@@ -32,20 +46,21 @@ HItem::HItem(Id id, HCursor *cursor, HItemCreatorToken, CategoryType cat, ItemTy
     }
     
     m_pCursor->iId = id;
-    m_pCursor->stAssoc.eCategory = cat;
-    m_pCursor->stAssoc.eType = k;
     m_pCursor->m_pItem = this;
+
+    // m_pCursor->stAssoc.eCategory = cat;
+    // m_pCursor->stAssoc.eType = k;
 }
 
-CategoryType HItem::category() const noexcept
-{
-    return m_pCursor->category();
-}
+// CategoryType HItem::category() const noexcept
+// {
+//     return m_pCursor->category();
+// }
 
-ItemType HItem::type() const noexcept 
-{
-    return m_pCursor->type();
-}
+// ItemType HItem::type() const noexcept 
+// {
+//     return m_pCursor->type();
+// }
 
 Id HItem::id() const noexcept 
 {

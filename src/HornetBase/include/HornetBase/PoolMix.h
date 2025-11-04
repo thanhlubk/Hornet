@@ -49,6 +49,30 @@ public:
     template <HItemTemplate T, class... Args>
     bool emplace(Id id, Args &&...args)
     {
+        // Check if emplacing HIElement item
+        // using U = std::remove_cvref_t<T>;
+
+        // if constexpr (std::is_base_of_v<HIElement, U> && !std::is_same_v<U, HIElement>)
+        // {
+        //     // case 1: strictly derived from HIElement (any access)
+        //     // ...
+        // }
+        // else if constexpr (std::is_same_v<U, HIElement>)
+        // {
+        //     // case 2: exactly HIElement
+        //     if !(sizeof...(Args) > 0)
+        //         return false;
+
+        //     // static_assert(sizeof...(Args) > 0, "HIElement emplace requires at least one argument (the element type)");
+        //     // Extract the first argument as ElementType
+        //     ElementType elementType = static_cast<ElementType>(std::get<0>(std::forward_as_tuple(std::forward<Args>(args)...)));
+        // }
+        // else
+        // {
+        //     // case 3: unrelated
+        //     // ...
+        // }
+
         Key key{ItemTypeOf<T>, id};
         if (index_.find(key) != index_.end())
         {

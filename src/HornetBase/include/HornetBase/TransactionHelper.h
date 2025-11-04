@@ -40,6 +40,13 @@ namespace MeasureHelper
         return measureTriviallyCopyableObject(obj);
     }
 
+    template <class T>
+    inline size_t measure(const T &obj)
+        requires(std::is_trivially_copyable_v<T> && !std::is_pointer_v<T> && !std::is_arithmetic_v<T>)
+    {
+        return measureTriviallyCopyableObject(obj);
+    }
+
     // ---------------- std::string ----------------
     inline size_t measure(const std::string &obj)
     {
@@ -197,6 +204,23 @@ namespace TransactionHelper
                 return false;
             e = static_cast<E>(u);
             return true;
+        }
+    }
+
+    // Generic fallback for trivially copyable, non-pointer, non-arithmetic, non-enum.
+    // (Arrays/strings/containers still take their own specialized paths.)
+    template <class T>
+    inline bool transactionDataExchange(bool capture, std::string &buf, size_t &off, T &v, DatabaseSession *pDb)
+        requires(std::is_trivially_copyable_v<T> && !std::is_pointer_v<T> && !std::is_arithmetic_v<T> && !std::is_enum_v<T>)
+    {
+        if (capture)
+        {
+            writeRaw(buf, off, &v, sizeof(T));
+            return true;
+        }
+        else
+        {
+            return readRaw(buf, off, &v, sizeof(T));
         }
     }
 
@@ -465,24 +489,84 @@ namespace TransactionHelper
 
     // Restore a sequence of members from a single buffer (single pass)
     template <class T, class... MPtrs>
-    bool restoreMembers(T &self, std::string &bytes, DatabaseSession *pDb, MPtrs... mptrs)
+    size_t restoreMembers(T &self, std::string &bytes, size_t off, DatabaseSession *pDb, MPtrs... mptrs)
     {
         static_assert((std::is_member_object_pointer_v<MPtrs> && ...), "members only");
-        size_t off = 0;
         bool ok = (true && ... && transactionDataExchange(false, bytes, off, self.*mptrs, pDb));
         // (optional) ok = ok && (off == bytes.size());
-        return ok;
+        return off;
     }
 
 } // namespace TransactionHelper
 
-#define DEFINE_TRANSACTION_EXCHANGE(T, /* pointers-to-members... */...)                         \
-    static std::string captureTransactionItem(const T &self, DatabaseSession *pDb)              \
-    {                                                                                           \
-        return TransactionHelper::captureMembers(self, pDb, __VA_ARGS__);                       \
-    }                                                                                           \
-    static void restoreTransactionItem(T &self, const std::string &bytes, DatabaseSession *pDb) \
-    {                                                                                           \
-        auto &nonConstBytes = const_cast<std::string &>(bytes);                                 \
-        (void)TransactionHelper::restoreMembers(self, nonConstBytes, pDb, __VA_ARGS__);           \
+// #define DEFINE_TRANSACTION_EXCHANGE(T, /* pointers-to-members... */...)                         \
+//     static std::string captureTransactionItem(const T &self, DatabaseSession *pDb)              \
+//     {                                                                                           \
+//         return TransactionHelper::captureMembers(self, pDb, __VA_ARGS__);                       \
+//     }                                                                                           \
+//     static void restoreTransactionItem(T &self, const std::string &bytes, DatabaseSession *pDb) \
+//     {                                                                                           \
+//         auto &nonConstBytes = const_cast<std::string &>(bytes);                                 \
+//         (void)TransactionHelper::restoreMembers(self, nonConstBytes, pDb, __VA_ARGS__);           \
+//     }
+
+// #define DEFINE_TRANSACTION_EXCHANGE(T, /* pointers-to-members... */...)                                   \
+//     virtual std::string captureTransactionItem(DatabaseSession *pDb)                                      \
+//     {                                                                                                     \
+//         std::string strBaseClassCapture = __super::captureTransactionItem(*this, pDb);                  \
+//         auto finalStr = strBaseClassCapture + TransactionHelper::captureMembers(*this, pDb, __VA_ARGS__); \
+//         return finalStr;                                                                                  \
+//     }                                                                                                     \
+//     virtual size_t restoreTransactionItem(const std::string &bytes, size_t off, DatabaseSession *pDb)     \
+//     {                                                                                                     \
+//         auto &nonConstBytes = const_cast<std::string &>(bytes);                                           \
+//         off = __super::restoreTransactionItem(*this, nonConstBytes, off, pDb);                          \
+//         off = TransactionHelper::restoreMembers(*this, nonConstBytes, off, pDb, __VA_ARGS__);             \
+//         return off;                                                                                       \
+//     }
+
+#if defined(_MSC_VER)
+// MSVC: uses __super::
+#define DEFINE_TRANSACTION_EXCHANGE(/* pointers-to-members... */...)                 \
+    std::string captureTransactionItem(DatabaseSession *pDb) const override          \
+    {                                                                                \
+        std::string base = __super::captureTransactionItem(pDb);                     \
+        std::string mine = TransactionHelper::captureMembers(*this, pDb, __VA_ARGS__); \
+        std::string out;                                                             \
+        out.reserve(base.size() + mine.size());                                      \
+        out.append(base);                                                            \
+        out.append(mine);                                                            \
+        return out;                                                                  \
+    }                                                                                \
+    size_t restoreTransactionItem(const std::string &bytes, size_t off,              \
+                                  DatabaseSession *pDb) override                     \
+    {                                                                                \
+        auto &mut = const_cast<std::string &>(bytes);                                \
+        off = __super::restoreTransactionItem(mut, off, pDb);                        \
+        off = TransactionHelper::restoreMembers(*this, mut, off, pDb, __VA_ARGS__);  \
+        return off;                                                                  \
     }
+#else
+// Clang/GCC (and also works on MSVC): require `using Super = <Base>;` in the class
+#define DEFINE_TRANSACTION_EXCHANGE(/* pointers-to-members... */...)                  \
+    std::string captureTransactionItem(DatabaseSession *db) const override            \
+    {                                                                                 \
+        using __tx_super_t = Super; /* fail early if Super alias is missing */        \
+        std::string base = Super::captureTransactionItem(db);                         \
+        std::string mine = TransactionHelper::captureMembers(*this, db, __VA_ARGS__); \
+        std::string out;                                                              \
+        out.reserve(base.size() + mine.size());                                       \
+        out.append(base);                                                             \
+        out.append(mine);                                                             \
+        return out;                                                                   \
+    }                                                                                 \
+    size_t restoreTransactionItem(const std::string &bytes, size_t off,               \
+                                  DatabaseSession *db) override                       \
+    {                                                                                 \
+        using __tx_super_t = Super; /* fail early if Super alias is missing */        \
+        auto &mut = const_cast<std::string &>(bytes);                                 \
+        off = Super::restoreTransactionItem(mut, off, db);                            \
+        off = TransactionHelper::restoreMembers(*this, mut, off, db, __VA_ARGS__);      \
+        return off;                                                                   \
+    }
+#endif

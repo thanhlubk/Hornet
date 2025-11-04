@@ -18,6 +18,7 @@
 #include <QStringList>
 #include <HornetView/HViewDef.h>
 #include <HornetBase/HINode.h>
+#include <HornetBase/HIElement.h>
 
 // ---- tiny helpers ----
 static inline bool isCommentOrEmpty(const QString &s)
@@ -537,8 +538,8 @@ MainWindow::MainWindow(QWidget *parent)
     db.emplace<HINode>(4);
     db.emplace<HINode>(5);
 
-    db.emplace<HIElemTest>(6);
-    db.emplace<HIElemTest>(7);
+    db.emplace<HIElementTest>(6);
+    db.emplace<HIElementTest>(7);
     db.commitTransaction();
 
     auto stats = db.stats();
@@ -557,7 +558,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     db.beginTransaction();
     // Delete A(1) — this will compact that chunk
-    db.erase<HIElemTest>(6);
+    db.erase<HIElementTest>(6);
     db.commitTransaction();
 
     // Iterate A in memory order
@@ -568,8 +569,8 @@ MainWindow::MainWindow(QWidget *parent)
              << " bytes_used~" << stats2.bytes_used << "\n";
 
     db.beginTransaction();
-    db.emplace<HIElemTest>(11);
-    db.emplace<HIElemTest>(12);
+    db.emplace<HIElementTest>(11);
+    db.emplace<HIElementTest>(12);
     db.commitTransaction();
 
     auto stats3 = db.stats();

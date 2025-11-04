@@ -57,35 +57,19 @@ public:
         const auto idx = static_cast<std::size_t>(ItemTypeOf<T>);
         m_arrCapture[idx] = [](const void *p, DatabaseSession *pDb) -> std::string
         {
-            const T &self = *reinterpret_cast<const T *>(p);
-            return T::captureTransactionItem(self, pDb);
+            return reinterpret_cast<const HItem *>(p)->captureTransactionItem(pDb); // virtual
+            // const T &self = *reinterpret_cast<const T *>(p);
+            // return T::captureTransactionItem(self, pDb);
         };
         m_arrRestore[idx] = [](void *p, const std::string &bytes, DatabaseSession *pDb)
         {
-            T &self = *reinterpret_cast<T *>(p);
-            T::restoreTransactionItem(self, bytes, pDb);
+            size_t off = 0;
+            (void)reinterpret_cast<HItem*>(p)->restoreTransactionItem(bytes, off, pDb); // virtual
+            // T &self = *reinterpret_cast<T *>(p);
+            // T::restoreTransactionItem(self, bytes, pDb);
         };
         return true;
     }
-
-    // using CaptureFn = std::string (*)(const void *, DatabaseSession *pDb);              // obj -> bytes
-    // using RestoreFn = void (*)(void *, const std::string &bytes, DatabaseSession *pDb); // bytes -> obj
-    // using DestroyFn = void (*)(void *);
-    // using MoveFn = void (*)(void *dst, void *src);
-    // using ConstructFn = void (*)(void *dst, Id id, HCursor *cursor, HItemCreatorToken);
-
-    // struct ItemTypeDescriptor
-    // {
-    //     CategoryType cat{};
-    //     ItemType kind{ItemType::ItemEnd};
-    //     std::size_t size{0};
-    //     std::size_t align{0};
-    //     DestroyFn destroy{};
-    //     MoveFn move{};
-    //     ConstructFn construct{};
-    //     CaptureFn capture{};
-    //     RestoreFn restore{};
-    // };
 
     template <class T>
     bool registerType(CategoryType cat, ItemType kind)
