@@ -20,7 +20,7 @@ public:
     virtual void *getRaw(ItemType ti, Id id) = 0;
     virtual const void *getRawConst(ItemType ti, Id id) const = 0;
     virtual bool eraseRaw(ItemType ti, Id id) = 0;
-    virtual bool emplaceRaw(ItemType ti, Id id, HItemCreatorToken tok) = 0;
+    virtual bool emplaceRaw(ItemTypeVariant ti, Id id, HItemCreatorToken tok) = 0;
 
     // management / stats
     virtual void clear() = 0;

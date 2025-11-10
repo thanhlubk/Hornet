@@ -10,16 +10,16 @@
 #pragma pack(push, 2)
 struct AssociateParam
 {
-    // CategoryType eCategory;
-    // ItemType eType;
     uint16_t iFlag;
     uint16_t iStatus;
+    uint16_t iRenderState;
+    int16_t iReverse;
 
     AssociateParam()
-        // : eCategory(CategoryType::CatUnknown),
-        //   eType(ItemType::ItemUnkown),
         : iFlag(0),
-          iStatus(0) {}
+          iStatus(0),
+          iRenderState(0),
+          iReverse(0) {}
 };
 #pragma pack(pop)
 
@@ -37,6 +37,7 @@ class HORNETBASE_EXPORT HItem
 public:
     virtual CategoryType category() const noexcept = 0;
     virtual ItemType type() const noexcept = 0;
+    virtual uint16_t variant() const noexcept = 0;
     Id id() const noexcept;
     HCursor *getCursor() const noexcept;
 
@@ -65,6 +66,9 @@ inline constexpr CategoryType CategoryTypeOf = T::CategoryTypeTag;
 template <HItemTemplate T>
 inline constexpr ItemType ItemTypeOf = T::ItemTypeTag;
 
+template <HItemTemplate T>
+inline constexpr uint16_t VariantOf = T::VariantTag;
+
 class HORNETBASE_EXPORT HCursor
 {
     friend class HItem;
@@ -77,7 +81,7 @@ class HORNETBASE_EXPORT HCursor
     friend struct Chunk;
 
 public:
-    HCursor();
+    HCursor() noexcept;
     virtual ~HCursor() = default;
 
 protected:
@@ -90,6 +94,7 @@ public:
     Id id() const noexcept;
     CategoryType category() const noexcept;
     ItemType type() const noexcept;
+    uint16_t variant() const noexcept;
 
     // Return the owning base pointer (read-only view)
     const HItem *itemBase() const noexcept;
@@ -113,6 +118,21 @@ public:
     {
         return m_pItem->category() == CategoryTypeOf<T> && m_pItem->type() == ItemTypeOf<T>;
     }
+
+    uint16_t flags() const noexcept;
+    void setFlags(uint16_t v) noexcept;
+    void setFlag(uint16_t mask) noexcept;
+    void removeFlag(uint16_t mask) noexcept;
+    void clearFlag() noexcept;
+
+    uint16_t status() const noexcept;
+    void setStatus(uint16_t v) noexcept;
+
+    uint16_t renderState() const noexcept;
+    void setRenderState(uint16_t v) noexcept;
+
+    int16_t reverse() const noexcept;
+    void setReverse(int16_t v) noexcept;
 
 private:
     AssociateParam stAssoc;
@@ -147,14 +167,69 @@ struct KeyHash
     }
 };
 
-#define DECLARE_ITEM_STATIC_TAGS(className, cat, kind)                                   \
-    static inline const bool kTypeDescRegistered =                                       \
-        HItemManager::getInstance().registerType<className>(cat, kind);                  \
-                                                                                         \
-public:                                                                                  \
-    static constexpr CategoryType CategoryTypeTag = (cat);                               \
-    static constexpr ItemType ItemTypeTag = (kind);                                      \
+struct ItemTypeVariant
+{
+    ItemType type = ItemType::ItemUnkown;
+    uint16_t variant = 0;
+
+    constexpr ItemTypeVariant() = default;
+    constexpr ItemTypeVariant(ItemType t, uint16_t v) noexcept : type(t), variant(v) {}
+
+    bool operator==(const ItemTypeVariant &o) const noexcept
+    {
+        return type == o.type && variant == o.variant;
+    }
+};
+
+template <>
+struct std::hash<ItemTypeVariant>
+{
+    std::size_t operator()(const ItemTypeVariant &p) const noexcept
+    {
+        // Combine two uint16_t into one uint32_t, then hash
+        uint32_t combined = (static_cast<uint32_t>(p.variant) << 16) | static_cast<uint32_t>(p.type);
+        return std::hash<uint32_t>{}(combined);
+    }
+};
+
+#define DECLARE_ITEM_TAGS(className, cat, kind)                               \
+    static inline const bool kTypeDescRegistered =                                   \
+        HItemManager::getInstance().registerType<className>(cat, kind, 0);           \
+                                                                                     \
+public:                                                                              \
+    static constexpr CategoryType CategoryTypeTag = (cat);                           \
+    static constexpr ItemType ItemTypeTag = (kind);                                  \
+    static constexpr uint16_t VariantTag = 0;                                        \
     static constexpr CategoryType categoryTag() noexcept { return CategoryTypeTag; } \
-    static constexpr ItemType typeTag() noexcept { return ItemTypeTag; } \
-    virtual CategoryType category() const noexcept override { return cat; } \
-    virtual ItemType type() const noexcept override { return kind; } \
+    static constexpr ItemType typeTag() noexcept { return ItemTypeTag; }             \
+    static constexpr uint16_t variantTag() noexcept { return VariantTag; }           \
+    virtual CategoryType category() const noexcept override { return cat; }          \
+    virtual ItemType type() const noexcept override { return kind; }                 \
+    virtual uint16_t variant() const noexcept override { return 0; }
+
+#define DECLARE_ITEM_VARIANT_ABSTRACT_TAGS(className, cat, kind, var)                \
+public:                                                                              \
+    static constexpr CategoryType CategoryTypeTag = (cat);                           \
+    static constexpr ItemType ItemTypeTag = (kind);                                  \
+    static constexpr uint16_t VariantTag = var;                                      \
+    static constexpr CategoryType categoryTag() noexcept { return CategoryTypeTag; } \
+    static constexpr ItemType typeTag() noexcept { return ItemTypeTag; }             \
+    static constexpr uint16_t variantTag() noexcept { return VariantTag; }           \
+    virtual CategoryType category() const noexcept override { return cat; }          \
+    virtual ItemType type() const noexcept override { return kind; }                 \
+    virtual uint16_t variant() const noexcept override { return var; }
+
+#define DECLARE_ITEM_VARIANT_TAGS(className, cat, kind, var)                         \
+    static inline const bool kTypeDescRegistered =                                   \
+        HItemManager::getInstance().registerType<className>(cat, kind, var);         \
+                                                                                     \
+public:                                                                              \
+    static constexpr CategoryType CategoryTypeTag = (cat);                           \
+    static constexpr ItemType ItemTypeTag = (kind);                                  \
+    static constexpr uint16_t VariantTag = var;                                      \
+    static constexpr CategoryType categoryTag() noexcept { return CategoryTypeTag; } \
+    static constexpr ItemType typeTag() noexcept { return ItemTypeTag; }             \
+    static constexpr uint16_t variantTag() noexcept { return VariantTag; }           \
+    virtual CategoryType category() const noexcept override { return cat; }          \
+    virtual ItemType type() const noexcept override { return kind; }                 \
+    virtual uint16_t variant() const noexcept override { return var; }

@@ -2,7 +2,8 @@
 #include <cassert>
 #include <stdexcept>
 
-HCursor::HCursor()
+HCursor::HCursor() noexcept
+    : stAssoc{}, iId(0), m_pItem(nullptr)
 {
 }
 
@@ -31,9 +32,69 @@ ItemType HCursor::type() const noexcept
     return ItemType::ItemUnkown;
 }
 
+uint16_t HCursor::variant() const noexcept
+{
+    return m_pItem ? m_pItem->variant() : 0;
+}
+
 const HItem *HCursor::itemBase() const noexcept
 {
     return m_pItem;
+}
+
+uint16_t HCursor::flags() const noexcept 
+{ 
+    return stAssoc.iFlag; 
+}
+
+void HCursor::setFlags(uint16_t v) noexcept 
+{ 
+    stAssoc.iFlag = v; 
+}
+
+void HCursor::setFlag(uint16_t mask) noexcept 
+{ 
+    stAssoc.iFlag |= mask; 
+}
+
+void HCursor::removeFlag(uint16_t mask) noexcept 
+{ 
+    stAssoc.iFlag &= ~mask; 
+}
+
+void HCursor::clearFlag() noexcept 
+{ 
+    stAssoc.iFlag = 0; 
+}
+
+uint16_t HCursor::status() const noexcept 
+{ 
+    return stAssoc.iStatus; 
+}
+
+void HCursor::setStatus(uint16_t v) noexcept 
+{ 
+    stAssoc.iStatus = v; 
+}
+
+uint16_t HCursor::renderState() const noexcept 
+{ 
+    return stAssoc.iRenderState; 
+}
+
+void HCursor::setRenderState(uint16_t v) noexcept 
+{ 
+    stAssoc.iRenderState = v; 
+}
+
+int16_t HCursor::reverse() const noexcept 
+{ 
+    return stAssoc.iReverse; 
+}
+
+void HCursor::setReverse(int16_t v) noexcept 
+{ 
+    stAssoc.iReverse = v; 
 }
 
 HItem::HItem(Id id, HCursor *cursor, HItemCreatorToken) noexcept
@@ -47,20 +108,7 @@ HItem::HItem(Id id, HCursor *cursor, HItemCreatorToken) noexcept
     
     m_pCursor->iId = id;
     m_pCursor->m_pItem = this;
-
-    // m_pCursor->stAssoc.eCategory = cat;
-    // m_pCursor->stAssoc.eType = k;
 }
-
-// CategoryType HItem::category() const noexcept
-// {
-//     return m_pCursor->category();
-// }
-
-// ItemType HItem::type() const noexcept 
-// {
-//     return m_pCursor->type();
-// }
 
 Id HItem::id() const noexcept 
 {

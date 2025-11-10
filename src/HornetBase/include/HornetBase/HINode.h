@@ -11,7 +11,7 @@ class HORNETBASE_EXPORT HINode : public HItem
 #if !defined(_MSC_VER)
     using Super = HItem; // required on non-MSVC
 #endif
-    DECLARE_ITEM_STATIC_TAGS(HINode, CategoryType::CatNode, ItemType::ItemNode)
+    DECLARE_ITEM_TAGS(HINode, CategoryType::CatNode, ItemType::ItemNode)
 
 public:
     HINode(Id id, HCursor *cursor, HItemCreatorToken tok);
@@ -32,7 +32,7 @@ class HORNETBASE_EXPORT HINodeHeat : public HINode
 #if !defined(_MSC_VER)
     using Super = HINode; // required on non-MSVC
 #endif
-    DECLARE_ITEM_STATIC_TAGS(HINodeHeat, CategoryType::CatNode, ItemType::ItemNodeHeat)
+    DECLARE_ITEM_TAGS(HINodeHeat, CategoryType::CatNode, ItemType::ItemNodeHeat)
 
 public:
     HINodeHeat(Id id, HCursor *cursor, HItemCreatorToken tok);

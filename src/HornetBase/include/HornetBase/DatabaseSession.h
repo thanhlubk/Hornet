@@ -100,7 +100,7 @@ public:
             // First mutable checkout of an existing object in this tx → take BEFORE snapshot
             std::string payloadBefore;
             if (auto const *raw = base->getRawConst(ItemTypeOf<T>, id))
-                payloadBefore = HItemManager::getInstance().captureTransaction(ItemTypeOf<T>, raw, this);
+                payloadBefore = HItemManager::getInstance().captureTransaction(ItemTypeVariant{ItemTypeOf<T>, VariantOf<T>}, raw, this);
 
             m_transaction.template noteCheckOut<T>(id, payloadBefore); // sets Modify if no prior op
             return p;
@@ -141,7 +141,7 @@ public:
                 {
                     if (auto const *p = store->getRawConst(ItemTypeOf<T>, id))
                     {
-                        payloadBefore = HItemManager::getInstance().captureTransaction(ItemTypeOf<T>, p, this);
+                        payloadBefore = HItemManager::getInstance().captureTransaction(ItemTypeVariant{ItemTypeOf<T>, VariantOf<T>}, p, this);
                     }
                 }
             }

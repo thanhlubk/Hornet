@@ -114,6 +114,7 @@ bool DatabaseSession::erase(HCursor *cur)
 
     const ItemType ti = cur->type();
     const Id id = cur->id();
+    const uint16_t var = cur->variant();
     CategoryType cat = HItemManager::getInstance().getCategory(ti);
 
     Pool *store = checkOutPool(cat);
@@ -135,13 +136,13 @@ bool DatabaseSession::erase(HCursor *cur)
     std::string before;
     if (auto it = txmap.find(k); it == txmap.end() || it->second.type != TransactionManager::TransactionType::Modify)
         if (auto const *p = store->getRawConst(ti, id))
-            before = HItemManager::getInstance().captureTransaction(ti, p, this);
+            before = HItemManager::getInstance().captureTransaction(ItemTypeVariant{ti, var}, p, this);
 
     auto &op = txmap[k];
     if (op.type == TransactionManager::TransactionType{})
     {
         op.type = TransactionManager::TransactionType::Erase;
-        op.itemType = ti;
+        op.itemType = ItemTypeVariant{ti, var};
         op.id = id;
         op.payloadBefore = std::move(before);
     }
@@ -190,16 +191,16 @@ void DatabaseSession::clearCategory(CategoryType cat)
     Pool *store = it->second.get();
 
     // Helper to create / merge an Erase op for (type,id)
-    auto schedule_erase = [&](ItemType ti, Id id)
+    auto schedule_erase = [&](ItemTypeVariant ti, Id id)
     {
         auto &cur = m_transaction.get_current_transaction();
-        Key k{ti, id};
+        Key k{ti.type, id};
         auto found = cur.find(k);
         if (found != cur.end() && found->second.type == TransactionManager::TransactionType::Emplace)
         {
             // Emplace then clear → cancel and erase now
             cur.erase(found);
-            (void)store->eraseRaw(ti, id);
+            (void)store->eraseRaw(ti.type, id);
             return;
         }
 
@@ -210,7 +211,7 @@ void DatabaseSession::clearCategory(CategoryType cat)
             op.itemType = ti;
             op.id = id;
 
-            if (auto const *p = store->getRawConst(ti, id))
+            if (auto const *p = store->getRawConst(ti.type, id))
             {
                 op.payloadBefore = HItemManager::getInstance()
                                        .captureTransaction(ti, p, this);
@@ -233,7 +234,7 @@ void DatabaseSession::clearCategory(CategoryType cat)
             if (!c)
                 continue;
             // schedule_erase(c->stAssoc.eType, c->iId);
-            schedule_erase(c->type(), c->id());
+            schedule_erase(ItemTypeVariant{c->type(), c->variant()}, c->id());
         }
     }
     else if (auto *pm = dynamic_cast<PoolMix *>(store))
@@ -243,7 +244,7 @@ void DatabaseSession::clearCategory(CategoryType cat)
             if (!c)
                 continue;
             // schedule_erase(c->stAssoc.eType, c->iId);
-            schedule_erase(c->type(), c->id());
+            schedule_erase(ItemTypeVariant{c->type(), c->variant()}, c->id());
         }
     }
 
@@ -304,9 +305,9 @@ void DatabaseSession::commitTransaction()
         if (op.type == TransactionManager::TransactionType::Modify ||
             op.type == TransactionManager::TransactionType::Emplace)
         {
-            if (auto *store = checkOutPool(HItemManager::getInstance().getCategory(op.itemType)))
+            if (auto *store = checkOutPool(HItemManager::getInstance().getCategory(op.itemType.type)))
             {
-                if (auto const *p = store->getRawConst(op.itemType, op.id))
+                if (auto const *p = store->getRawConst(op.itemType.type, op.id))
                 {
                     op.payloadAfter = HItemManager::getInstance().captureTransaction(op.itemType, p, this);
                 }
@@ -317,7 +318,7 @@ void DatabaseSession::commitTransaction()
     // Apply commit direction
     for (auto &[k, op] : cur)
     {
-        if (auto *store = checkOutPool(HItemManager::getInstance().getCategory(op.itemType)))
+        if (auto *store = checkOutPool(HItemManager::getInstance().getCategory(op.itemType.type)))
             store->updateBytes(op, this);
     }
 
@@ -332,7 +333,7 @@ void DatabaseSession::rollbackTransaction()
     auto &cur = m_transaction.get_current_transaction();
     for (auto it = cur.begin(); it != cur.end(); ++it)
     {
-        if (auto *store = checkOutPool(HItemManager::getInstance().getCategory(it->second.itemType)))
+        if (auto *store = checkOutPool(HItemManager::getInstance().getCategory(it->second.itemType.type)))
             store->restoreBytes(it->second, this);
     }
     m_transaction.rollback();
@@ -349,7 +350,7 @@ bool DatabaseSession::undo()
         for (auto it = tx->ops.rbegin(); it != tx->ops.rend(); ++it)
         {
             const auto &op = *it;
-            auto *store = checkOutPool(HItemManager::getInstance().getCategory(op.itemType));
+            auto *store = checkOutPool(HItemManager::getInstance().getCategory(op.itemType.type));
             if (!store)
                 continue;
 
@@ -384,7 +385,7 @@ bool DatabaseSession::redo()
     {
         for (auto &op : tx->ops)
         {
-            auto *store = checkOutPool(HItemManager::getInstance().getCategory(op.itemType));
+            auto *store = checkOutPool(HItemManager::getInstance().getCategory(op.itemType.type));
             if (!store)
                 continue;
 
@@ -420,7 +421,7 @@ void DatabaseSession::onNotify(MessageType mess, MessageParam a, MessageParam b)
 // Recreate an erased object and restore its BEFORE state (used by UNDO of Erase)
 bool DatabaseSession::undoUpdateBytes(const TransactionManager::TransactionOperation &op)
 {
-    CategoryType cat = HItemManager::getInstance().getCategory(op.itemType);
+    CategoryType cat = HItemManager::getInstance().getCategory(op.itemType.type);
     auto *store = checkOutPool(cat);
     if (!store)
         return false;
@@ -429,7 +430,7 @@ bool DatabaseSession::undoUpdateBytes(const TransactionManager::TransactionOpera
     if (!store->emplaceRaw(op.itemType, op.id, tok))
         return false;
 
-    if (void *p = store->getRaw(op.itemType, op.id))
+    if (void *p = store->getRaw(op.itemType.type, op.id))
     {
         HItemManager::getInstance().restoreTransaction(op.itemType, p, op.payloadBefore, this);
         return true;
@@ -440,12 +441,12 @@ bool DatabaseSession::undoUpdateBytes(const TransactionManager::TransactionOpera
 // Recreate an inserted object and restore its AFTER state (used by REDO of Emplace)
 bool DatabaseSession::redoUpdateBytes(const TransactionManager::TransactionOperation &op)
 {
-    CategoryType cat = HItemManager::getInstance().getCategory(op.itemType);
+    CategoryType cat = HItemManager::getInstance().getCategory(op.itemType.type);
     auto *store = checkOutPool(cat);
     if (!store)
         return false;
 
-    if (void *p = store->getRaw(op.itemType, op.id))
+    if (void *p = store->getRaw(op.itemType.type, op.id))
     {
         // already exists: idempotent
         HItemManager::getInstance().restoreTransaction(op.itemType, p, op.payloadAfter, this);
@@ -456,7 +457,7 @@ bool DatabaseSession::redoUpdateBytes(const TransactionManager::TransactionOpera
     if (!store->emplaceRaw(op.itemType, op.id, tok))
         return false;
 
-    if (void *p2 = store->getRaw(op.itemType, op.id))
+    if (void *p2 = store->getRaw(op.itemType.type, op.id))
     {
         HItemManager::getInstance().restoreTransaction(op.itemType, p2, op.payloadAfter, this);
         return true;

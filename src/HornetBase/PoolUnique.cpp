@@ -36,13 +36,13 @@ void PoolUnique::restoreBytes(TransactionManager::TransactionOperation tx, Datab
     switch (tx.type)
     {
     case TransactionManager::TransactionType::Emplace:
-        (void)eraseRaw(tx.itemType, tx.id);
+        (void)eraseRaw(tx.itemType.type, tx.id);
         break;
     case TransactionManager::TransactionType::Erase:
         // deferred erase; nothing to undo
         break;
     case TransactionManager::TransactionType::Modify:
-        if (void *p = getRaw(tx.itemType, tx.id))
+        if (void *p = getRaw(tx.itemType.type, tx.id))
         {
             HItemManager::getInstance().restoreTransaction(tx.itemType, p, tx.payloadBefore, pDb);
         }
@@ -58,10 +58,10 @@ void PoolUnique::updateBytes(TransactionManager::TransactionOperation tx, Databa
         // already present
         break;
     case TransactionManager::TransactionType::Erase:
-        (void)eraseRaw(tx.itemType, tx.id);
+        (void)eraseRaw(tx.itemType.type, tx.id);
         break;
     case TransactionManager::TransactionType::Modify:
-        if (void *p = getRaw(tx.itemType, tx.id))
+        if (void *p = getRaw(tx.itemType.type, tx.id))
         {
             HItemManager::getInstance().restoreTransaction(tx.itemType, p, tx.payloadAfter, pDb);
         }
@@ -93,9 +93,9 @@ bool PoolUnique::eraseRaw(ItemType ti, Id id)
     return static_cast<ChunkInterface *>(it->second.get())->eraseRaw(id);
 }
 
-bool PoolUnique::emplaceRaw(ItemType ti, Id id, HItemCreatorToken tok)
+bool PoolUnique::emplaceRaw(ItemTypeVariant ti, Id id, HItemCreatorToken tok)
 {
-    auto it = pools_.find(ti);
+    auto it = pools_.find(ti.type);
     if (it == pools_.end())
         return false;
     return static_cast<ChunkInterface *>(it->second.get())->emplaceRaw(id, tok);

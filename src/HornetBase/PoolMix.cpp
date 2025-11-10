@@ -53,13 +53,13 @@ void PoolMix::restoreBytes(TransactionManager::TransactionOperation tx, Database
     switch (tx.type)
     {
     case TransactionManager::TransactionType::Emplace:
-        (void)eraseRaw(tx.itemType, tx.id);
+        (void)eraseRaw(tx.itemType.type, tx.id);
         break;
     case TransactionManager::TransactionType::Erase:
         // deferred deletion: nothing to undo
         break;
     case TransactionManager::TransactionType::Modify:
-        if (void *p = getRaw(tx.itemType, tx.id))
+        if (void *p = getRaw(tx.itemType.type, tx.id))
         {
             HItemManager::getInstance().restoreTransaction(tx.itemType, p, tx.payloadBefore, pDb);
         }
@@ -75,10 +75,10 @@ void PoolMix::updateBytes(TransactionManager::TransactionOperation tx, DatabaseS
         // already present
         break;
     case TransactionManager::TransactionType::Erase:
-        (void)eraseRaw(tx.itemType, tx.id);
+        (void)eraseRaw(tx.itemType.type, tx.id);
         break;
     case TransactionManager::TransactionType::Modify:
-        if (void *p = getRaw(tx.itemType, tx.id))
+        if (void *p = getRaw(tx.itemType.type, tx.id))
         {
             HItemManager::getInstance().restoreTransaction(tx.itemType, p, tx.payloadAfter, pDb);
         }
@@ -136,9 +136,9 @@ bool PoolMix::eraseRaw(ItemType ti, Id id)
     return true;
 }
 
-bool PoolMix::emplaceRaw(ItemType ti, Id id, HItemCreatorToken tok)
+bool PoolMix::emplaceRaw(ItemTypeVariant ti, Id id, HItemCreatorToken tok)
 {
-    Key key{ti, id};
+    Key key{ti.type, id};
     if (index_.find(key) != index_.end())
         return false;
 

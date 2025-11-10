@@ -499,32 +499,6 @@ namespace TransactionHelper
 
 } // namespace TransactionHelper
 
-// #define DEFINE_TRANSACTION_EXCHANGE(T, /* pointers-to-members... */...)                         \
-//     static std::string captureTransactionItem(const T &self, DatabaseSession *pDb)              \
-//     {                                                                                           \
-//         return TransactionHelper::captureMembers(self, pDb, __VA_ARGS__);                       \
-//     }                                                                                           \
-//     static void restoreTransactionItem(T &self, const std::string &bytes, DatabaseSession *pDb) \
-//     {                                                                                           \
-//         auto &nonConstBytes = const_cast<std::string &>(bytes);                                 \
-//         (void)TransactionHelper::restoreMembers(self, nonConstBytes, pDb, __VA_ARGS__);           \
-//     }
-
-// #define DEFINE_TRANSACTION_EXCHANGE(T, /* pointers-to-members... */...)                                   \
-//     virtual std::string captureTransactionItem(DatabaseSession *pDb)                                      \
-//     {                                                                                                     \
-//         std::string strBaseClassCapture = __super::captureTransactionItem(*this, pDb);                  \
-//         auto finalStr = strBaseClassCapture + TransactionHelper::captureMembers(*this, pDb, __VA_ARGS__); \
-//         return finalStr;                                                                                  \
-//     }                                                                                                     \
-//     virtual size_t restoreTransactionItem(const std::string &bytes, size_t off, DatabaseSession *pDb)     \
-//     {                                                                                                     \
-//         auto &nonConstBytes = const_cast<std::string &>(bytes);                                           \
-//         off = __super::restoreTransactionItem(*this, nonConstBytes, off, pDb);                          \
-//         off = TransactionHelper::restoreMembers(*this, nonConstBytes, off, pDb, __VA_ARGS__);             \
-//         return off;                                                                                       \
-//     }
-
 #if defined(_MSC_VER)
 // MSVC: uses __super::
 #define DEFINE_TRANSACTION_EXCHANGE(/* pointers-to-members... */...)                 \

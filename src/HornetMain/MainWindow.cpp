@@ -532,14 +532,10 @@ MainWindow::MainWindow(QWidget *parent)
     /// test database
     db.setNotifyDispatcher(disp_);
     db.beginTransaction();
-    db.emplace<HINode>(1);
-    db.emplace<HINode>(2);
-    db.emplace<HINode>(3);
-    db.emplace<HINode>(4);
-    db.emplace<HINode>(5);
+    db.emplace<HIElementTri3>(1);
+    db.emplace<HIElementQuad4>(2);
+    db.emplace<HIElement>(8, ElementType::ElementTypeQuad8);
 
-    db.emplace<HIElementTest>(6);
-    db.emplace<HIElementTest>(7);
     db.commitTransaction();
 
     auto stats = db.stats();
@@ -547,111 +543,112 @@ MainWindow::MainWindow(QWidget *parent)
              << " object=" << stats.objects
              << " bytes_used~" << stats.bytes_used << "\n";
 
-    if (auto *a = db.get<HINode>(1))
+    if (auto *a = db.get<HIElement>(6))
     {
         qDebug() << a->id() << "\n";
     }
-    if (auto *b = db.get<HINode>(5))
+    if (auto *b = db.get<HIElement>(8))
     {
-        qDebug() << b->id() << "\n";
+        qDebug() << (int)b->elementType() << "\n";
+        qDebug() << (int)b->elementKind() << "\n";
     }
 
     db.beginTransaction();
     // Delete A(1) — this will compact that chunk
-    db.erase<HIElementTest>(6);
+    db.erase<HIElement>(6);
     db.commitTransaction();
 
-    // Iterate A in memory order
-    // db.for_each_in_memory_order<A>([](Id id, A& a) { /* ... */ });
-    auto stats2 = db.stats();
-    qDebug() << "categories=" << stats2.store_count
-             << " object=" << stats2.objects
-             << " bytes_used~" << stats2.bytes_used << "\n";
+    // // Iterate A in memory order
+    // // db.for_each_in_memory_order<A>([](Id id, A& a) { /* ... */ });
+    // auto stats2 = db.stats();
+    // qDebug() << "categories=" << stats2.store_count
+    //          << " object=" << stats2.objects
+    //          << " bytes_used~" << stats2.bytes_used << "\n";
 
-    db.beginTransaction();
-    db.emplace<HIElementTest>(11);
-    db.emplace<HIElementTest>(12);
-    db.commitTransaction();
+    // db.beginTransaction();
+    // db.emplace<HIElementPoint>(11);
+    // db.emplace<HIElementPoint>(12);
+    // db.commitTransaction();
 
-    auto stats3 = db.stats();
-    qDebug() << "categories=" << stats3.store_count
-             << " object=" << stats3.objects
-             << " bytes_used~" << stats3.bytes_used << "\n";
+    // auto stats3 = db.stats();
+    // qDebug() << "categories=" << stats3.store_count
+    //          << " object=" << stats3.objects
+    //          << " bytes_used~" << stats3.bytes_used << "\n";
 
-    auto *noMix = db.getPoolUnique(CategoryType::CatNode);
-    if (noMix)
-    {
-        for (auto any : noMix->range())
-        {
-            auto item = std::launder(reinterpret_cast<HCursor *>(any));
-            qDebug() << "No mix id is =" << item->id() << "\n";
-        }
-    }
+    // auto *noMix = db.getPoolUnique(CategoryType::CatNode);
+    // if (noMix)
+    // {
+    //     for (auto any : noMix->range())
+    //     {
+    //         auto item = std::launder(reinterpret_cast<HCursor *>(any));
+    //         qDebug() << "No mix id is =" << item->id() << "\n";
+    //     }
+    // }
 
-    auto *doMix = db.getPoolMix(CategoryType::CatElement);
-    if (doMix)
-    {
-        for (auto any : doMix->range())
-        {
-            auto item2 = std::launder(reinterpret_cast<HCursor *>(any));
-            qDebug() << "Do mix id is =" << item2->id() << "\n";
-        }
-    }
+    // auto *doMix = db.getPoolMix(CategoryType::CatElement);
+    // if (doMix)
+    // {
+    //     for (auto any : doMix->range())
+    //     {
+    //         auto item2 = std::launder(reinterpret_cast<HCursor *>(any));
+    //         qDebug() << "Do mix id is =" << item2->id() << "\n";
+    //     }
+    // }
 
-    auto pTestItem = db.get<HINode>(3);
-    if (pTestItem)
-    {
-        auto testcursor = pTestItem->getCursor();
-    }
+    // auto pTestItem = db.get<HINode>(3);
+    // if (pTestItem)
+    // {
+    //     auto testcursor = pTestItem->getCursor();
+    // }
     
-    db.undo();
-    db.undo();
+    // db.undo();
+    // db.undo();
 
-    auto stats4 = db.stats();
-    qDebug() << "categories=" << stats4.store_count
-             << " object=" << stats4.objects
-             << " bytes_used~" << stats4.bytes_used << "\n";
+    // auto stats4 = db.stats();
+    // qDebug() << "categories=" << stats4.store_count
+    //          << " object=" << stats4.objects
+    //          << " bytes_used~" << stats4.bytes_used << "\n";
 
-    auto *noMix2 = db.getPoolUnique(CategoryType::CatNode);
-    if (noMix2)
-    {
-        for (auto cursor : noMix2->range())
-        {
-            qDebug() << "No mix id is =" << cursor->id() << "\n";
-        }
-    }
+    // auto *noMix2 = db.getPoolUnique(CategoryType::CatNode);
+    // if (noMix2)
+    // {
+    //     for (auto cursor : noMix2->range())
+    //     {
+    //         qDebug() << "No mix id is =" << cursor->id() << "\n";
+    //     }
+    // }
 
-    auto *doMix2 = db.getPoolMix(CategoryType::CatElement);
-    if (doMix2)
-    {
-        for (auto cursor : doMix2->range())
-        {
-            qDebug() << "Do mix id is =" << cursor->id() << "\n";
-        }
-    }
-    db.redo();
-    auto stats5 = db.stats();
-    qDebug() << "categories=" << stats5.store_count
-             << " object=" << stats5.objects
-             << " bytes_used~" << stats5.bytes_used << "\n";
+    // auto *doMix2 = db.getPoolMix(CategoryType::CatElement);
+    // if (doMix2)
+    // {
+    //     for (auto cursor : doMix2->range())
+    //     {
+    //         qDebug() << "Do mix id is =" << cursor->id() << "\n";
+    //     }
+    // }
+    // db.redo();
+    // auto stats5 = db.stats();
+    // qDebug() << "categories=" << stats5.store_count
+    //          << " object=" << stats5.objects
+    //          << " bytes_used~" << stats5.bytes_used << "\n";
 
-    auto *noMix3 = db.getPoolUnique(CategoryType::CatNode);
-    if (noMix3)
-    {
-        for (auto cursor : noMix3->range())
-        {
-            qDebug() << "No mix id is =" << cursor->id() << "\n";
-        }
-    }
+    // auto *noMix3 = db.getPoolUnique(CategoryType::CatNode);
+    // if (noMix3)
+    // {
+    //     for (auto cursor : noMix3->range())
+    //     {
+    //         qDebug() << "No mix id is =" << cursor->id() << "\n";
+    //     }
+    // }
 
-    auto *doMix3 = db.getPoolMix(CategoryType::CatElement);
-    if (doMix3)
-    {
-        for (auto cursor : doMix3->range())
-        {
-            qDebug() << "Do mix id is =" << cursor->id() << "\n";
-        }
-    }
+    // auto *doMix3 = db.getPoolMix(CategoryType::CatElement);
+    // if (doMix3)
+    // {
+    //     for (auto cursor : doMix3->range())
+    //     {
+    //         qDebug() << "Do mix id is =" << cursor->id() << "\n";
+    //     }
+    // }
 }
 
 MainWindow::~MainWindow()

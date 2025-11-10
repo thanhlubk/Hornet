@@ -6,6 +6,10 @@
 #include <algorithm>
 #include <utility>
 #include <stdexcept>
+#include "HIElement.h"
+#include <tuple>
+#include <type_traits>
+#include <new> // for std::launder if not already included elsewhere
 
 struct ItemTypeDescriptor;
 
@@ -47,39 +51,18 @@ public:
 
     // Insert any T by (T,id); constructs T in-place and returns reference
     template <HItemTemplate T, class... Args>
-    bool emplace(Id id, Args &&...args)
+    bool emplace(Id id, HItemCreatorToken tok, Args &&...args)
+        requires (!std::same_as<std::remove_cvref_t<T>, HIElement>)
     {
-        // Check if emplacing HIElement item
-        // using U = std::remove_cvref_t<T>;
-
-        // if constexpr (std::is_base_of_v<HIElement, U> && !std::is_same_v<U, HIElement>)
-        // {
-        //     // case 1: strictly derived from HIElement (any access)
-        //     // ...
-        // }
-        // else if constexpr (std::is_same_v<U, HIElement>)
-        // {
-        //     // case 2: exactly HIElement
-        //     if !(sizeof...(Args) > 0)
-        //         return false;
-
-        //     // static_assert(sizeof...(Args) > 0, "HIElement emplace requires at least one argument (the element type)");
-        //     // Extract the first argument as ElementType
-        //     ElementType elementType = static_cast<ElementType>(std::get<0>(std::forward_as_tuple(std::forward<Args>(args)...)));
-        // }
-        // else
-        // {
-        //     // case 3: unrelated
-        //     // ...
-        // }
-
         Key key{ItemTypeOf<T>, id};
         if (index_.find(key) != index_.end())
         {
             throw std::runtime_error("(T,id) already exists");
         }
+
         // const TypeOps& ops = TypeOps::for_type<T>();
-        const ItemTypeDescriptor *desc = HItemManager::getInstance().descriptor(ItemTypeOf<T>);
+        const ItemTypeDescriptor *desc =
+            HItemManager::getInstance().descriptor(ItemTypeVariant{ItemTypeOf<T>, VariantOf<T>});
         if (!desc)
             throw std::runtime_error("Type not registered in HItemManager");
 
@@ -111,7 +94,8 @@ public:
 
         void *ptr = static_cast<void *>(c->buf.get() + aligned);
         HCursor *pCursor = m_pChunkCursor->emplace();
-        T *obj = ::new (ptr) T(id, pCursor, std::forward<Args>(args)...);
+
+        T *obj = ::new (ptr) T(id, pCursor, tok, std::forward<Args>(args)...);
         (void)obj;
 
         c->used = aligned + desc->size;
@@ -120,7 +104,49 @@ public:
                              static_cast<std::uint32_t>(aligned), desc};
         ++count_;
         return true;
-        // return *reinterpret_cast<T*>(ptr);
+    }
+
+    // Insert any T by (T,id); constructs T in-place and returns reference
+    template <HItemTemplate T, class... Args>
+    bool emplace(Id id, HItemCreatorToken tok, Args &&...args)
+        requires std::same_as<std::remove_cvref_t<T>, HIElement>
+    {
+        // First argument must be ElementType
+        static_assert(sizeof...(Args) >= 1, "PoolMix::emplace<HIElement>(id, tok, ElementType [, ...]) requires ElementType as the first argument");
+        // Build a tuple of the forwarded args and split (first, rest...) inside std::apply
+        auto tup = std::forward_as_tuple(std::forward<Args>(args)...);
+
+        return std::apply([&](auto &&first, auto &&...rest) -> bool
+            {
+                const ElementType et = static_cast<ElementType>(first);
+
+                switch (et) {
+                    case ElementType::ElementTypePoint:
+                        return emplace<HIElementPoint>(id, tok, std::forward<decltype(rest)>(rest)...);
+                    case ElementType::ElementTypeLine2:
+                        return emplace<HIElementLine2>(id, tok, std::forward<decltype(rest)>(rest)...);
+                    case ElementType::ElementTypeLine3:
+                        return emplace<HIElementLine3>(id, tok, std::forward<decltype(rest)>(rest)...);
+                    case ElementType::ElementTypeTri3:
+                        return emplace<HIElementTri3>(id, tok, std::forward<decltype(rest)>(rest)...);
+                    case ElementType::ElementTypeTri6:
+                        return emplace<HIElementTri6>(id, tok, std::forward<decltype(rest)>(rest)...);
+                    case ElementType::ElementTypeQuad4:
+                        return emplace<HIElementQuad4>(id, tok, std::forward<decltype(rest)>(rest)...);
+                    case ElementType::ElementTypeQuad8:
+                        return emplace<HIElementQuad8>(id, tok, std::forward<decltype(rest)>(rest)...);
+                    case ElementType::ElementTypeTet4:
+                        return emplace<HIElementTet4>(id, tok, std::forward<decltype(rest)>(rest)...);
+                    case ElementType::ElementTypeTet10:
+                        return emplace<HIElementTet10>(id, tok, std::forward<decltype(rest)>(rest)...);
+                    case ElementType::ElementTypeHex8:
+                        return emplace<HIElementHex8>(id, tok, std::forward<decltype(rest)>(rest)...);
+                    case ElementType::ElementTypeHex20:
+                        return emplace<HIElementHex20>(id, tok, std::forward<decltype(rest)>(rest)...);
+                    default:
+                        throw std::runtime_error("Unsupported ElementType");
+                } 
+            }, std::move(tup));
     }
 
     // Lookup by (T,id)
@@ -351,7 +377,7 @@ public:
     void *getRaw(ItemType ti, Id id) override;
     const void *getRawConst(ItemType ti, Id id) const override;
     bool eraseRaw(ItemType ti, Id id) override;
-    bool emplaceRaw(ItemType ti, Id id, HItemCreatorToken tok);
+    bool emplaceRaw(ItemTypeVariant ti, Id id, HItemCreatorToken tok);
 
 private:
     void new_chunk();
@@ -367,3 +393,257 @@ private:
     std::unordered_map<Key, MixLoc, KeyHash> index_;
     std::size_t count_ = 0;
 };
+
+#if 0 // cpp content
+#include "HornetBase/PoolMix.h"
+#include "HornetBase/HItemManager.h"
+#include <algorithm>
+#include <stdexcept>
+
+PoolMix::PoolMix(CategoryType cat, ChunkCursor *chunkCursor, std::size_t chunk_bytes, bool lazy_first_chunk)
+    : Pool(cat, chunkCursor), chunk_bytes_(chunk_bytes), lazy_first_chunk_(lazy_first_chunk)
+{
+    if (!lazy_first_chunk_)
+        new_chunk();
+}
+
+// PoolMix::PoolMix(std::size_t chunk_bytes, bool lazy_first_chunk)
+//     : PoolMix(CategoryType::CatUnknown, chunk_bytes, lazy_first_chunk)
+// {
+// }
+
+// ---- Pool overrides ----
+void PoolMix::clear()
+{
+    for (auto &kv : index_)
+    {
+        const MixLoc &loc = kv.second;
+
+        // Erase cursor first then Destroy object
+        void *ptr = static_cast<void *>(chunks_[loc.chunk].buf.get() + loc.offset);
+        if (auto *item = static_cast<HItem *>(ptr))
+            m_pChunkCursor->erase(item->getCursor());
+        loc.ops->destroy(ptr);
+    }
+    index_.clear();
+    chunks_.clear();
+    count_ = 0;
+    if (!lazy_first_chunk_)
+        new_chunk();
+}
+
+std::size_t PoolMix::bytesUsed() const
+{
+    std::size_t t = 0;
+    for (const auto &c : chunks_)
+        t += c.used;
+    return t;
+}
+
+std::size_t PoolMix::count() const
+{
+    return count_;
+}
+
+void PoolMix::restoreBytes(TransactionManager::TransactionOperation tx, DatabaseSession *pDb)
+{
+    switch (tx.type)
+    {
+    case TransactionManager::TransactionType::Emplace:
+        (void)eraseRaw(tx.itemType.type, tx.id);
+        break;
+    case TransactionManager::TransactionType::Erase:
+        // deferred deletion: nothing to undo
+        break;
+    case TransactionManager::TransactionType::Modify:
+        if (void *p = getRaw(tx.itemType.type, tx.id))
+        {
+            HItemManager::getInstance().restoreTransaction(tx.itemType, p, tx.payloadBefore, pDb);
+        }
+        break;
+    }
+}
+
+void PoolMix::updateBytes(TransactionManager::TransactionOperation tx, DatabaseSession *pDb)
+{
+    switch (tx.type)
+    {
+    case TransactionManager::TransactionType::Emplace:
+        // already present
+        break;
+    case TransactionManager::TransactionType::Erase:
+        (void)eraseRaw(tx.itemType.type, tx.id);
+        break;
+    case TransactionManager::TransactionType::Modify:
+        if (void *p = getRaw(tx.itemType.type, tx.id))
+        {
+            HItemManager::getInstance().restoreTransaction(tx.itemType, p, tx.payloadAfter, pDb);
+        }
+        break;
+    }
+}
+
+void *PoolMix::getRaw(ItemType ti, Id id)
+{
+    Key key{ti, id};
+    auto it = index_.find(key);
+    if (it == index_.end())
+        return nullptr;
+    const MixLoc &loc = it->second;
+    return static_cast<void *>(chunks_[loc.chunk].buf.get() + loc.offset);
+}
+
+const void *PoolMix::getRawConst(ItemType ti, Id id) const
+{
+    Key key{ti, id};
+    auto it = index_.find(key);
+    if (it == index_.end())
+        return nullptr;
+    const MixLoc &loc = it->second;
+    return static_cast<const void *>(chunks_[loc.chunk].buf.get() + loc.offset);
+}
+
+bool PoolMix::eraseRaw(ItemType ti, Id id)
+{
+    Key key{ti, id};
+    auto it = index_.find(key);
+    if (it == index_.end())
+        return false;
+    MixLoc loc = it->second;
+    MixChunk &c = chunks_[loc.chunk];
+
+    // Erase cursor first then Destroy object
+    void *ptr = static_cast<void *>(c.buf.get() + loc.offset);
+    if (auto *item = static_cast<HItem *>(ptr))
+        m_pChunkCursor->erase(item->getCursor());
+    loc.ops->destroy(ptr);
+
+    index_.erase(it);
+    --count_;
+
+    auto &ids = c.ids;
+    for (std::size_t i = 0; i < ids.size(); ++i)
+    {
+        if (ids[i] == key)
+        {
+            ids.erase(ids.begin() + i);
+            break;
+        }
+    }
+    return true;
+}
+
+bool PoolMix::emplaceRaw(ItemTypeVariant ti, Id id, HItemCreatorToken tok)
+{
+    Key key{ti.type, id};
+    if (index_.find(key) != index_.end())
+        return false;
+
+    if (chunks_.empty())
+        new_chunk();
+
+    const ItemTypeDescriptor *ops = HItemManager::getInstance().descriptor(ti);
+    if (!ops)
+        throw std::runtime_error("Unknown ItemType in emplaceRaw");
+
+    MixChunk *c = &chunks_.back();
+    std::size_t aligned = alignUp(c->used, ops->align);
+
+    if (aligned + ops->size > c->capacity)
+    {
+        // 1) reclaim holes globally
+        compact_all();
+        // 2) re-evaluate
+        if (chunks_.empty())
+            new_chunk();
+        c = &chunks_.back();
+        aligned = alignUp(c->used, ops->align);
+        // 3) still no room → new chunk
+        if (aligned + ops->size > c->capacity)
+        {
+            new_chunk();
+            c = &chunks_.back();
+            aligned = alignUp(c->used, ops->align);
+        }
+    }
+
+    void *dst = static_cast<void *>(c->buf.get() + aligned);
+    HCursor *pCursor = m_pChunkCursor->emplace();
+    ops->construct(dst, id, pCursor, tok);
+
+    c->used = aligned + ops->size;
+    c->ids.push_back(key);
+    index_[key] = MixLoc{static_cast<std::uint32_t>(chunks_.size() - 1),
+                         static_cast<std::uint32_t>(aligned), ops};
+    ++count_;
+    return true;
+}
+
+// ---- private helpers ----
+void PoolMix::new_chunk()
+{
+    chunks_.emplace_back(chunk_bytes_);
+}
+
+void PoolMix::compact_all()
+{
+    if (index_.empty())
+    {
+        chunks_.clear();
+        if (!lazy_first_chunk_)
+            new_chunk();
+        return;
+    }
+
+    struct Item
+    {
+        Key key;
+        MixLoc loc;
+    };
+    std::vector<Item> items;
+    items.reserve(index_.size());
+    for (const auto &kv : index_)
+        items.push_back({kv.first, kv.second});
+    std::sort(items.begin(), items.end(), [](const Item &a, const Item &b)
+              {
+        if (a.loc.chunk != b.loc.chunk) return a.loc.chunk < b.loc.chunk;
+        return a.loc.offset < b.loc.offset; });
+
+    std::vector<MixChunk> new_chunks;
+    new_chunks.emplace_back(chunk_bytes_);
+
+    auto place = [&](const Item &it) -> bool
+    {
+        const auto *ops = it.loc.ops;
+        MixChunk &nc = new_chunks.back();
+        std::size_t aligned = alignUp(nc.used, ops->align);
+        if (aligned + ops->size > nc.capacity)
+        {
+            new_chunks.emplace_back(chunk_bytes_);
+            return false; // caller retries once
+        }
+        void *dst = static_cast<void *>(new_chunks.back().buf.get() + aligned);
+        void *src = static_cast<void *>(chunks_[it.loc.chunk].buf.get() + it.loc.offset);
+        ops->move(dst, src);
+
+        // rebind cursor(owner) to the new address
+        auto *moved = static_cast<HItem *>(dst);
+        moved->getCursor()->m_pItem = moved;
+
+        ops->destroy(src);
+        new_chunks.back().used = aligned + ops->size;
+        new_chunks.back().ids.push_back(it.key);
+        index_[it.key] = MixLoc{static_cast<std::uint32_t>(new_chunks.size() - 1),
+                                static_cast<std::uint32_t>(aligned), ops};
+        return true;
+    };
+
+    for (const auto &it : items)
+    {
+        if (!place(it))
+            (void)place(it);
+    }
+
+    chunks_.swap(new_chunks);
+}
+#endif

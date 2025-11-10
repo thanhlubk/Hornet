@@ -9,7 +9,6 @@
 #include <stdexcept>
 #include <algorithm>
 
-#if 0
 enum class ElementType : std::uint16_t
 {
     ElementTypeUnkown,
@@ -76,24 +75,27 @@ constexpr inline std::size_t indexOfElementType(ElementType t) noexcept
 
 class HORNETBASE_EXPORT HIElement : public HItem
 {
-    DECLARE_ITEM_STATIC_TAGS(HIElement, CategoryType::CatElement, ItemType::ItemElement)
+#if !defined(_MSC_VER)
+    using Super = HItem; // required on non-MSVC
+#endif
+    DECLARE_ITEM_VARIANT_ABSTRACT_TAGS(HIElement, CategoryType::CatElement, ItemType::ItemElement, (uint16_t)ElementType::ElementTypeUnkown)
 
 public:
     HIElement(Id id, HCursor *cursor, HItemCreatorToken tok)
-        : HItem(id, cursor, tok, CategoryType::CatElement, ItemType::ItemElement) {}
+        : HItem(id, cursor, tok) {}
 
-    DEFINE_TRANSACTION_EXCHANGE(HIElement,
-                                &HIElement::m_color) 
+    DEFINE_TRANSACTION_EXCHANGE(&HIElement::m_color) 
 public:
-    virtual ElementType type() const noexcept = 0;
+    virtual ElementType elementType() const noexcept = 0;
 
     // Connectivity access (view into child's fixed array)
     virtual std::span<HCursor*> nodes() noexcept = 0;
+    virtual std::span<HCursor *const> nodes() const noexcept = 0;
 
     // Convenience
-    ElementKind kind() const noexcept
+    ElementKind elementKind() const noexcept
     {
-        return isElementTypeValid(type()) ? kKindOf[indexOfElementType(type())] : ElementKind::ElementKindUnkown;
+        return isElementTypeValid(elementType()) ? kKindOf[indexOfElementType(elementType())] : ElementKind::ElementKindUnkown;
     }
 
     int nodesCount() noexcept { return static_cast<int>(nodes().size()); }
@@ -125,20 +127,23 @@ private:
 template <ElementType T>
 class HIElementOf final : public HIElement
 {
-    // static_assert(T != ElementTypeUnkown, "Use a known ElementType");
-    // static constexpr std::size_t N = static_cast<std::size_t>(kNodeCount[to_index(T)]);
-    // static_assert(N > 0);
+    static_assert(T != ElementType::ElementTypeUnkown, "Use a known ElementType");
+    static constexpr std::size_t N = static_cast<std::size_t>(kNodeCount[indexOfElementType(T)]);
+    static_assert(N > 0);
 
-    DECLARE_ITEM_STATIC_TAGS(HIElementOf, CategoryType::CatElement, ItemType::ItemElement)
+#if !defined(_MSC_VER)
+    using Super = HIElement; // required on non-MSVC
+#endif
+    DECLARE_ITEM_VARIANT_TAGS(HIElementOf, CategoryType::CatElement, ItemType::ItemElement, (uint16_t)T)
 
 public:
     explicit HIElementOf(Id id, HCursor *cursor, HItemCreatorToken tok) : HIElement(id, cursor, tok) {}
 
-    DEFINE_TRANSACTION_EXCHANGE(HIElementOf,
-                                &HIElementOf::m_arNodes)
+    DEFINE_TRANSACTION_EXCHANGE(&HIElementOf::m_arNodes)
 
-    ElementType type() const noexcept override { return T; }
+    ElementType elementType() const noexcept override { return T; }
     std::span<HCursor *> nodes() noexcept override { return m_arNodes; }
+    std::span<HCursor *const> nodes() const noexcept override { return m_arNodes; }
 
 private:
     // Value-initialized => all zeros as requested
@@ -157,14 +162,14 @@ using HIElementTet4 = HIElementOf<ElementType::ElementTypeTet4>;
 using HIElementTet10 = HIElementOf<ElementType::ElementTypeTet10>;
 using HIElementHex8 = HIElementOf<ElementType::ElementTypeHex8>;
 using HIElementHex20 = HIElementOf<ElementType::ElementTypeHex20>;
-#endif
 
+#if 0
 class HORNETBASE_EXPORT HIElementTest : public HItem
 {
 #if !defined(_MSC_VER)
     using Super = HItem; // required on non-MSVC
 #endif
-    DECLARE_ITEM_STATIC_TAGS(HIElementTest, CategoryType::CatElement, ItemType::ItemElement)
+    DECLARE_ITEM_TAGS(HIElementTest, CategoryType::CatElement, ItemType::ItemElement)
 
 public:
     HIElementTest(Id id, HCursor *cursor, HItemCreatorToken tok);
@@ -177,3 +182,4 @@ public:
 private:
     std::array<uint64_t, 5> arr_;
 };
+#endif

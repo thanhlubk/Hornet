@@ -20,7 +20,7 @@ public:
     struct TransactionOperation
     {
         TransactionType type;
-        ItemType itemType;
+        ItemTypeVariant itemType;
         Id id;
         std::string payloadBefore;
         std::string payloadAfter;
@@ -28,7 +28,8 @@ public:
         TransactionOperation()
         {
             type = TransactionType::Unknown;
-            itemType = ItemType::ItemUnkown;
+            itemType.type = ItemType::ItemUnkown;
+            itemType.variant = 0;
             id = 0;
             payloadBefore.clear();
             payloadAfter.clear();
@@ -54,7 +55,7 @@ public:
         if (op.type == TransactionType{})
         {
             op.type = TransactionType::Emplace;
-            op.itemType = k.type;
+            op.itemType = ItemTypeVariant{ItemTypeOf<T>, VariantOf<T>};
             op.id = id;
         }
     }
@@ -79,7 +80,7 @@ public:
         if (op.type == TransactionType{})
         {
             op.type = TransactionType::Erase;
-            op.itemType = k.type;
+            op.itemType = ItemTypeVariant{ItemTypeOf<T>, VariantOf<T>};
             op.id = id;
             // if (auto* store = sess_.try_store(ItemInfor::getInstance().getCategory(k.type))) {
             //     if (auto const* p = store->get_raw_const(k.type, id)) {
@@ -136,7 +137,7 @@ public:
         if (op.type == TransactionType{})
         {
             op.type = TransactionType::Modify;
-            op.itemType = k.type;
+            op.itemType = ItemTypeVariant{ItemTypeOf<T>, VariantOf<T>};
             op.id = id;
             op.payloadBefore = str_payload_before;
         }

@@ -3,6 +3,7 @@
 #include <string>
 #include <string_view>
 #include <array>
+#include <unordered_map>
 #include <vector>
 #include "HItem.h"
 // #include "DatabaseSession.h"
@@ -19,6 +20,7 @@ struct ItemTypeDescriptor
 {
     CategoryType cat{};
     ItemType kind{ItemType::ItemEnd};
+    uint16_t variant{0};
     std::size_t size{0};
     std::size_t align{0};
     DestroyFn destroy{};
@@ -47,21 +49,24 @@ public:
     bool registerInfor(CategoryType cat, ItemType kind);
 
     // capture to bytes (no-op if unregistered)
-    std::string captureTransaction(ItemType k, const void *obj, DatabaseSession *pDb) const;
+    std::string captureTransaction(ItemTypeVariant k, const void *obj, DatabaseSession *pDb) const;
     // restore from bytes (no-op if unregistered)
-    void restoreTransaction(ItemType k, void *obj, const std::string &bytes, DatabaseSession *pDb) const;
+    void restoreTransaction(ItemTypeVariant k, void *obj, const std::string &bytes, DatabaseSession *pDb) const;
 
     template <class T>
-    bool registerTransaction()
+    bool registerTransaction(uint16_t variant)
     {
-        const auto idx = static_cast<std::size_t>(ItemTypeOf<T>);
-        m_arrCapture[idx] = [](const void *p, DatabaseSession *pDb) -> std::string
+        ItemTypeVariant typeVariant(ItemTypeOf<T>, variant);
+        const auto idx = std::hash<ItemTypeVariant>{}(typeVariant);
+
+        // const auto idx = static_cast<std::size_t>(ItemTypeOf<T>);
+        m_mapCapture[idx] = [](const void *p, DatabaseSession *pDb) -> std::string
         {
             return reinterpret_cast<const HItem *>(p)->captureTransactionItem(pDb); // virtual
             // const T &self = *reinterpret_cast<const T *>(p);
             // return T::captureTransactionItem(self, pDb);
         };
-        m_arrRestore[idx] = [](void *p, const std::string &bytes, DatabaseSession *pDb)
+        m_mapRestore[idx] = [](void *p, const std::string &bytes, DatabaseSession *pDb)
         {
             size_t off = 0;
             (void)reinterpret_cast<HItem*>(p)->restoreTransactionItem(bytes, off, pDb); // virtual
@@ -72,15 +77,18 @@ public:
     }
 
     template <class T>
-    bool registerType(CategoryType cat, ItemType kind)
+    bool registerType(CategoryType cat, ItemType kind, uint16_t variant)
     {
-        const auto idx = static_cast<std::size_t>(kind);
+        ItemTypeVariant typeVariant{kind, variant};
+        const auto idx = std::hash<ItemTypeVariant>{}(typeVariant);
+
+        // const auto idx = static_cast<std::size_t>(kind);
         // codecs (you already have)
-        registerTransaction<T>();
+        registerTransaction<T>(variant);
 
         // fill ops
-        m_arrTypeDesc[idx] = ItemTypeDescriptor{
-            cat, kind,
+        m_mapTypeDesc[idx] = ItemTypeDescriptor{
+            cat, kind, variant,
             sizeof(T), alignof(T),
             [](void *p)
             { reinterpret_cast<T *>(p)->~T(); },
@@ -93,13 +101,13 @@ public:
             },
             [](void *dst, Id id, HCursor *cursor, HItemCreatorToken tok)
             { ::new (dst) T(id, cursor, tok); },
-            m_arrCapture[idx], m_arrRestore[idx]};
+            m_mapCapture[idx], m_mapRestore[idx]};
         // keep your category map as-is
         registerInfor(cat, kind);
         return true;
     }
 
-    const ItemTypeDescriptor *descriptor(ItemType k) const;
+    const ItemTypeDescriptor *descriptor(ItemTypeVariant k) const;
 
     std::vector<ItemType> getRelatedItemType(CategoryType cat, bool only_registered = false) const;
 
@@ -110,9 +118,9 @@ private:
     std::array<CategoryType, static_cast<uint16_t>(ItemType::ItemEnd)> m_arrItemToCategory{CategoryType::CatUnknown};
 
     // ---- NEW: function tables ----
-    std::array<CaptureFn, static_cast<uint16_t>(ItemType::ItemEnd)> m_arrCapture{};
-    std::array<RestoreFn, static_cast<uint16_t>(ItemType::ItemEnd)> m_arrRestore{};
+    std::unordered_map<size_t, CaptureFn> m_mapCapture{};
+    std::unordered_map<size_t, RestoreFn> m_mapRestore{};
 
-    std::array<std::optional<ItemTypeDescriptor>, static_cast<uint16_t>(ItemType::ItemEnd)> m_arrTypeDesc
+    std::unordered_map<size_t, std::optional<ItemTypeDescriptor>> m_mapTypeDesc
     {};
 };
