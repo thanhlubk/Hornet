@@ -35,3 +35,6 @@ add_subdirectory(src/HornetView)
 add_subdirectory(src/HornetBase)
 add_subdirectory(src/HornetExecute)
 add_subdirectory(src/HornetUtil)
+
+# Make HornetMain the startup project in the generated .sln
+set_property(DIRECTORY "${CMAKE_SOURCE_DIR}" PROPERTY VS_STARTUP_PROJECT HornetMain)

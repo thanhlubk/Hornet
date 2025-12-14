@@ -1,6 +1,13 @@
 {
-  "qtPath": "C:/Qt/6.10.1/msvc2022_64",
-  "glewPath": "C:/Data/Source/vcpkg/installed/x64-windows",
-  "compilerPath": "C:/Program Files/Microsoft Visual Studio/18/Community/VC/Tools/MSVC/14.50.35717/bin/Hostx64/x64/cl.exe",
-  "cmakeGenerator": "Ninja"
+  "vsCode": {
+    "qtPath": "C:/Qt/6.10.1/msvc2022_64",
+    "compilerPath": "C:/Program Files/Microsoft Visual Studio/18/Community/VC/Tools/MSVC/14.50.35717/bin/Hostx64/x64/cl.exe",
+    "glewPath": "C:/Data/Source/vcpkg/installed/x64-windows",
+    "cmakeGenerator": "Ninja"
+  },
+  "vs": {
+    "qtPath": "C:/Qt/6.10.1/msvc2022_64",
+    "glewPath": "C:/Data/Source/vcpkg/installed/x64-windows",
+    "vsVersion": "Visual Studio 18 2026"
+  }
 }

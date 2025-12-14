@@ -8,6 +8,8 @@ import json
 import shutil
 from pathlib import Path
 from typing import Any, Dict, Tuple, Optional, List
+import subprocess
+import sys
 
 # (Same associations you had in your settings templates; keep as-is)
 FILES_ASSOCIATIONS: Dict[str, str] = {
@@ -263,6 +265,20 @@ def ensure_required_folders(repo_root: Path, os_name: str) -> None:
     else:
         print("[done] All required folders already exist.")
 
+def ensure_standard_folders(repo_root: Path, os_name: str) -> None:
+    rels = [
+        f"bin/{os_name}/Debug",
+        f"bin/{os_name}/Release",
+        f"build/{os_name}/Debug",
+        f"build/{os_name}/Release",
+        f"lib/{os_name}/Debug",
+        f"lib/{os_name}/Release",
+        f"plugins/{os_name}",
+        f"temp/{os_name}",
+        "include",
+    ]
+    for r in rels:
+        ensure_dir(repo_root / r)
 
 def copy_file_if_exists(src: Path, dst: Path) -> None:
     if not src.exists():
@@ -274,7 +290,6 @@ def copy_file_if_exists(src: Path, dst: Path) -> None:
     ensure_dir(dst.parent)
     shutil.copy2(src, dst)  # overwrites if exists
     print(f"[copy] {src} -> {dst}")
-
 
 def copy_tree_merge(src_dir: Path, dst_dir: Path) -> None:
     if not src_dir.exists():
@@ -360,32 +375,55 @@ def copy_qt_runtime(repo_root: Path, os_name: str, qt_root_str: str) -> None:
     dst_plugins = repo_root / "plugins" / os_name
     copy_plugin_items(qt_plugins, QT_PLUGINS_TO_COPY, dst_plugins)
 
+# ----------------------------
+# Copy: Qt & GLEW
+# ----------------------------
+def copy_qt_windows(repo_root: Path, os_name: str, qt_path: str, cfg: Dict[str, Any]) -> None:
+    qt_root = Path(qt_path)
+    qt_bin = qt_root / "bin"
+    qt_plugins = qt_root / "plugins"
 
-def copy_glew(repo_root: Path, os_name: str, glew_path_str: Optional[str]) -> None:
-    if not glew_path_str:
-        print("[glew] glewPath not set; skipping GLEW copy.")
+    # allow overriding lists from JSON
+    debug_list = cfg.get("qtDebugDlls", QT_DLLS_WINDOWS_DEBUG)
+    release_list = cfg.get("qtReleaseDlls", QT_DLLS_WINDOWS_RELEASE)
+    plugins_list = cfg.get("qtPlugins", QT_PLUGINS_TO_COPY)
+
+    if not qt_bin.exists():
+        print(f"[warn] Qt bin not found: {qt_bin}")
         return
 
-    glew_root = Path(glew_path_str)
+    dst_debug = repo_root / "bin" / os_name / "Debug"
+    dst_release = repo_root / "bin" / os_name / "Release"
+    copy_file_list(qt_bin, debug_list, dst_debug)
+    copy_file_list(qt_bin, release_list, dst_release)
+
+    if qt_plugins.exists():
+        dst_plugins = repo_root / "plugins" / os_name
+        copy_plugin_items(qt_plugins, plugins_list, dst_plugins)
+    else:
+        print(f"[warn] Qt plugins folder not found: {qt_plugins}")
+
+
+def copy_glew(repo_root: Path, os_name: str, glew_path: Optional[str]) -> None:
+    if not glew_path:
+        print("[glew] glewPath not set; skipping.")
+        return
+
+    glew_root = Path(glew_path)
     src_bin = glew_root / "bin"
     src_inc = glew_root / "include"
     src_lib = glew_root / "lib"
 
-    # ✅ DLL: <glewPath>/bin/glew32.dll -> bin/<os>/Debug AND bin/<os>/Release
+    # DLL -> Debug and Release
     src_dll = src_bin / "glew32.dll"
-    dst_debug = repo_root / "bin" / os_name / "Debug" / "glew32.dll"
-    dst_release = repo_root / "bin" / os_name / "Release" / "glew32.dll"
-    copy_file_if_exists(src_dll, dst_debug)
-    copy_file_if_exists(src_dll, dst_release)
+    copy_file_if_exists(src_dll, repo_root / "bin" / os_name / "Debug" / "glew32.dll")
+    copy_file_if_exists(src_dll, repo_root / "bin" / os_name / "Release" / "glew32.dll")
 
-    # Headers: <glewPath>/include/GL -> <repo_root>/include/GL
+    # Headers: include/GL -> repo include/GL
     copy_tree_merge(src_inc / "GL", repo_root / "include" / "GL")
 
-    # Lib: <glewPath>/lib/glew32.lib -> <repo_root>/lib/<os>/glew32.lib
-    dst_lib_os = repo_root / "lib" / os_name
-    copy_file_if_exists(src_lib / "glew32.lib", dst_lib_os / "glew32.lib")
-
-    print("[glew] done.")
+    # Import lib: lib/glew32.lib -> repo lib/<os>/glew32.lib
+    copy_file_if_exists(src_lib / "glew32.lib", repo_root / "lib" / os_name / "glew32.lib")
 
 
 def make_launch(os_name: str, app_name: str) -> Dict[str, Any]:
@@ -485,54 +523,118 @@ def make_settings(os_name: str, qt_path: str, cmake_generator: str) -> Dict[str,
         "files.associations": FILES_ASSOCIATIONS,
     }
 
+# ----------------------------
+# Modes
+# ----------------------------
+def run_mode_vscode(repo_root: Path, env: Dict[str, Any], force: bool, no_copy_qt: bool) -> int:
+    cfg = env.get("vsCode")
+    if not isinstance(cfg, dict):
+        print("[error] env_configure.json missing object: vsCode")
+        return 2
+
+    os_name = cfg.get("os", "windows")
+    app_name = cfg.get("appName", "HornetMain")
+    cpp_standard = cfg.get("cppStandard", "c++20")
+    qt_path = cfg.get("qtPath", "")
+    compiler_path = cfg.get("compilerPath", "")
+    cmake_generator = cfg.get("cmakeGenerator", "Ninja")
+    glew_path = cfg.get("glewPath")
+
+    if not qt_path or not compiler_path:
+        print("[error] vsCode.qtPath and vsCode.compilerPath are required")
+        return 2
+
+    ensure_standard_folders(repo_root, os_name)
+
+    # copy runtime
+    if os_name == "windows" and not no_copy_qt:
+        copy_qt_windows(repo_root, os_name, qt_path, cfg)
+    copy_glew(repo_root, os_name, glew_path)
+
+    # generate .vscode
+    vscode_dir = repo_root / ".vscode"
+    ensure_dir(vscode_dir)
+
+    write_json(vscode_dir / "launch.json", make_launch(os_name, app_name), force=force)
+    write_json(
+        vscode_dir / "c_cpp_properties.json",
+        make_c_cpp_properties(os_name, cpp_standard, qt_path, compiler_path, app_name, glew_path),
+        force=force,
+    )
+    write_json(vscode_dir / "settings.json", make_settings(os_name, qt_path, cmake_generator), force=force)
+
+    print("[done] vscode environment initialized")
+    return 0
+
+
+def run_mode_vs(repo_root: Path, env: Dict[str, Any], no_copy_qt: bool) -> int:
+    cfg = env.get("vs")
+    if not isinstance(cfg, dict):
+        print("[error] env_configure.json missing object: vs")
+        return 2
+
+    # VS mode is Windows-only by design here
+    os_name = "windows"
+    qt_path = cfg.get("qtPath", "")
+    glew_path = cfg.get("glewPath")
+    vs_version = cfg.get("vsVersion", "")
+
+    if not qt_path or not vs_version:
+        print("[error] vs.qtPath and vs.vsVersion are required")
+        return 2
+
+    ensure_standard_folders(repo_root, os_name)
+
+    if not no_copy_qt:
+        copy_qt_windows(repo_root, os_name, qt_path, cfg)
+    copy_glew(repo_root, os_name, glew_path)
+
+    # Run cmake configure for Visual Studio generator
+    cmd = [
+        "cmake",
+        "-S", str(repo_root),
+        "-B", str(repo_root / "build"),
+        "-G", str(vs_version),
+        "-A", "x64",
+        f"-DCMAKE_PREFIX_PATH={norm_slash(qt_path)}",
+    ]
+
+    print("[cmd] " + " ".join(cmd))
+    try:
+        subprocess.run(cmd, check=True)
+    except FileNotFoundError:
+        print("[error] cmake not found in PATH")
+        return 2
+    except subprocess.CalledProcessError as e:
+        print(f"[error] cmake failed: {e}")
+        return 2
+
+    print("[done] Visual Studio environment initialized (no .vscode created)")
+    return 0
 
 def main() -> int:
-    ap = argparse.ArgumentParser(description="Generate <repo_root>/.vscode files from setup_local_*.json")
-    ap.add_argument("--os", choices=["windows", "linux"], required=True, help="Generate config for this OS")
-    ap.add_argument("--config", required=True, help="Path to setup_local_*.json")
-    ap.add_argument("--repo-root", required=True, help="Repo root (where .vscode will be created)")
-    ap.add_argument("--app", default="HornetMain", help="Executable name (default: HornetMain)")
-    ap.add_argument("--force", action="store_true", help="Overwrite existing .vscode/*.json")
-    ap.add_argument("--no-copy-qt", action="store_true", help="Do not copy Qt runtime/plugins into repo folders")
+    ap = argparse.ArgumentParser(description="Initialize repo environment from env_configure.json")
+    ap.add_argument("--mode", choices=["vscode", "vs"], required=True, help="Which section to use: vsCode or vs")
+    ap.add_argument("--repo-root", required=True, help="Repo root path")
+    ap.add_argument("--config", required=True, help="Path to env_configure.json")
+    ap.add_argument("--force", action="store_true", help="Overwrite existing .vscode/*.json (vscode mode only)")
+    ap.add_argument("--no-copy-qt", action="store_true", help="Do not copy Qt runtime/plugins into repo")
     args = ap.parse_args()
 
     repo_root = Path(args.repo_root).resolve()
     cfg_path = Path(args.config).resolve()
 
     if not cfg_path.exists():
-        print(f"[error] Config not found: {cfg_path}")
+        print(f"[error] config not found: {cfg_path}")
         return 2
 
-    cfg = read_json(cfg_path)
-    try:
-        cpp_standard, qt_path, compiler_path, cmake_generator, glew_path = validate_cfg(cfg, cfg_path)
-    except ValueError as e:
-        print(f"[error] {e}")
-        return 2
+    env = read_json(cfg_path)
 
-    ensure_required_folders(repo_root, args.os)
-
-    # Copy Qt runtime/plugins unless disabled
-    if not args.no_copy_qt:
-        copy_qt_runtime(repo_root, args.os, qt_path)
-
-    # Copy GLEW (if glewPath exists in config)
-    copy_glew(repo_root, args.os, glew_path)
-
-    vscode_dir = repo_root / ".vscode"
-    ensure_dir(vscode_dir)
-
-    write_json(vscode_dir / "launch.json", make_launch(args.os, args.app), force=args.force)
-    write_json(
-        vscode_dir / "c_cpp_properties.json",
-        make_c_cpp_properties(args.os, cpp_standard, qt_path, compiler_path, args.app, glew_path),
-        force=args.force,
-    )
-    write_json(vscode_dir / "settings.json", make_settings(args.os, qt_path, cmake_generator), force=args.force)
-
-    print(f"[done] Generated: {vscode_dir}")
-    return 0
-
-
+    if args.mode == "vscode":
+        return run_mode_vscode(repo_root, env, force=args.force, no_copy_qt=args.no_copy_qt)
+    else:
+        # vs mode never writes .vscode anyway
+        return run_mode_vs(repo_root, env, no_copy_qt=args.no_copy_qt)
+    
 if __name__ == "__main__":
     raise SystemExit(main())

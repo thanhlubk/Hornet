@@ -10,13 +10,13 @@ set "CFG=%TOOLSDIR%env_configure.json"
 
 where py >nul 2>nul
 if %errorlevel%==0 (
-  py -3 "%PY%" --mode vscode --repo-root "%REPO%" --config "%CFG%" %*
+  py -3 "%PY%" --mode vs --repo-root "%REPO%" --config "%CFG%" %*
   exit /b %errorlevel%
 )
 
 where python >nul 2>nul
 if %errorlevel%==0 (
-  python "%PY%" --mode vscode --repo-root "%REPO%" --config "%CFG%" %*
+  python "%PY%" --mode vs --repo-root "%REPO%" --config "%CFG%" %*
   exit /b %errorlevel%
 )
 
