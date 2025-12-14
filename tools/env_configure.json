@@ -1,0 +1,6 @@
+{
+  "qtPath": "C:/Qt/6.10.1/msvc2022_64",
+  "glewPath": "C:/Data/Source/vcpkg/installed/x64-windows",
+  "compilerPath": "C:/Program Files/Microsoft Visual Studio/18/Community/VC/Tools/MSVC/14.50.35717/bin/Hostx64/x64/cl.exe",
+  "cmakeGenerator": "Ninja"
+}
