@@ -54,3 +54,4 @@ Thumbs.db
 /tools/build_debug.sh
 /tools/build_release.bat
 /tools/build_release.sh
+/tools/env_configure.json
