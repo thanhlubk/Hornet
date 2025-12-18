@@ -200,10 +200,19 @@ QT_PLUGINS_TO_COPY: List[str] = [
     "imageformats",
 ]
 
+# Defaults (not stored in env_configure.json)
+DEFAULT_APP_NAME: str = "HornetMain"
+DEFAULT_CPP_STANDARD: str = "c++20"
 
 def read_json(path: Path) -> Dict[str, Any]:
-    return json.loads(path.read_text(encoding="utf-8"))
+    """Read env_configure.json.
 
+    Note: The file must be valid JSON (strings must be quoted; no trailing commas).
+    """
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as e:
+        raise ValueError(f"Invalid JSON in {path}: {e}") from e
 
 def write_json(path: Path, data: Any, force: bool) -> None:
     if path.exists() and not force:
@@ -213,14 +222,34 @@ def write_json(path: Path, data: Any, force: bool) -> None:
     path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     print(f"[write] {path}")
 
+def write_text_windows(path: Path, text: str, force: bool) -> None:
+    """Write text file with CRLF endings (for .bat)."""
+    if path.exists() and not force:
+        print(f"[skip] {path} exists (use --force to overwrite)")
+        return
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(text.replace("\r\n", "\n").replace("\n", "\r\n"), encoding="utf-8")
+    print(f"[write] {path}")
+
+def write_text_unix(path: Path, text: str, force: bool, make_executable: bool = False) -> None:
+    """Write text file with LF endings (for .sh)."""
+    if path.exists() and not force:
+        print(f"[skip] {path} exists (use --force to overwrite)")
+        return
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(text.replace("\r\n", "\n"), encoding="utf-8")
+    if make_executable:
+        try:
+            path.chmod(path.stat().st_mode | 0o111)
+        except Exception:
+            pass
+    print(f"[write] {path}")
 
 def norm_slash(p: str) -> str:
     return p.replace("\\", "/")
 
-
 def ensure_dir(p: Path) -> None:
     p.mkdir(parents=True, exist_ok=True)
-
 
 def validate_cfg(cfg: Dict[str, Any], cfg_path: Path) -> Tuple[str, str, str, str, Optional[str]]:
     required = ["qtPath", "compilerPath", "cmakeGenerator"]
@@ -238,7 +267,6 @@ def validate_cfg(cfg: Dict[str, Any], cfg_path: Path) -> Tuple[str, str, str, st
     glew_path = norm_slash(str(glew_path)) if glew_path and str(glew_path).strip() else None
 
     return cpp_standard, qt_path, compiler_path, cmake_generator, glew_path
-
 
 def ensure_required_folders(repo_root: Path, os_name: str) -> None:
     rels = [
@@ -302,7 +330,6 @@ def copy_tree_merge(src_dir: Path, dst_dir: Path) -> None:
     shutil.copytree(src_dir, dst_dir, dirs_exist_ok=True)
     print(f"[copytree] {src_dir} -> {dst_dir}")
 
-
 def copy_file_list(src_dir: Path, file_list: List[str], dst_dir: Path) -> None:
     ensure_dir(dst_dir)
     copied = 0
@@ -325,7 +352,6 @@ def copy_file_list(src_dir: Path, file_list: List[str], dst_dir: Path) -> None:
 
     print(f"[qt] copied={copied}, missing={missing}, dst={dst_dir}")
 
-
 def copy_plugin_items(qt_plugins_dir: Path, plugin_names: List[str], dst_root: Path) -> None:
     ensure_dir(dst_root)
     for name in plugin_names:
@@ -343,7 +369,6 @@ def copy_plugin_items(qt_plugins_dir: Path, plugin_names: List[str], dst_root: P
             ensure_dir(dst.parent)
             shutil.copy2(src, dst)
             print(f"[copy] {src} -> {dst}")
-
 
 def copy_qt_runtime(repo_root: Path, os_name: str, qt_root_str: str) -> None:
     qt_root = Path(qt_root_str)
@@ -403,6 +428,26 @@ def copy_qt_windows(repo_root: Path, os_name: str, qt_path: str, cfg: Dict[str, 
     else:
         print(f"[warn] Qt plugins folder not found: {qt_plugins}")
 
+def copy_qt_linux(repo_root: Path, os_name: str, qt_path: str) -> None:
+    """Copy a minimal Qt runtime set for Linux into bin/<os>/{Debug,Release} and plugins/<os>."""
+    qt_root = Path(qt_path)
+    qt_lib = qt_root / "lib"
+    qt_plugins = qt_root / "plugins"
+
+    if not qt_lib.exists():
+        print(f"[warn] Qt lib not found: {qt_lib}")
+        return
+
+    dst_debug = repo_root / "bin" / os_name / "Debug"
+    dst_release = repo_root / "bin" / os_name / "Release"
+    copy_file_list(qt_lib, QT_LIBS_LINUX_COMMON, dst_debug)
+    copy_file_list(qt_lib, QT_LIBS_LINUX_COMMON, dst_release)
+
+    if qt_plugins.exists():
+        dst_plugins = repo_root / "plugins" / os_name
+        copy_plugin_items(qt_plugins, QT_PLUGINS_TO_COPY, dst_plugins)
+    else:
+        print(f"[warn] Qt plugins folder not found: {qt_plugins}")
 
 def copy_glew(repo_root: Path, os_name: str, glew_path: Optional[str]) -> None:
     if not glew_path:
@@ -425,6 +470,82 @@ def copy_glew(repo_root: Path, os_name: str, glew_path: Optional[str]) -> None:
     # Import lib: lib/glew32.lib -> repo lib/<os>/glew32.lib
     copy_file_if_exists(src_lib / "glew32.lib", repo_root / "lib" / os_name / "glew32.lib")
 
+def write_build_bats_windows(repo_root: Path, *, qt_path: str, force: bool) -> None:
+    """Generate tools/build_debug.bat and tools/build_release.bat for Windows (single-config generator)."""
+    tools_dir = repo_root / "tools"
+    ensure_dir(tools_dir)
+
+    qt_prefix = norm_slash(qt_path)
+
+    debug = f"""@echo off
+cd /d %~dp0..
+rmdir /s /q temp
+mkdir temp
+cd temp
+
+cmake .. ^
+ -DCMAKE_PREFIX_PATH="{qt_prefix}/lib/cmake"^
+ -DCMAKE_BUILD_TYPE=Debug
+
+cmake --build . --config Debug
+"""
+    release = f"""@echo off
+cd /d %~dp0..
+rmdir /s /q temp
+mkdir temp
+cd temp
+
+cmake .. ^
+ -DCMAKE_PREFIX_PATH="{qt_prefix}/lib/cmake" ^
+ -DCMAKE_BUILD_TYPE=Release
+
+cmake --build . --config Release
+"""
+
+    write_text_windows(tools_dir / "build_debug.bat", debug, force=force)
+    write_text_windows(tools_dir / "build_release.bat", release, force=force)
+
+def write_build_sh_linux(repo_root: Path, *, qt_path: str, force: bool) -> None:
+    """Generate tools/build_debug.sh and tools/build_release.sh for Linux (single-config generator)."""
+    tools_dir = repo_root / "tools"
+    ensure_dir(tools_dir)
+
+    qt_prefix = norm_slash(qt_path)
+
+    debug = f"""#!/usr/bin/env sh
+set -eu
+
+cd "$(dirname "$0")/.."
+
+rm -rf temp
+mkdir -p temp
+cd temp
+
+cmake .. \
+  -DCMAKE_PREFIX_PATH="{qt_prefix}/lib/cmake" \
+  -DCMAKE_BUILD_TYPE=Debug
+
+cmake --build . --config Debug
+"""
+
+    release = f"""#!/usr/bin/env sh
+set -eu
+
+cd "$(dirname "$0")/.."
+
+rm -rf temp
+mkdir -p temp
+cd temp
+
+cmake .. \
+  -DCMAKE_PREFIX_PATH="{qt_prefix}/lib/cmake" \
+  -DCMAKE_BUILD_TYPE=Release
+
+cmake --build . --config Release
+"""
+
+    write_text_unix(tools_dir / "build_debug.sh", debug, force=force, make_executable=True)
+    write_text_unix(tools_dir / "build_release.sh", release, force=force, make_executable=True)
 
 def make_launch(os_name: str, app_name: str) -> Dict[str, Any]:
     if os_name == "windows":
@@ -476,7 +597,6 @@ def make_launch(os_name: str, app_name: str) -> Dict[str, Any]:
         ],
     }
 
-
 def make_c_cpp_properties(os_name: str, cpp_standard: str, qt_path: str, compiler_path: str, app_name: str, glew_path: Optional[str]) -> Dict[str, Any]:
     cfg_name = "Windows-MSVC" if os_name == "windows" else "Linux-GCC"
     temp_os = "windows" if os_name == "windows" else "linux"
@@ -509,7 +629,6 @@ def make_c_cpp_properties(os_name: str, cpp_standard: str, qt_path: str, compile
         "version": 4,
     }
 
-
 def make_settings(os_name: str, qt_path: str, cmake_generator: str) -> Dict[str, Any]:
     temp_os = "windows" if os_name == "windows" else "linux"
     return {
@@ -526,15 +645,14 @@ def make_settings(os_name: str, qt_path: str, cmake_generator: str) -> Dict[str,
 # ----------------------------
 # Modes
 # ----------------------------
-def run_mode_vscode(repo_root: Path, env: Dict[str, Any], force: bool, no_copy_qt: bool) -> int:
+def run_mode_vscode(repo_root: Path, env: Dict[str, Any], *, os_name: str, force: bool, no_copy_qt: bool) -> int:
     cfg = env.get("vsCode")
     if not isinstance(cfg, dict):
         print("[error] env_configure.json missing object: vsCode")
         return 2
-
-    os_name = cfg.get("os", "windows")
-    app_name = cfg.get("appName", "HornetMain")
-    cpp_standard = cfg.get("cppStandard", "c++20")
+    os_name = os_name.lower()
+    app_name = DEFAULT_APP_NAME
+    cpp_standard = DEFAULT_CPP_STANDARD
     qt_path = cfg.get("qtPath", "")
     compiler_path = cfg.get("compilerPath", "")
     cmake_generator = cfg.get("cmakeGenerator", "Ninja")
@@ -547,9 +665,18 @@ def run_mode_vscode(repo_root: Path, env: Dict[str, Any], force: bool, no_copy_q
     ensure_standard_folders(repo_root, os_name)
 
     # copy runtime
-    if os_name == "windows" and not no_copy_qt:
-        copy_qt_windows(repo_root, os_name, qt_path, cfg)
+    if not no_copy_qt:
+        if os_name == "windows":
+            copy_qt_windows(repo_root, os_name, qt_path, cfg)
+        else:
+            copy_qt_linux(repo_root, os_name, qt_path)
     copy_glew(repo_root, os_name, glew_path)
+
+    # generate build scripts
+    if os_name == "windows":
+        write_build_bats_windows(repo_root, qt_path=qt_path, force=force)
+    else:
+        write_build_sh_linux(repo_root, qt_path=qt_path, force=force)
 
     # generate .vscode
     vscode_dir = repo_root / ".vscode"
@@ -565,7 +692,6 @@ def run_mode_vscode(repo_root: Path, env: Dict[str, Any], force: bool, no_copy_q
 
     print("[done] vscode environment initialized")
     return 0
-
 
 def run_mode_vs(repo_root: Path, env: Dict[str, Any], no_copy_qt: bool) -> int:
     cfg = env.get("vs")
@@ -588,6 +714,12 @@ def run_mode_vs(repo_root: Path, env: Dict[str, Any], no_copy_qt: bool) -> int:
     if not no_copy_qt:
         copy_qt_windows(repo_root, os_name, qt_path, cfg)
     copy_glew(repo_root, os_name, glew_path)
+
+    # generate build scripts
+    if os_name == "windows":
+        write_build_bats_windows(repo_root, qt_path=qt_path, force=True)
+    else:
+        write_build_sh_linux(repo_root, qt_path=qt_path, force=True)
 
     # Run cmake configure for Visual Studio generator
     cmd = [
@@ -614,7 +746,8 @@ def run_mode_vs(repo_root: Path, env: Dict[str, Any], no_copy_qt: bool) -> int:
 
 def main() -> int:
     ap = argparse.ArgumentParser(description="Initialize repo environment from env_configure.json")
-    ap.add_argument("--mode", choices=["vscode", "vs"], required=True, help="Which section to use: vsCode or vs")
+    ap.add_argument("--mode", choices=["vsCode", "vscode", "vs"], default="vsCode", help="Mode: vsCode (default) or vs")
+    ap.add_argument("--os", choices=["windows", "linux"], help="Target OS for vsCode mode (windows|linux).")
     ap.add_argument("--repo-root", required=True, help="Repo root path")
     ap.add_argument("--config", required=True, help="Path to env_configure.json")
     ap.add_argument("--force", action="store_true", help="Overwrite existing .vscode/*.json (vscode mode only)")
@@ -628,10 +761,27 @@ def main() -> int:
         print(f"[error] config not found: {cfg_path}")
         return 2
 
-    env = read_json(cfg_path)
+    try:
+        env = read_json(cfg_path)
+    except ValueError as e:
+        print(f"[error] {e}")
+        return 2
 
-    if args.mode == "vscode":
-        return run_mode_vscode(repo_root, env, force=args.force, no_copy_qt=args.no_copy_qt)
+    mode = args.mode
+    if mode == "vscode":
+        mode = "vsCode"  # alias
+
+    if mode == "vsCode":
+        cfg = env.get("vsCode")
+        json_os = cfg.get("os") if isinstance(cfg, dict) else None
+        os_name = args.os or json_os or "windows"
+        return run_mode_vscode(
+            repo_root,
+            env,
+            os_name=os_name,
+            force=args.force,
+            no_copy_qt=args.no_copy_qt,
+        )
     else:
         # vs mode never writes .vscode anyway
         return run_mode_vs(repo_root, env, no_copy_qt=args.no_copy_qt)

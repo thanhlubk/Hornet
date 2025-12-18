@@ -13,6 +13,9 @@ CMakeCache.txt
 /lib/
 /plugins/
 
+# Lib directories
+/include/GL/
+
 # Dev directories
 /*.user
 /.vs/
@@ -45,3 +48,9 @@ Makefile*
 *.tmp
 .DS_Store
 Thumbs.db
+
+# Tools
+/tools/build_debug.bat
+/tools/build_debug.sh
+/tools/build_release.bat
+/tools/build_release.sh
