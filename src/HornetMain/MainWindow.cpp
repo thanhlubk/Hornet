@@ -19,7 +19,12 @@
 #include <HornetView/HViewDef.h>
 #include <HornetBase/HINode.h>
 #include <HornetBase/HIElement.h>
+#include <HornetBase/AppBase.h>
+#include <HornetBase/DocumentManager.h>
+#include "DocumentModel.h"
 
+namespace
+{ 
 // ---- tiny helpers ----
 static inline bool isCommentOrEmpty(const QString &s)
 {
@@ -342,13 +347,32 @@ static bool loadElementsCSV(const QString &path, std::vector<Element> &out)
     }
     return true;
 }
+}
 
-MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent), ui(new Ui::MainWindow), disp_(), db()
+MainWindow::MainWindow(AppBase* app, QWidget *parent)
+    : QMainWindow(parent), ui(new Ui::MainWindow), m_app(app)
 {
     // Init data
     initTheme();
+    initWindow();
 
+    // Test only
+    initTestOnly();
+}
+
+MainWindow::~MainWindow()
+{
+    delete ui;
+}
+
+void MainWindow::initTheme()
+{
+    FThemeManager::instance().load(":/HornetMain/res/theme/Themes.json", ":/HornetMain/res/theme/NumericDisplay.json");
+    FThemeManager::instance().setTheme("Dark");
+}
+
+void MainWindow::initWindow()
+{
     // Remove native title bar
     setWindowFlags(Qt::FramelessWindowHint | Qt::Window);
     setAttribute(Qt::WA_TranslucentBackground, false);
@@ -362,7 +386,23 @@ MainWindow::MainWindow(QWidget *parent)
     // });
 
     connect(ui->fancyButton, &QPushButton::clicked, this, &MainWindow::on_fancyButton_clicked);
+    connect(ui->splitWidget, &FSplitWidget::activeNodeChanged, this, &MainWindow::change_active_doc);
 
+
+    // Connect signal
+    connect(ui->titleBar, &FTitleBar::signalClose, this, &MainWindow::close);
+    connect(ui->titleBar, &FTitleBar::signalMinimize, [&]() {
+        this->showMinimized();
+    });
+    connect(ui->titleBar, &FTitleBar::signalToggleMaximize, [&]() {
+        static bool maximized = false;
+        maximized = !maximized;
+        maximized ? this->showMaximized() : this->showNormal();
+    });
+}
+
+void MainWindow::initTestOnly()
+{
     // Test
     ui->horizontalLayout->setContentsMargins(4, 0, 4, 4);
     ui->horizontalLayout->setSpacing(4);
@@ -396,139 +436,18 @@ MainWindow::MainWindow(QWidget *parent)
             ui->tabBar->addPane(0, title, output);
     }
 
-    ui->glViewWidget->setNotifyDispatcher(disp_);
-    ui->glViewWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-    ui->glViewWidget->modelRenderer()->setShowFaces(true);
-    ui->glViewWidget->modelRenderer()->setShowEdges(true);
-    ui->glViewWidget->modelRenderer()->setShowNodes(true); // interior points off for clarity
 
-    // std::vector<Node> nodes;
-    // std::vector<Element> elems;
+    // connect(ui->previousButton, &QPushButton::clicked, ui->splitWidget, &FSplitWidget::createRootNode);
 
-    // const QString nodesCsv = "D:/Test/nodes_mixed_shapes_clean.csv";
-    // const QString elemsCsv = "D:/Test/elements_mixed_shapes_clean.csv";
+    ui->splitWidget->setViewPool(&m_widgetToName);
+    ui->splitWidget->createRootNode();
+    ui->splitWidget->updateAllViewCombos();
 
-    // // If you place the downloaded CSVs next to your exe, use the above.
-    // // Otherwise, set absolute paths to where you saved them.
+    createDocumentModel();
+    createDocumentModel();
+    createDocumentModel();
 
-    // if (!loadNodesCSV(nodesCsv, nodes))
-    // {
-    //     qWarning("Failed to load nodes: %s", qPrintable(nodesCsv));
-    // }
-    // if (!loadElementsCSV(elemsCsv, elems))
-    // {
-    //     qWarning("Failed to load elements: %s", qPrintable(elemsCsv));
-    // }
-
-    // ui->glViewWidget->setMesh(nodes, elems);
-    ui->glViewWidget->fitView();
-
-    ui->glViewWidget->camera()->setFocus(QVector3D(0, 0, 0));
-
-    ui->glViewWidget->modelRenderer()->setElementEdgeWidth(1.0f);
-    ui->glViewWidget->modelRenderer()->setNodeSize(5.0f);                           // default point size
-    ui->glViewWidget->modelRenderer()->setDefaultElementEdgeColor(QColor("white")); // dark gray/black lines
-
-    ui->glViewWidget->modelRenderer()->enablePerNodeColor(true);
-    ui->glViewWidget->modelRenderer()->enablePerElementColor(true);
-    ui->glViewWidget->modelRenderer()->setDefaultElementFaceColor(QColor(190, 190, 195)); // light gray faces
-    ui->glViewWidget->modelRenderer()->setDefaultNodeColor(QColor(240, 90, 60));
-
-    ui->glViewWidget->coordinateGizmo()->setSize(100);          // smaller/larger corner widget
-    ui->glViewWidget->coordinateGizmo()->setMargin(0);          // distance from bottom-left
-    ui->glViewWidget->coordinateGizmo()->setScale(0.5);         // arrow thickness/length within the viewport
-
-    // ui->glViewWidget->setControlMode(GLViewWindow::ControlMode::FPS);
-    ui->glViewWidget->camera()->setControlMode(ControlMode::OrbitPan);
-
-    ui->glViewWidget->camera()->setProjection(Projection::Orthographic); // or Orthographic
-    ui->glViewWidget->camera()->setFovDegrees(10.0f);                                 // perspective FOV
-    ui->glViewWidget->camera()->setOrthoHeight(10.0f);
-
-    ui->glViewWidget->camera()->setOrbitRotateSpeed(30.0f);
-    ui->glViewWidget->camera()->setOrbitPanSpeed(30.0f);
-
-    ui->glViewWidget->lighting()->enableAmbient(true);
-    ui->glViewWidget->lighting()->enableDiffuse(true);
-    ui->glViewWidget->lighting()->enableSpecular(true);
-
-    ui->glViewWidget->lighting()->setAmbientIntensity(0.25f);
-    ui->glViewWidget->lighting()->setDiffuseIntensity(1.0f);
-    ui->glViewWidget->lighting()->setSpecularIntensity(0.5f);
-    ui->glViewWidget->lighting()->setShininess(48.0f);
-
-    // Optional: set light colors (defaults are white)
-    ui->glViewWidget->lighting()->setAmbientColor(QColor(255, 255, 255));
-    ui->glViewWidget->lighting()->setDiffuseColor(QColor(255, 255, 255));
-    ui->glViewWidget->lighting()->setSpecularColor(QColor(255, 255, 255));
-
-    // ui->glViewWidget->clearForces();
-
-    std::vector<ForceArrow> vecforces;
-    vecforces.reserve(100);
-    for (int i = 0; i < 100; ++i)
-    {
-        QColor defaultColor(255, 80, 40);
-        ForceArrow force;
-        force.id = i + 1;
-        force.position = QVector3D(i * 0.05f, 0, 0);
-        force.direction = QVector3D(0, 1, 0);
-        force.size = 1.0f;
-        force.lengthScale = 1.0f;
-        force.color = QVector4D(defaultColor.redF(), defaultColor.greenF(), defaultColor.blueF(), defaultColor.alphaF());
-        force.style = ForceStyle::Tail;
-        force.lightingEnabled = (i % 2 == 0);
-
-        vecforces.emplace_back(force);
-        // ui->glViewWidget->addForceArrow(QVector3D(i * 0.05f, 0, 0),        // position
-        //                                 QVector3D(0, 1, 0),                // direction
-        //                                 1.0f,                              // size (screen-scale)
-        //                                 1.0f,                              // lengthScale (shaft only)
-        //                                 QColor(255, 80, 40),               // color
-        //                                 GLViewWindow::ForceStyle::Tail,    // style
-        //                                 /*lightingEnabled=*/(i % 2 == 0)); // mix lit/unlit
-    }
-    ui->glViewWidget->forceRenderer()->setForces(vecforces);
-
-
-    // Choose mode
-    ui->glViewWidget->selectionManager()->setType(SelectType::Element);
-
-    // Optional tuning
-    ui->glViewWidget->setPickRadius(8);
-    ui->glViewWidget->selectionManager()->setNodeHighlightColor(QColor("#ffd700"));
-    // ui->glViewWidget->setEdgeHighlightColor(Qt::red);
-    ui->glViewWidget->selectionManager()->setElemHighlightColor(QColor(64, 160, 255));
-    ui->glViewWidget->selectionManager()->setNodeScale(1.6f);
-    // ui->glViewWidget->setHighlightEdgeScale(1.5f);
-
-    // Alpha for highlights (0..1)
-    // ui->glViewWidget->setNodeHighlightAlpha(0.9f);
-    // ui->glViewWidget->setEdgeHighlightAlpha(0.8f);
-    ui->glViewWidget->selectionManager()->setElemAlpha(0.4f); // softer face overlay
-
-    // Marquee colors (RGBA via QColor)
-    ui->glViewWidget->setMarqueeFillColor(QColor(64,160,255,48));     // fill
-    ui->glViewWidget->setMarqueeStrokeColor(QColor(64,160,255,160));  // outline
-    ui->glViewWidget->setMarqueeStrokeWidth(1.5f);
-    
-    // // Retrieve selections after user clicks/box-selects
-    // const auto &selNodes = ui->glViewWidget->selectionManager()->selectedNodeIds();
-    // const auto &selElems = ui->glViewWidget->selectionManager()->selectedElementIds();
-    // const auto &selForces = ui->glViewWidget->selectionManager()->selectedForceIds();
-
-    // Connect signal
-    connect(ui->titleBar, &FTitleBar::signalClose, this, &MainWindow::close);
-    connect(ui->titleBar, &FTitleBar::signalMinimize, [&]() {
-        this->showMinimized();
-    });
-    connect(ui->titleBar, &FTitleBar::signalToggleMaximize, [&]() {
-        static bool maximized = false;
-        maximized = !maximized;
-        maximized ? this->showMaximized() : this->showNormal();
-    });
-
-
+#if 0
     /// test database
     db.setNotifyDispatcher(disp_);
     db.beginTransaction();
@@ -557,109 +476,7 @@ MainWindow::MainWindow(QWidget *parent)
     // Delete A(1) — this will compact that chunk
     db.erase<HIElement>(6);
     db.commitTransaction();
-
-    // // Iterate A in memory order
-    // // db.for_each_in_memory_order<A>([](Id id, A& a) { /* ... */ });
-    // auto stats2 = db.stats();
-    // qDebug() << "categories=" << stats2.store_count
-    //          << " object=" << stats2.objects
-    //          << " bytes_used~" << stats2.bytes_used << "\n";
-
-    // db.beginTransaction();
-    // db.emplace<HIElementPoint>(11);
-    // db.emplace<HIElementPoint>(12);
-    // db.commitTransaction();
-
-    // auto stats3 = db.stats();
-    // qDebug() << "categories=" << stats3.store_count
-    //          << " object=" << stats3.objects
-    //          << " bytes_used~" << stats3.bytes_used << "\n";
-
-    // auto *noMix = db.getPoolUnique(CategoryType::CatNode);
-    // if (noMix)
-    // {
-    //     for (auto any : noMix->range())
-    //     {
-    //         auto item = std::launder(reinterpret_cast<HCursor *>(any));
-    //         qDebug() << "No mix id is =" << item->id() << "\n";
-    //     }
-    // }
-
-    // auto *doMix = db.getPoolMix(CategoryType::CatElement);
-    // if (doMix)
-    // {
-    //     for (auto any : doMix->range())
-    //     {
-    //         auto item2 = std::launder(reinterpret_cast<HCursor *>(any));
-    //         qDebug() << "Do mix id is =" << item2->id() << "\n";
-    //     }
-    // }
-
-    // auto pTestItem = db.get<HINode>(3);
-    // if (pTestItem)
-    // {
-    //     auto testcursor = pTestItem->getCursor();
-    // }
-    
-    // db.undo();
-    // db.undo();
-
-    // auto stats4 = db.stats();
-    // qDebug() << "categories=" << stats4.store_count
-    //          << " object=" << stats4.objects
-    //          << " bytes_used~" << stats4.bytes_used << "\n";
-
-    // auto *noMix2 = db.getPoolUnique(CategoryType::CatNode);
-    // if (noMix2)
-    // {
-    //     for (auto cursor : noMix2->range())
-    //     {
-    //         qDebug() << "No mix id is =" << cursor->id() << "\n";
-    //     }
-    // }
-
-    // auto *doMix2 = db.getPoolMix(CategoryType::CatElement);
-    // if (doMix2)
-    // {
-    //     for (auto cursor : doMix2->range())
-    //     {
-    //         qDebug() << "Do mix id is =" << cursor->id() << "\n";
-    //     }
-    // }
-    // db.redo();
-    // auto stats5 = db.stats();
-    // qDebug() << "categories=" << stats5.store_count
-    //          << " object=" << stats5.objects
-    //          << " bytes_used~" << stats5.bytes_used << "\n";
-
-    // auto *noMix3 = db.getPoolUnique(CategoryType::CatNode);
-    // if (noMix3)
-    // {
-    //     for (auto cursor : noMix3->range())
-    //     {
-    //         qDebug() << "No mix id is =" << cursor->id() << "\n";
-    //     }
-    // }
-
-    // auto *doMix3 = db.getPoolMix(CategoryType::CatElement);
-    // if (doMix3)
-    // {
-    //     for (auto cursor : doMix3->range())
-    //     {
-    //         qDebug() << "Do mix id is =" << cursor->id() << "\n";
-    //     }
-    // }
-}
-
-MainWindow::~MainWindow()
-{
-    delete ui;
-}
-
-void MainWindow::initTheme()
-{
-    FThemeManager::instance().load(":/HornetMain/res/theme/Themes.json", ":/HornetMain/res/theme/NumericDisplay.json");
-    FThemeManager::instance().setTheme("Dark");
+#endif
 }
 
 QWidget* MainWindow::createTreeWidget()
@@ -712,6 +529,119 @@ QWidget* MainWindow::createTreeWidget()
     return pSplitter;
 }
 
+void MainWindow::createDocumentModel()
+{
+    // Setup document
+    auto pDoc = m_app->docs()->createDocument<DocumentModel>();
+
+    m_app->docs()->setActiveDocument(pDoc);
+    auto pView = new GLViewWindow(nullptr);
+    pDoc->setView(pView);
+
+    pView->modelRenderer()->setShowFaces(true);
+    pView->modelRenderer()->setShowEdges(true);
+    pView->modelRenderer()->setShowNodes(true); // interior points off for clarity
+
+    pView->fitView();
+
+    pView->camera()->setFocus(QVector3D(0, 0, 0));
+
+    pView->modelRenderer()->setElementEdgeWidth(1.0f);
+    pView->modelRenderer()->setNodeSize(5.0f);                           // default point size
+    pView->modelRenderer()->setDefaultElementEdgeColor(QColor("white")); // dark gray/black lines
+
+    pView->modelRenderer()->enablePerNodeColor(true);
+    pView->modelRenderer()->enablePerElementColor(true);
+    pView->modelRenderer()->setDefaultElementFaceColor(QColor(190, 190, 195)); // light gray faces
+    pView->modelRenderer()->setDefaultNodeColor(QColor(240, 90, 60));
+
+    pView->coordinateGizmo()->setSize(100);          // smaller/larger corner widget
+    pView->coordinateGizmo()->setMargin(0);          // distance from bottom-left
+    pView->coordinateGizmo()->setScale(0.5);         // arrow thickness/length within the viewport
+
+    // pView->setControlMode(GLViewWindow::ControlMode::FPS);
+    pView->camera()->setControlMode(ControlMode::OrbitPan);
+
+    pView->camera()->setProjection(Projection::Orthographic); // or Orthographic
+    pView->camera()->setFovDegrees(10.0f);                                 // perspective FOV
+    pView->camera()->setOrthoHeight(10.0f);
+
+    pView->camera()->setOrbitRotateSpeed(30.0f);
+    pView->camera()->setOrbitPanSpeed(30.0f);
+
+    pView->lighting()->enableAmbient(true);
+    pView->lighting()->enableDiffuse(true);
+    pView->lighting()->enableSpecular(true);
+
+    pView->lighting()->setAmbientIntensity(0.25f);
+    pView->lighting()->setDiffuseIntensity(1.0f);
+    pView->lighting()->setSpecularIntensity(0.5f);
+    pView->lighting()->setShininess(48.0f);
+
+    // Optional: set light colors (defaults are white)
+    pView->lighting()->setAmbientColor(QColor(255, 255, 255));
+    pView->lighting()->setDiffuseColor(QColor(255, 255, 255));
+    pView->lighting()->setSpecularColor(QColor(255, 255, 255));
+
+    // pView->clearForces();
+
+    std::vector<ForceArrow> vecforces;
+    vecforces.reserve(100);
+    for (int i = 0; i < 100; ++i)
+    {
+        QColor defaultColor(255, 80, 40);
+        ForceArrow force;
+        force.id = i + 1;
+        force.position = QVector3D(i * 0.05f, 0, 0);
+        force.direction = QVector3D(0, 1, 0);
+        force.size = 1.0f;
+        force.lengthScale = 1.0f;
+        force.color = QVector4D(defaultColor.redF(), defaultColor.greenF(), defaultColor.blueF(), defaultColor.alphaF());
+        force.style = ForceStyle::Tail;
+        force.lightingEnabled = (i % 2 == 0);
+
+        vecforces.emplace_back(force);
+        // pView->addForceArrow(QVector3D(i * 0.05f, 0, 0),        // position
+        //                                 QVector3D(0, 1, 0),                // direction
+        //                                 1.0f,                              // size (screen-scale)
+        //                                 1.0f,                              // lengthScale (shaft only)
+        //                                 QColor(255, 80, 40),               // color
+        //                                 GLViewWindow::ForceStyle::Tail,    // style
+        //                                 /*lightingEnabled=*/(i % 2 == 0)); // mix lit/unlit
+    }
+    pView->forceRenderer()->setForces(vecforces);
+
+    // Choose mode
+    pView->selectionManager()->setType(SelectType::Element);
+
+    // Optional tuning
+    pView->setPickRadius(8);
+    pView->selectionManager()->setNodeHighlightColor(QColor("#ffd700"));
+    // pView->setEdgeHighlightColor(Qt::red);
+    pView->selectionManager()->setElemHighlightColor(QColor(64, 160, 255));
+    pView->selectionManager()->setNodeScale(1.6f);
+    // pView->setHighlightEdgeScale(1.5f);
+
+    // Alpha for highlights (0..1)
+    // pView->setNodeHighlightAlpha(0.9f);
+    // pView->setEdgeHighlightAlpha(0.8f);
+    pView->selectionManager()->setElemAlpha(0.4f); // softer face overlay
+
+    // Marquee colors (RGBA via QColor)
+    pView->setMarqueeFillColor(QColor(64,160,255,48));     // fill
+    pView->setMarqueeStrokeColor(QColor(64,160,255,160));  // outline
+    pView->setMarqueeStrokeWidth(1.5f);
+    
+    // // Retrieve selections after user clicks/box-selects
+    // const auto &selNodes = pView->selectionManager()->selectedNodeIds();
+    // const auto &selElems = pView->selectionManager()->selectedElementIds();
+    // const auto &selForces = pView->selectionManager()->selectedForceIds();
+
+    m_widgetToName[pDoc->viewWidget()] = QString::fromStdString(pDoc->name());
+    ui->splitWidget->updateAllViewCombos();
+}
+
+#if 0
 void MainWindow::addRowToTable(FTable *table)
 {
     if (!table)
@@ -730,6 +660,7 @@ void MainWindow::addRowToTable(FTable *table)
         }
     }
 }
+#endif
 
 void MainWindow::populateTree(FTreeWidget *tree)
 {
@@ -820,6 +751,14 @@ void MainWindow::populateTree(FTreeWidget *tree)
 
 void MainWindow::on_fancyButton_clicked()
 {
+    auto pNode = ui->splitWidget->activeNode();
+    auto pDoc = dynamic_cast<DocumentModel*>(m_app->docs()->activeDocument());
+
+    if (!pDoc || !pNode || pNode->viewWidget()->currentViewWidget() != pDoc->viewWidget())
+    {
+        return;
+    }
+
     std::vector<Node> nodes;
     std::vector<Element> elems;
 
@@ -838,8 +777,30 @@ void MainWindow::on_fancyButton_clicked()
         qWarning("Failed to load elements: %s", qPrintable(elemsCsv));
     }
 
-    ui->glViewWidget->setMesh(nodes, elems);
-    ui->glViewWidget->fitView();
+    pDoc->view()->setMesh(nodes, elems);
+    pDoc->view()->fitView();
 
-    disp_.notify(MessageType::DataEmplaced, nodes.size(), elems.size());
+    pDoc->dispatcher()->notify(MessageType::DataEmplaced, nodes.size(), elems.size());
+
+    // auto pView = ui->splitWidget->viewWidget()->takeViewWidget();
+    // ui->splitWidget->viewWidget()->setViewWidget(pView);
+}
+
+void MainWindow::change_active_doc(FSplitWidget* node)
+{
+    auto& docs = m_app->docs()->documents();   // non-const
+
+    for (auto& docPtr : docs)
+    {
+        DocumentModel* doc = dynamic_cast<DocumentModel*>(docPtr.get());
+        if (!doc)
+            continue;
+
+        if (doc->viewWidget() != node->viewWidget()->currentViewWidget())
+            continue;
+
+        m_app->docs()->setActiveDocument(doc);
+        break;
+    }
+    
 }

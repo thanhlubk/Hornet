@@ -1,10 +1,13 @@
 #include <QApplication>
+#include "HornetApp.h"
 #include "MainWindow.h"
 #include <QTranslator>
 #include <QFontDatabase>
+#include <HornetBase/AppBase.h>
 
 int main(int argc, char *argv[]) {
-    QApplication app(argc, argv);
+    HornetApp app(argc, argv);
+
 #if 0
     QTranslator translator;
     translator.load("translations/HornetMain_vi.qm"); // relative to app dir
@@ -20,6 +23,7 @@ int main(int argc, char *argv[]) {
         app.setFont(appFont);
     }
 
+#if 0
     // QString desiredFont = "Open Sans";
 
     // // QString desiredFont = "Arial";
@@ -38,8 +42,9 @@ int main(int argc, char *argv[]) {
     //     QFont fallbackFont("Garamond");
     //     app.setFont(fallbackFont);
     // }
+#endif
 
-    MainWindow window;
+    MainWindow window(app.appBase());
     window.show();
     return app.exec();
 }

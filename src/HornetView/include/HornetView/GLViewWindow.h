@@ -1,6 +1,6 @@
 #pragma once
 #include "HornetViewExport.h"
-#include <QOpenGLWidget>
+#include <QOpenGLWindow>
 #include <QOpenGLExtraFunctions>
 #include <QOpenGLShaderProgram>
 #include <QMatrix4x4>
@@ -24,12 +24,15 @@
 #include "HViewDef.h"
 #include "HornetBase/NotifyDispatcher.h"
 
-class HORNETVIEW_EXPORT GLViewWindow : public QOpenGLWidget, protected QOpenGLExtraFunctions
+class HORNETVIEW_EXPORT GLViewWindow : public QOpenGLWindow, protected QOpenGLExtraFunctions
 {
     Q_OBJECT
 public:
-    explicit GLViewWindow(QWidget *parent = nullptr);
+    explicit GLViewWindow(QWindow *parent = nullptr);
     ~GLViewWindow() override;
+
+    // Helper to get a QWidget wrapper that you can put into layouts/FViewHost
+    QWidget *createContainer(QWidget *parent = nullptr);
 
     void setNotifyDispatcher(NotifyDispatcher &disp);
     void onNotify(MessageType mess, MessageParam a, MessageParam b);

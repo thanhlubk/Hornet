@@ -47,14 +47,14 @@
       <item>
        <layout class="QVBoxLayout" name="verticalLayout">
         <item>
-         <widget class="GLViewWindow" name="glViewWidget" native="true"/>
-        </item>
-        <item>
          <widget class="FancyButton" name="fancyButton">
           <property name="text">
            <string>Fancy Button</string>
           </property>
          </widget>
+        </item>
+        <item>
+         <widget class="FSplitWidget" name="splitWidget" native="true"/>
         </item>
         <item>
          <widget class="QPushButton" name="previousButton">
@@ -94,11 +94,6 @@
    <header>FancyWidgets/FancyButton.h</header>
   </customwidget>
   <customwidget>
-   <class>GLViewWindow</class>
-   <extends>QWidget</extends>
-   <header>HornetView/GLViewWindow.h</header>
-  </customwidget>
-  <customwidget>
    <class>FTitleBar</class>
    <extends>QWidget</extends>
    <header>FancyWidgets/FTitleBar.h</header>
@@ -114,6 +109,12 @@
    <class>FTabBarContainer</class>
    <extends>QWidget</extends>
    <header>FancyWidgets/FTabBarContainer.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>FSplitWidget</class>
+   <extends>QWidget</extends>
+   <header>FancyWidgets/FSplitWidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

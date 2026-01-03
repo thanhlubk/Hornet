@@ -20,6 +20,7 @@
 #include <array>
 #include <string>
 #include <QVector2D>
+#include <QWidget>
 
 inline bool isRayIntersectTriangle(const QVector3D &orig, const QVector3D &dir, const QVector3D &v0, const QVector3D &v1, const QVector3D &v2, float &tOut, QVector3D &hitPosOut)
 {
@@ -54,10 +55,14 @@ inline bool isRayIntersectTriangle(const QVector3D &orig, const QVector3D &dir, 
     return true;
 }
 
-GLViewWindow::GLViewWindow(QWidget *parent) : QOpenGLWidget(parent)
+GLViewWindow::GLViewWindow(QWindow *parent)
+    : QOpenGLWindow(QOpenGLWindow::NoPartialUpdate, parent)
 {
-    setFocusPolicy(Qt::StrongFocus);
-    setMouseTracking(true);
+    // QWidget-specific calls like setFocusPolicy / setMouseTracking
+    // are NOT available here. Focus/mouse handling will be handled
+    // by the QWidget container.
+    // setFocusPolicy(Qt::StrongFocus);
+    // setMouseTracking(true);
 
     // Request MSAA for smoother edges
     QSurfaceFormat surfaceFormat = format();
@@ -79,6 +84,7 @@ GLViewWindow::GLViewWindow(QWidget *parent) : QOpenGLWidget(parent)
     m_colorMarqueeBorder = QColor(0, 120, 215, 200);
     m_ePrevSelectType = SelectType::None;
 
+    // Same QObject ownership as before: these still take 'this' as parent
     m_pLighting = new HViewLighting(this);
     m_pCamera = new HViewCamera(this);
     m_pSelection = new HViewSelectionManager(this);
@@ -91,6 +97,16 @@ GLViewWindow::GLViewWindow(QWidget *parent) : QOpenGLWidget(parent)
 GLViewWindow::~GLViewWindow()
 {
     destroyGLObjects(); // delete VAO/VBO/programs, gizmo, etc.
+}
+
+QWidget *GLViewWindow::createContainer(QWidget *parent)
+{
+    // The container will own this QOpenGLWindow (see docs).
+    QWidget *container = QWidget::createWindowContainer(this, parent);
+    // If you want strong focus / mouse tracking, set it on the container:
+    container->setFocusPolicy(Qt::StrongFocus);
+    container->setMouseTracking(true);
+    return container;
 }
 
 void GLViewWindow::setNotifyDispatcher(NotifyDispatcher &disp)
@@ -216,6 +232,12 @@ void GLViewWindow::initializeGL()
     glEnable(GL_MULTISAMPLE);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_PROGRAM_POINT_SIZE);
+
+    if (auto *ctx = context()) {
+        connect(ctx, &QOpenGLContext::aboutToBeDestroyed,
+                this, [this]() { destroyGLObjects(); },
+                Qt::DirectConnection);
+    }
 
     // New: init renderers + gizmo
     m_pRenderModel->initialize();
