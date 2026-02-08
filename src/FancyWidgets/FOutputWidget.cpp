@@ -46,8 +46,8 @@ QVariant FOutputWidget::getDisplaySize(int idx)
     SET_UP_DISPLAY_SIZE(2, Primary, iconSize3);
     SET_UP_DISPLAY_SIZE(3, Primary, filletSize1);
     SET_UP_DISPLAY_SIZE(4, Primary, offsetSize2);
-
-    SET_UP_DISPLAY_SIZE(5, Primary, scrollbarWidth);
+    SET_UP_DISPLAY_SIZE(5, Primary, scrollbarWidth1);
+    
     return QVariant(0);
 }
 

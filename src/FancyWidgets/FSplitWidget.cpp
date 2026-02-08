@@ -1,21 +1,27 @@
 #include <FancyWidgets/FSplitWidget.h>
+#include <FancyWidgets/FComboBox.h>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QPushButton>
 #include <QSplitter>
-// #include <QWidget>
 #include <QSizePolicy>
 #include <QSignalBlocker>
-#include <QComboBox>
 #include <QSet>
+#include <QLabel>
+#include <QAbstractItemView>
 
 FSplitWidget::FSplitWidget(QWidget *parent)
     : QWidget(parent)
 {
-    createBlank();
+    m_pMainLayout = new QVBoxLayout(this);
+    m_pMainLayout->setContentsMargins(0, 0, 0, 0);
+    m_pMainLayout->setSpacing(0);
+
+    m_pCentralWidget = nullptr;
+    m_pControlWidget = nullptr;
 }
 
-QList<FSplitWidget*> FSplitWidget::leafNodes() const
+QList<FSplitWidget*> FSplitWidget::childLeaf() const
 {
     QList<FSplitWidget*> out;
 
@@ -24,7 +30,7 @@ QList<FSplitWidget*> FSplitWidget::leafNodes() const
         return out;
 
     // Leaf (central is FViewHost)
-    if (viewWidget())
+    if (viewHostWidget())
     {
         out.push_back(const_cast<FSplitWidget*>(this));
         return out;
@@ -36,19 +42,19 @@ QList<FSplitWidget*> FSplitWidget::leafNodes() const
         for (int i = 0; i < sp->count(); ++i)
         {
             if (auto* child = qobject_cast<FSplitWidget*>(sp->widget(i)))
-                out += child->leafNodes();
+                out += child->childLeaf();
         }
         return out;
     }
 
     // Promoted child stored as central
     if (auto* child = qobject_cast<FSplitWidget*>(m_pCentralWidget))
-        return child->leafNodes();
+        return child->childLeaf();
 
     return out;
 }
 
-FSplitWidget* FSplitWidget::topMostParent() 
+FSplitWidget* FSplitWidget::root() 
 {
     FSplitWidget* top = this;
     while (true)
@@ -68,37 +74,24 @@ FSplitWidget* FSplitWidget::topMostParent()
     return top;
 }
 
-// ----------------------------------------------------------
-// Initial blank state: only the main layout, no node yet
-// ----------------------------------------------------------
-void FSplitWidget::createBlank()
-{
-    m_pMainLayout = new QVBoxLayout(this);
-    m_pMainLayout->setContentsMargins(0, 0, 0, 0);
-    m_pMainLayout->setSpacing(0);
-
-    m_pCentralWidget = nullptr;
-    m_pControlWidget = nullptr;
-}
-
 bool FSplitWidget::isBlank() const
 {
     return m_pCentralWidget == nullptr && m_pControlWidget == nullptr;
 }
 
 // ----------------------------------------------------------
-// Public: create the top-most node if there isn't one yet
+// Public: create the top-most leaf if there isn't one yet
 // ----------------------------------------------------------
-void FSplitWidget::createRootNode()
+void FSplitWidget::initLeaf()
 {
     // If we already have something (leaf or splitter), do nothing
     if (!isBlank())
         return;
 
-    createNodeInternal();
+    createLeafInternal();
     
     // make the new root leaf active
-    if (this == topMostParent())
+    if (this == root())
         this->setActiveLeaf(this);
 }
 
@@ -106,7 +99,7 @@ void FSplitWidget::createRootNode()
 // Internal: create one leaf node in this FSplitWidget
 // (controls row + FViewHost)
 // ----------------------------------------------------------
-void FSplitWidget::createNodeInternal()
+void FSplitWidget::createLeafInternal()
 {
     // Safety: avoid double-creation
     if (!isBlank())
@@ -121,12 +114,38 @@ void FSplitWidget::createNodeInternal()
     auto *btnSplitH = new QPushButton(tr("Split Horizontal"), m_pControlWidget);
     auto *btnSplitV = new QPushButton(tr("Split Vertical"),   m_pControlWidget);
     auto *btnClose  = new QPushButton(tr("Close"),            m_pControlWidget);
-    m_combo = new QComboBox(m_pControlWidget);
+    m_combo = new FComboBox(m_pControlWidget);
+    auto m_combo2 = new FComboBox(m_pControlWidget);
+    // m_combo2->setMaxVisibleItems(5);
+    // m_combo2->setView(new HoverSlideView(m_combo2));
+    m_combo2->clear();
+
+    m_combo2->addItem("Option 1");
+    m_combo2->addItem("Option 2");
+    m_combo2->addItem("Option 3");
+    m_combo2->addItem("Option 3");
+    m_combo2->addItem("Option 3");
+    m_combo2->addItem("Option 3");
+    m_combo2->addItem("Option 3");
+    m_combo2->addItem("Option 3");
+    m_combo2->addItem("Option 3");
+    m_combo2->addItem("Option 3");
+    m_combo2->addItem("Option 3");
+    m_combo2->addItem("Option 3");
+    m_combo2->addItem("Option 3");
+    m_combo2->addItem("Option 3");
+    m_combo2->addItem("Option 3");
+    m_combo2->addItem("Option 3");
+    m_combo2->addItem("Option 3");
+    m_combo2->addItem("Option 3");
+    m_combo2->addItem("Option 3");
 
     controlLayout->addWidget(btnSplitH);
     controlLayout->addWidget(btnSplitV);
     controlLayout->addWidget(btnClose);
     controlLayout->addWidget(m_combo);
+    controlLayout->addWidget(m_combo2);
+
     controlLayout->addStretch();
 
     connect(btnSplitH, &QPushButton::clicked,
@@ -134,18 +153,18 @@ void FSplitWidget::createNodeInternal()
     connect(btnSplitV, &QPushButton::clicked,
             this, &FSplitWidget::splitVertically);
     connect(btnClose,  &QPushButton::clicked,
-            this, &FSplitWidget::closeNode);
+            this, &FSplitWidget::closeLeaf);
     connect(m_combo, QOverload<int>::of(&QComboBox::currentIndexChanged),
-        this, &FSplitWidget::onComboIndexChanged);
+        this, &FSplitWidget::comboIndexChanged);
 
     // --- Central area: FViewHost --------------------------------------
     m_pCentralWidget = createViewWidget();
 
-    if (auto* host = viewWidget())
+    if (auto* host = viewHostWidget())
     {
         connect(host, &FViewHost::activated, this, [this]() {
             // this leaf is requesting to be the active one
-            this->topMostParent()->setActiveLeaf(this);
+            this->root()->setActiveLeaf(this);
         });
     }
 
@@ -153,7 +172,7 @@ void FSplitWidget::createNodeInternal()
     m_pMainLayout->addWidget(m_pCentralWidget);
 }
 
-FViewHost *FSplitWidget::viewWidget() const
+FViewHost *FSplitWidget::viewHostWidget() const
 {
     // If we are blank, or m_pCentralWidget is a splitter or child node, return nullptr
     if (!m_pCentralWidget)
@@ -200,7 +219,7 @@ void FSplitWidget::makeSplit(Qt::Orientation orientation, QWidget *newViewWidget
 {
     // If we are blank, create the root leaf first.
     if (isBlank())
-        createNodeInternal();
+        createLeafInternal();
 
     // If already a splitter, just change orientation.
     if (auto *splitter = qobject_cast<QSplitter *>(m_pCentralWidget))
@@ -210,7 +229,7 @@ void FSplitWidget::makeSplit(Qt::Orientation orientation, QWidget *newViewWidget
     }
 
     // Only leaf nodes can be split.
-    auto *pHostView = viewWidget();
+    auto *pHostView = viewHostWidget();
     if (!pHostView)
         return;
 
@@ -245,7 +264,7 @@ void FSplitWidget::makeSplit(Qt::Orientation orientation, QWidget *newViewWidget
 
     if (bIsCurrentActive)
     {
-        auto pViewChild1 = child1->viewWidget();
+        auto pViewChild1 = child1->viewHostWidget();
         if (pViewChild1)
         {
             QSignalBlocker blocker(pViewChild1);
@@ -254,13 +273,13 @@ void FSplitWidget::makeSplit(Qt::Orientation orientation, QWidget *newViewWidget
     }
 
     // Children start blank; make them leaf nodes.
-    child1->createRootNode();
-    child2->createRootNode();
+    child1->initLeaf();
+    child2->initLeaf();
 
     // Move previous view into child1.
     if (pCurrentViewWidget)
     {
-        if (auto *h1 = child1->viewWidget())
+        if (auto *h1 = child1->viewHostWidget())
             h1->setViewWidget(pCurrentViewWidget);
     }
 
@@ -270,10 +289,10 @@ void FSplitWidget::makeSplit(Qt::Orientation orientation, QWidget *newViewWidget
     //         h2->setViewWidget(newViewWidget);
     // }
     
-    child1->updateAllViewCombos();
-    child2->updateAllViewCombos();
+    child1->updateCombo();
+    child2->updateCombo();
 
-    topMostParent()->setActiveLeaf(child2);
+    root()->setActiveLeaf(child2);
 }
 
 // ----------------------------------------------------------
@@ -299,7 +318,7 @@ void FSplitWidget::clearToBlank()
 // ----------------------------------------------------------
 // Close current node (leaf or internal child)
 // ----------------------------------------------------------
-void FSplitWidget::closeNode()
+void FSplitWidget::closeLeaf()
 {
     // Find nearest QSplitter that directly contains some ancestor of this node.
     QWidget   *w               = this;
@@ -365,12 +384,12 @@ void FSplitWidget::collapseSplitter(QSplitter *splitter, FSplitWidget *keep, FSp
     Q_UNUSED(remove);
 
     // detect if active is in remove subtree
-    FSplitWidget* top = topMostParent();
-    FSplitWidget* curActive = top->activeNode();
+    FSplitWidget* top = root();
+    FSplitWidget* curActive = top->activeLeaf();
 
     bool activeWasRemoved = false;
     if (curActive)
-        activeWasRemoved = remove->leafNodes().contains(curActive);
+        activeWasRemoved = remove->childLeaf().contains(curActive);
 
     if (splitter != m_pCentralWidget)
         return;
@@ -395,20 +414,20 @@ void FSplitWidget::collapseSplitter(QSplitter *splitter, FSplitWidget *keep, FSp
 
     if (activeWasRemoved)
     {
-        auto keepLeaves = keep->leafNodes();
+        auto keepLeaves = keep->childLeaf();
         if (!keepLeaves.isEmpty())
             top->setActiveLeaf(keepLeaves.first());
     }
 }
 
-FSplitWidget* FSplitWidget::activeNode()
+FSplitWidget* FSplitWidget::activeLeaf()
 {
-    auto* top = topMostParent();
-    const auto leaves = top->leafNodes();
+    auto* top = root();
+    const auto leaves = top->childLeaf();
 
     for (auto* n : leaves)
     {
-        if (auto* host = n->viewWidget())
+        if (auto* host = n->viewHostWidget())
         {
             if (host->isActive())
                 return n;
@@ -423,19 +442,19 @@ void FSplitWidget::setActiveLeaf(FSplitWidget* leaf)
         return;
 
     // Always operate on the top-most parent
-    auto* top = topMostParent();
+    auto* top = root();
     if (top != this)
     {
         top->setActiveLeaf(leaf);
         return;
     }
 
-    const auto leaves = leafNodes();
+    const auto leaves = childLeaf();
     if (!leaves.contains(leaf))
         return;
 
     // // If already active, do nothing
-    // if (auto* cur = activeNode())
+    // if (auto* cur = activeLeaf())
     // {
     //     if (cur == leaf)
     //         return;
@@ -445,7 +464,7 @@ void FSplitWidget::setActiveLeaf(FSplitWidget* leaf)
     // Turn all inactive, only 'leaf' active
     for (auto* n : leaves)
     {
-        if (auto* host = n->viewWidget())
+        if (auto* host = n->viewHostWidget())
         {
             const bool shouldBeActive = (n == leaf);
 
@@ -467,7 +486,7 @@ void FSplitWidget::setActiveLeaf(FSplitWidget* leaf)
     }
 
     if (emitSignal)
-        emit activeNodeChanged(leaf);
+        emit activeLeafChanged(leaf);
 }
 
 void FSplitWidget::setViewPool(std::unordered_map<QWidget*, QString>* pool)
@@ -475,18 +494,18 @@ void FSplitWidget::setViewPool(std::unordered_map<QWidget*, QString>* pool)
     m_viewPool = pool;
 }
 
-QWidget* FSplitWidget::currentLeafView() const
+QWidget* FSplitWidget::viewWidget() const
 {
-    auto* host = viewWidget();  // your leaf host accessor
+    auto* host = viewHostWidget();  // your leaf host accessor
     if (!host) return nullptr;
-    return host->currentViewWidget();  // current view inside FViewHost
+    return host->viewWidget();  // current view inside FViewHost
 }
 
 void FSplitWidget::updateComboForLeaf(const QList<QWidget*>& unusedWidgets)
 {
     if (!m_combo || !m_viewPool) return;
 
-    QWidget* cur = currentLeafView();
+    QWidget* cur = viewWidget();
 
     QSignalBlocker b(m_combo);
     m_combo->clear();
@@ -530,20 +549,20 @@ void FSplitWidget::updateComboForLeaf(const QList<QWidget*>& unusedWidgets)
     }
 }
 
-void FSplitWidget::updateAllViewCombos()
+void FSplitWidget::updateCombo()
 {
-    FSplitWidget* top = topMostParent();
-    if (top != this) { top->updateAllViewCombos(); return; }
+    FSplitWidget* top = root();
+    if (top != this) { top->updateCombo(); return; }
 
     if (!m_viewPool) return;
 
-    const auto leaves = leafNodes();
+    const auto leaves = childLeaf();
 
     // Collect used QWidget* pointers
     QSet<QWidget*> used;
     for (auto* leaf : leaves)
     {
-        if (QWidget* w = leaf->currentLeafView())
+        if (QWidget* w = leaf->viewWidget())
             used.insert(w);
     }
 
@@ -562,15 +581,20 @@ void FSplitWidget::updateAllViewCombos()
         leaf->updateComboForLeaf(unused);
 }
 
-void FSplitWidget::onComboIndexChanged(int /*index*/)
+void FSplitWidget::comboIndexChanged(int /*index*/)
 {
     if (!m_viewPool) return;
 
-    auto* host = viewWidget();
+    auto* host = viewHostWidget();
     if (!host) return; // only leaf nodes have a combo
 
     QWidget* selected = m_combo->currentData().value<QWidget*>();
     host->setViewWidget(selected);
 
-    topMostParent()->updateAllViewCombos();
+    if (root()->activeLeaf() == this)
+        emit activeLeafChanged(this);
+    else
+        setActiveLeaf(this);
+
+    root()->updateCombo();
 }

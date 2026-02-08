@@ -425,7 +425,7 @@ QVariant FPropertiesPalette::getDisplaySize(int idx)
     SET_UP_DISPLAY_SIZE(0, Primary, iconSize3);
     SET_UP_DISPLAY_SIZE(1, Primary, offsetSize2);
     SET_UP_DISPLAY_SIZE(2, Primary, separatorWidth);
-    SET_UP_DISPLAY_SIZE(3, Primary, scrollbarWidth);
+    SET_UP_DISPLAY_SIZE(3, Primary, scrollbarWidth1);
     SET_UP_DISPLAY_SIZE(4, Primary, fontNormalSize);
     SET_UP_DISPLAY_SIZE(5, Primary, filletSize1);
 

@@ -40,7 +40,7 @@ QColor FListWidgetScrollAware::getColorTheme(int idx)
 QVariant FListWidgetScrollAware::getDisplaySize(int idx)
 {
     SET_UP_DISPLAY_SIZE(0, Primary, offsetSize2);
-    SET_UP_DISPLAY_SIZE(1, Primary, scrollbarWidth);
+    SET_UP_DISPLAY_SIZE(1, Primary, scrollbarWidth1);
     return QVariant(0); // Default font size
 }
 

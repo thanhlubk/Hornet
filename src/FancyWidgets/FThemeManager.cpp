@@ -103,8 +103,11 @@ void FThemeManager::loadDisplayJson(const QString &display)
     SET_DISPLAY(filletSize2);
     SET_DISPLAY(offsetSize1);
     SET_DISPLAY(offsetSize2);
+    SET_DISPLAY(highlightWidth1);
+    SET_DISPLAY(highlightWidth2);
     SET_DISPLAY(separatorWidth);
-    SET_DISPLAY(scrollbarWidth);
+    SET_DISPLAY(scrollbarWidth1);
+    SET_DISPLAY(scrollbarWidth2);
     SET_DISPLAY(sidebarTabHeight);
     SET_DISPLAY(sidebarTabWidth);
     SET_DISPLAY(searchbarWidth);

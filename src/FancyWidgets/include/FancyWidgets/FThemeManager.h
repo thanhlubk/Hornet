@@ -61,9 +61,13 @@ struct NumericDisplay
     int offsetSize1;// OFFSET_SIZE_1
     int offsetSize2;// OFFSET_SIZE_2
 
+    int highlightWidth1;
+    int highlightWidth2;
+
     int separatorWidth;
 
-    int scrollbarWidth;
+    int scrollbarWidth1;
+    int scrollbarWidth2;
 
     int sidebarTabHeight;
     int sidebarTabWidth;

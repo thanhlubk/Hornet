@@ -27,7 +27,7 @@ FViewHost::~FViewHost()
     }
 }
 
-QWidget *FViewHost::currentViewWidget() const
+QWidget *FViewHost::viewWidget() const
 {
     // QPointer<T> has operator T*() and data(), both fine
     return m_pViewWidget.data();

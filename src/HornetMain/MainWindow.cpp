@@ -386,7 +386,7 @@ void MainWindow::initWindow()
     // });
 
     connect(ui->fancyButton, &QPushButton::clicked, this, &MainWindow::on_fancyButton_clicked);
-    connect(ui->splitWidget, &FSplitWidget::activeNodeChanged, this, &MainWindow::change_active_doc);
+    connect(ui->splitWidget, &FSplitWidget::activeLeafChanged, this, &MainWindow::change_active_doc);
 
 
     // Connect signal
@@ -437,11 +437,11 @@ void MainWindow::initTestOnly()
     }
 
 
-    // connect(ui->previousButton, &QPushButton::clicked, ui->splitWidget, &FSplitWidget::createRootNode);
+    // connect(ui->previousButton, &QPushButton::clicked, ui->splitWidget, &FSplitWidget::initLeaf);
 
     ui->splitWidget->setViewPool(&m_widgetToName);
-    ui->splitWidget->createRootNode();
-    ui->splitWidget->updateAllViewCombos();
+    ui->splitWidget->initLeaf();
+    ui->splitWidget->updateCombo();
 
     createDocumentModel();
     createDocumentModel();
@@ -638,7 +638,7 @@ void MainWindow::createDocumentModel()
     // const auto &selForces = pView->selectionManager()->selectedForceIds();
 
     m_widgetToName[pDoc->viewWidget()] = QString::fromStdString(pDoc->name());
-    ui->splitWidget->updateAllViewCombos();
+    ui->splitWidget->updateCombo();
 }
 
 #if 0
@@ -751,14 +751,10 @@ void MainWindow::populateTree(FTreeWidget *tree)
 
 void MainWindow::on_fancyButton_clicked()
 {
-    auto pNode = ui->splitWidget->activeNode();
     auto pDoc = dynamic_cast<DocumentModel*>(m_app->docs()->activeDocument());
-
-    if (!pDoc || !pNode || pNode->viewWidget()->currentViewWidget() != pDoc->viewWidget())
-    {
+    if (!pDoc)
         return;
-    }
-
+    
     std::vector<Node> nodes;
     std::vector<Element> elems;
 
@@ -796,7 +792,7 @@ void MainWindow::change_active_doc(FSplitWidget* node)
         if (!doc)
             continue;
 
-        if (doc->viewWidget() != node->viewWidget()->currentViewWidget())
+        if (doc->viewWidget() != node->viewHostWidget()->viewWidget())
             continue;
 
         m_app->docs()->setActiveDocument(doc);

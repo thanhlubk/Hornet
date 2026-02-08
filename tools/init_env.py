@@ -725,7 +725,7 @@ def run_mode_vs(repo_root: Path, env: Dict[str, Any], no_copy_qt: bool) -> int:
     cmd = [
         "cmake",
         "-S", str(repo_root),
-        "-B", str(repo_root / "build"),
+        "-B", str(repo_root / "build/vs"),
         "-G", str(vs_version),
         "-A", "x64",
         f"-DCMAKE_PREFIX_PATH={norm_slash(qt_path)}",

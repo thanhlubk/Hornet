@@ -73,7 +73,7 @@ QVariant FSideBarStackedWidget::getDisplaySize(int idx)
     SET_UP_DISPLAY_SIZE(3, Primary, iconSize3);
     SET_UP_DISPLAY_SIZE(4, Primary, offsetSize2);
     SET_UP_DISPLAY_SIZE(5, Primary, separatorWidth);
-    SET_UP_DISPLAY_SIZE(6, Primary, scrollbarWidth);
+    SET_UP_DISPLAY_SIZE(6, Primary, scrollbarWidth1);
 
     return QVariant(0);
 }

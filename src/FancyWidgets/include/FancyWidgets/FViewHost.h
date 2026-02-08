@@ -11,7 +11,7 @@ public:
     ~FViewHost() override;
 
     // Currently attached widget (may be nullptr)
-    QWidget *currentViewWidget() const;
+    QWidget *viewWidget() const;
     void setActive(bool active);
     bool isActive() const { return m_bIsActive; }
     
