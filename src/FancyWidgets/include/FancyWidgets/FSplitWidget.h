@@ -8,7 +8,8 @@
 #include <QWidget>
 #include <QMetaType>
 
-Q_DECLARE_METATYPE(QWidget*)
+// remove this in mordern Qt
+// Q_DECLARE_METATYPE(QWidget*)
 
 class FComboBox;
 class QVBoxLayout;

@@ -41,7 +41,7 @@ void FSideBarStackedWidget::applyTheme()
     
     if (m_pCollapseButton)
     {
-        m_pCollapseButton->setStyleSheet(QString("background: %1; text-align: center;").arg(getColorTheme(3).name(QColor::HexArgb)));
+        m_pCollapseButton->setStyleSheet(QString("background: %1; border: none; text-align: center;").arg(getColorTheme(3).name(QColor::HexArgb)));
         m_pCollapseButton->resize(getDisplaySize(2).toInt(), getDisplaySize(2).toInt()); // Set button size
     }
 

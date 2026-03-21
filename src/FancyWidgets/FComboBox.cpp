@@ -401,6 +401,8 @@ FComboBox::FComboBox(QWidget* parent)
     setMaxVisibleItems(10);
     // this->setView(new FComboBox::FComboBoxAnimationView(200, 10.0, this));
     // this->setView(new HoverSlideView(this));
+    setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+
     SET_UP_THEME(FComboBox)
 
     this->setView(new FComboBox::FComboBoxAnimationView(200, 10.0, this));

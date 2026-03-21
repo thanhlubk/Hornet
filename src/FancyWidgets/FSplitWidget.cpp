@@ -1,5 +1,9 @@
 #include <FancyWidgets/FSplitWidget.h>
 #include <FancyWidgets/FComboBox.h>
+#include <FancyWidgets/FPushButton.h>
+#include <FancyWidgets/FIconButton.h>
+#include <FancyWidgets/FLabel.h>
+#include <FancyWidgets/FLineEdit.h>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QPushButton>
@@ -9,6 +13,7 @@
 #include <QSet>
 #include <QLabel>
 #include <QAbstractItemView>
+#include <QStyle>
 
 FSplitWidget::FSplitWidget(QWidget *parent)
     : QWidget(parent)
@@ -140,11 +145,26 @@ void FSplitWidget::createLeafInternal()
     m_combo2->addItem("Option 3");
     m_combo2->addItem("Option 3");
 
+    // --- Test widgets (to be removed later) ---
+    auto *testBtn   = new FPushButton(tr("FPushButton"), m_pControlWidget);
+
+    auto *testIconBtn = new FIconButton(m_pControlWidget);
+    testIconBtn->setIcon(style()->standardIcon(QStyle::SP_ComputerIcon));
+
+    auto *testLabel = new FLabel(tr("FLabel"), m_pControlWidget);
+    auto *testEdit  = new FLineEdit(m_pControlWidget);
+    testEdit->setPlaceholderText("FLineEdit…");
+    // -------------------------------------------
+
     controlLayout->addWidget(btnSplitH);
     controlLayout->addWidget(btnSplitV);
     controlLayout->addWidget(btnClose);
     controlLayout->addWidget(m_combo);
     controlLayout->addWidget(m_combo2);
+    controlLayout->addWidget(testEdit);
+    controlLayout->addWidget(testBtn);
+    controlLayout->addWidget(testIconBtn);
+    controlLayout->addWidget(testLabel);
 
     controlLayout->addStretch();
 
