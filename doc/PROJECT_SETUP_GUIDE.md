@@ -128,7 +128,7 @@ export CMAKE_BUILD_DIR=./temp/linux
 code .
 
 # On Windows (run in .bat file)
-set QT_PREFIX_PATH=C:\Qt.x.x\msvc2022_64\lib\cmake
+set QT_PREFIX_PATH=C:\Qt.x.x\msvc2022_64\lib\cmake
 set CMAKE_BUILD_DIR=.	emp\windows
 code .
 ```
