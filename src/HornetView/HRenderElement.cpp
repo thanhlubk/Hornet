@@ -115,19 +115,9 @@ void HRenderElement::destroy()
     m_shaderProgram.removeAllShaders();
 }
 
-void HRenderElement::setElements(const std::vector<Node> &nodes, const std::vector<Element> &elements)
+void HRenderElement::setElements(const std::vector<QVector3D> &pos, const std::unordered_map<int, int> &idToIdx, const std::vector<RenderElementData> &elements)
 {
     // Build everything we need, then call upload(...)
-    // 1) pack positions + id->index map
-    std::vector<QVector3D> pos;
-    pos.reserve(nodes.size());
-    std::unordered_map<int, int> idToIdx;
-    idToIdx.reserve(nodes.size());
-    for (int i = 0; i < (int)nodes.size(); ++i)
-    {
-        pos.emplace_back(nodes[i].x, nodes[i].y, nodes[i].z);
-        idToIdx[nodes[i].id] = i;
-    }
     auto IDX = [&](int nodeId) -> int
     {
         auto it = idToIdx.find(nodeId);
@@ -235,7 +225,7 @@ void HRenderElement::setElements(const std::vector<Node> &nodes, const std::vect
     quadFaces.reserve(elements.size() * 6);
 
     // walk elements
-    auto addQuad = [&](const Element &e, int a, int b, int c, int d)
+    auto addQuad = [&](const RenderElementData &e, int a, int b, int c, int d)
     {
         // also edges
         addEdge(a, b);
@@ -243,7 +233,7 @@ void HRenderElement::setElements(const std::vector<Node> &nodes, const std::vect
         addEdge(c, d);
         addEdge(d, a);
     };
-    auto addTri = [&](const Element &e, int a, int b, int c)
+    auto addTri = [&](const RenderElementData &e, int a, int b, int c)
     {
         addEdge(a, b);
         addEdge(b, c);
@@ -254,7 +244,7 @@ void HRenderElement::setElements(const std::vector<Node> &nodes, const std::vect
         QVector4D ecol(e.r, e.g, e.b, e.a);
         switch (e.type)
         {
-        case Element::Type::Tri3:
+        case ElementType::ElementTypeTri3:
         {
             int a = IDX(e.v[0]), b = IDX(e.v[1]), c = IDX(e.v[2]);
             GLsizei first = (GLsizei)triIdx.size();
@@ -265,7 +255,7 @@ void HRenderElement::setElements(const std::vector<Node> &nodes, const std::vect
             addTri(e, a, b, c);
         }
         break;
-        case Element::Type::Tri6:
+        case ElementType::ElementTypeTri6:
         {
             int a = IDX(e.v[0]), b = IDX(e.v[1]), c = IDX(e.v[2]);
             int ab = IDX(e.v[3]), bc = IDX(e.v[4]), ca = IDX(e.v[5]);
@@ -282,7 +272,7 @@ void HRenderElement::setElements(const std::vector<Node> &nodes, const std::vect
             addEdge(ca, a);
         }
         break;
-        case Element::Type::Quad4:
+        case ElementType::ElementTypeQuad4:
         {
             int a = IDX(e.v[0]), b = IDX(e.v[1]), c = IDX(e.v[2]), d = IDX(e.v[3]);
             GLsizei first = (GLsizei)triIdx.size();
@@ -293,7 +283,7 @@ void HRenderElement::setElements(const std::vector<Node> &nodes, const std::vect
             addQuad(e, a, b, c, d);
         }
         break;
-        case Element::Type::Quad8:
+        case ElementType::ElementTypeQuad8:
         {
             int a = IDX(e.v[0]), b = IDX(e.v[1]), c = IDX(e.v[2]), d = IDX(e.v[3]);
             int ab = IDX(e.v[4]), bc = IDX(e.v[5]), cd = IDX(e.v[6]), da = IDX(e.v[7]);
@@ -312,19 +302,19 @@ void HRenderElement::setElements(const std::vector<Node> &nodes, const std::vect
             addEdge(da, a);
         }
         break;
-        case Element::Type::Line2:
+        case ElementType::ElementTypeLine2:
         {
             emitLine(IDX(e.v[0]), IDX(e.v[1]));
         }
         break;
-        case Element::Type::Line3:
+        case ElementType::ElementTypeLine3:
         {
             int i0 = IDX(e.v[0]), im = IDX(e.v[1]), i1 = IDX(e.v[2]);
             emitLine(i0, im);
             emitLine(im, i1);
         }
         break;
-        case Element::Type::Tet4:
+        case ElementType::ElementTypeTet4:
         {
             int n0 = IDX(e.v[0]), n1 = IDX(e.v[1]), n2 = IDX(e.v[2]), n3 = IDX(e.v[3]);
             QVector3D C = (P(n0) + P(n1) + P(n2) + P(n3)) * 0.25f;
@@ -334,7 +324,7 @@ void HRenderElement::setElements(const std::vector<Node> &nodes, const std::vect
             triFaces.push_back({n0, n2, n3, -1, -1, -1, ecol, C, e.id});
         }
         break;
-        case Element::Type::Tet10:
+        case ElementType::ElementTypeTet10:
         {
             int n0 = IDX(e.v[0]), n1 = IDX(e.v[1]), n2 = IDX(e.v[2]), n3 = IDX(e.v[3]);
             int n01 = IDX(e.v[4]), n12 = IDX(e.v[5]), n20 = IDX(e.v[6]),
@@ -346,7 +336,7 @@ void HRenderElement::setElements(const std::vector<Node> &nodes, const std::vect
             triFaces.push_back({n0, n2, n3, n20, n23, n03, ecol, C, e.id});
         }
         break;
-        case Element::Type::Hex8:
+        case ElementType::ElementTypeHex8:
         {
             int n0 = IDX(e.v[0]), n1 = IDX(e.v[1]), n2 = IDX(e.v[2]), n3 = IDX(e.v[3]);
             int n4 = IDX(e.v[4]), n5 = IDX(e.v[5]), n6 = IDX(e.v[6]), n7 = IDX(e.v[7]);
@@ -359,7 +349,7 @@ void HRenderElement::setElements(const std::vector<Node> &nodes, const std::vect
             quadFaces.push_back({n3, n0, n4, n7, -1, -1, -1, -1, ecol, C, e.id});
         }
         break;
-        case Element::Type::Hex20:
+        case ElementType::ElementTypeHex20:
         {
             int c0 = IDX(e.v[0]), c1 = IDX(e.v[1]), c2 = IDX(e.v[2]), c3 = IDX(e.v[3]);
             int c4 = IDX(e.v[4]), c5 = IDX(e.v[5]), c6 = IDX(e.v[6]), c7 = IDX(e.v[7]);

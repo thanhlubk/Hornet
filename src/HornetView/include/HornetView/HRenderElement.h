@@ -8,7 +8,16 @@
 #include <vector>
 #include <cstdint>
 #include "HViewLighting.h"
-#include "HViewDef.h"
+#include "HornetBase/HIElement.h"
+
+// Lightweight rendering-only element descriptor (no DB dependency)
+struct RenderElementData
+{
+    int id = -1;
+    ElementType type = ElementType::ElementTypeUnkown;
+    int v[20] = {0};           // node IDs for connectivity
+    float r = 0.65f, g = 0.75f, b = 0.90f, a = 1.0f; // element color
+};
 
 struct FaceBatch
 {
@@ -29,7 +38,7 @@ public:
     void initialize();
     void destroy();
 
-    void setElements(const std::vector<Node> &nodes, const std::vector<Element> &elements);
+    void setElements(const std::vector<QVector3D> &positions, const std::unordered_map<int, int> &nodeIdToIndex, const std::vector<RenderElementData> &elements);
     void upload(const std::vector<QVector3D> &positions, const std::vector<QVector3D> &normals, const std::vector<uint32_t> &triIdx, const std::vector<uint32_t> &lineIdx, const std::vector<FaceBatch> &faceBatches, const std::vector<LineBatch> &lineBatches);
 
     void setDefaultLineColor(const QColor &color);

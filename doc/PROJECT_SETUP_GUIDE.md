@@ -7,7 +7,7 @@ This guide walks you through setting up a **modular cross-platform Qt6 + OpenGL 
 ## 📁 Final Project Structure
 
 ```
-AnotherSolution/
+Hornet/
 ├── bin/                    # Runtime output
 │   └── [windows|linux]/[Debug|Release]/
 ├── lib/                    # External binary libs

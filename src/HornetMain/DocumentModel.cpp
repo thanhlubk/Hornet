@@ -7,6 +7,7 @@ DocumentModel::DocumentModel()
     : Document(DocumentType::Model)
     , m_db(std::make_unique<DatabaseSession>())
 {
+    m_db->setNotifyDispatcher(*dispatcher());
 }
 
 DocumentModel::~DocumentModel()
@@ -36,6 +37,7 @@ void DocumentModel::setView(GLViewWindow* view)
         return;
     
     m_pView = view; 
+    m_pView->setDatabase(m_db.get());
     m_pView->setNotifyDispatcher(*dispatcher());
 
     m_pViewWidget = QWidget::createWindowContainer(m_pView, nullptr);// get QWidget wrapper

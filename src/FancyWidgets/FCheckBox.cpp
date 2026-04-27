@@ -19,6 +19,7 @@ FCheckBox::FCheckBox(const QString &text, QWidget *parent)
 void FCheckBox::applyTheme()
 {
     // setStyleSheet(QString("QCheckBox::indicator:checked { image: url(); width: 25px; height: 25px; } QCheckBox::indicator:unchecked { width: 25px; height: 25px; image: url(); } QCheckBox { color: red; }"));
+    QString strTickImgPath;
     setStyleSheet(QString(R"(
         QCheckBox {
             background-color: %1;
@@ -30,14 +31,14 @@ void FCheckBox::applyTheme()
             height: %3px;
         }
         QCheckBox::indicator:unchecked {
-            image: url(D:/VMShare/Hornet/src/FancyWidgets/res/icon/small/tick.png);
+            image: url(%6);
             background-color: %4;
         }
         QCheckBox::indicator:checked {
             image: none;
             background-color: %5;
         }
-    )").arg(getColorTheme(2).name(QColor::HexArgb), QString::number(getDisplaySize(1).toInt()), QString::number(getDisplaySize(0).toInt()), getColorTheme(0).name(), getColorTheme(1).name()));
+    )").arg(getColorTheme(2).name(QColor::HexArgb), QString::number(getDisplaySize(1).toInt()), QString::number(getDisplaySize(0).toInt()), getColorTheme(0).name(), getColorTheme(1).name(), strTickImgPath));
 
     if (text().isEmpty())
         setMaximumWidth(getDisplaySize(0).toInt());

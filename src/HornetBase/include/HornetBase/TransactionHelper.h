@@ -42,7 +42,7 @@ namespace MeasureHelper
 
     template <class T>
     inline size_t measure(const T &obj)
-        requires(std::is_trivially_copyable_v<T> && !std::is_pointer_v<T> && !std::is_arithmetic_v<T>)
+        requires(std::is_trivially_copyable_v<T> && !std::is_pointer_v<T> && !std::is_arithmetic_v<T> && !std::is_enum_v<T>)
     {
         return measureTriviallyCopyableObject(obj);
     }

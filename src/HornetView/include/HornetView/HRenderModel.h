@@ -1,9 +1,9 @@
 #pragma once
 #include "HornetViewExport.h"
-#include "HViewDef.h"
 #include "HRenderNode.h"
 #include "HRenderElement.h"
 #include <QObject>
+#include <unordered_map>
 
 class HORNETVIEW_EXPORT HRenderModel : public QObject
 {
@@ -32,7 +32,11 @@ public:
     float frameRadius() const;
     QVector3D center() const;
 
-    void setMesh(const std::vector<Node> &nodes, const std::vector<Element> &elements);
+    void setMesh(const std::vector<QVector3D> &positions,
+                 const std::vector<QVector4D> &nodeColors,
+                 const std::vector<int> &nodeIds,
+                 const std::unordered_map<int, int> &nodeIdToIndex,
+                 const std::vector<RenderElementData> &elements);
 
     void setNodeSelection(const std::vector<int> &nodeIds, const QColor &color, float sizeScale);
     void clearNodeSelection();

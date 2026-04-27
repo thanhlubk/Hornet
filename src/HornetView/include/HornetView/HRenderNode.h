@@ -8,7 +8,7 @@
 #include <unordered_map>
 #include <vector>
 #include <QColor>
-#include "HViewDef.h"
+
 
 class HRenderNode : protected QOpenGLExtraFunctions
 {
@@ -17,7 +17,7 @@ public:
 
     void initialize();
     void destroy();
-    void setNodes(const std::vector<Node> &nodes);
+
     void upload(const std::vector<QVector3D> &positions, const std::vector<QVector4D> &colors, const std::vector<int> &nodeIds);
     void draw(const QMatrix4x4 &P, const QMatrix4x4 &V);
 

@@ -63,26 +63,8 @@ void HRenderNode::destroy()
     m_shaderProgram.removeAllShaders();
 }
 
-void HRenderNode::setNodes(const std::vector<Node>& nodes)
-{
-    // Pack positions, colors, ids then reuse existing upload()
-    std::vector<QVector3D> pos; 
-    std::vector<QVector4D> col; 
-    std::vector<int> ids;
 
-    pos.reserve(nodes.size());
-    col.reserve(nodes.size());
-    ids.reserve(nodes.size());
-    for (const auto& n : nodes)
-    {
-        pos.emplace_back(n.x, n.y, n.z);
-        col.emplace_back(n.r, n.g, n.b, n.a);
-        ids.emplace_back(n.id);
-    }
 
-    if (m_bInitialize)
-        upload(pos, col, ids);
-}
 
 void HRenderNode::upload(const std::vector<QVector3D> &pos, const std::vector<QVector4D> &col, const std::vector<int> &nodeIds)
 {

@@ -21,6 +21,8 @@
 #include <string>
 #include <QVector2D>
 #include <QWidget>
+#include "HornetBase/HINode.h"
+#include "HornetBase/HIElement.h"
 
 inline bool isRayIntersectTriangle(const QVector3D &orig, const QVector3D &dir, const QVector3D &v0, const QVector3D &v1, const QVector3D &v2, float &tOut, QVector3D &hitPosOut)
 {
@@ -57,6 +59,7 @@ inline bool isRayIntersectTriangle(const QVector3D &orig, const QVector3D &dir, 
 
 GLViewWindow::GLViewWindow(QWindow *parent)
     : QOpenGLWindow(QOpenGLWindow::NoPartialUpdate, parent)
+    , m_pDb(nullptr)
 {
     // QWidget-specific calls like setFocusPolicy / setMouseTracking
     // are NOT available here. Focus/mouse handling will be handled
@@ -109,6 +112,11 @@ QWidget *GLViewWindow::createContainer(QWidget *parent)
     return container;
 }
 
+void GLViewWindow::setDatabase(DatabaseSession *pDb)
+{
+    m_pDb = pDb;
+}
+
 void GLViewWindow::setNotifyDispatcher(NotifyDispatcher &disp)
 {
     m_observer = disp.attach(this, &GLViewWindow::onNotify);
@@ -116,27 +124,92 @@ void GLViewWindow::setNotifyDispatcher(NotifyDispatcher &disp)
 
 void GLViewWindow::onNotify(MessageType mess, MessageParam a, MessageParam b)
 {
-    if (mess == MessageType::DataModified)
+    if (mess == MessageType::DataModified || mess == MessageType::DataEmplaced)
     {
-        // Do something
+        rebuildFromDatabase();
     }
 }
 
-void GLViewWindow::setMesh(const std::vector<Node> &nodes, const std::vector<Element> &elements)
+void GLViewWindow::rebuildFromDatabase()
 {
-    // Minimal CPU cache for picking & framing only
-    m_mapNodeIdPos.clear();
-    for (const auto &n : nodes)
-    {
-        m_mapNodeIdPos[n.id] = QVector3D(n.x, n.y, n.z);
-    }
-    m_elements = elements;
-    for (size_t i = 0; i < m_elements.size(); ++i)
-        if (m_elements[i].id < 0)
-            m_elements[i].id = int(i);
+    if (!m_pDb)
+        return;
 
-    // Hand off to renderers — they now build & upload everything
-    m_pRenderModel->setMesh(nodes, elements);
+    // 1) Collect nodes from DB
+    std::vector<QVector3D> positions;
+    std::vector<QVector4D> nodeColors;
+    std::vector<int> nodeIds;
+    std::unordered_map<int, int> nodeIdToIndex;
+
+    m_mapNodeIdPos.clear();
+
+    auto pPoolNode = m_pDb->getPoolUnique(CategoryType::CatNode);
+    if (pPoolNode)
+    {
+        for (auto any : pPoolNode->range())
+        {
+            auto crNode = std::launder(reinterpret_cast<HCursor *>(any));
+            auto pNode = crNode->item<HINode>();
+            if (!pNode)
+                continue;
+
+            int id = static_cast<int>(crNode->id());
+            HVector3d pos = pNode->position();
+            HColor col = pNode->color();
+
+            int idx = static_cast<int>(positions.size());
+            QVector3D qpos(static_cast<float>(pos.x), static_cast<float>(pos.y), static_cast<float>(pos.z));
+            positions.push_back(qpos);
+            nodeColors.emplace_back(col.r() / 255.0f, col.g() / 255.0f, col.b() / 255.0f, col.a() / 255.0f);
+            nodeIds.push_back(id);
+            nodeIdToIndex[id] = idx;
+
+            m_mapNodeIdPos[id] = qpos;
+        }
+    }
+
+    // 2) Collect elements from DB
+    std::vector<RenderElementData> elements;
+    m_elements.clear();
+
+    auto pPoolElement = m_pDb->getPoolMix(CategoryType::CatElement);
+    if (pPoolElement)
+    {
+        for (auto any : pPoolElement->range())
+        {
+            auto crElement = std::launder(reinterpret_cast<HCursor *>(any));
+            auto pElement = crElement->item<HIElement>();
+            if (!pElement)
+                continue;
+
+            RenderElementData ed;
+            ed.id = static_cast<int>(crElement->id());
+            ed.type = pElement->elementType();
+
+            HColor ecol = pElement->color();
+            ed.r = ecol.r() / 255.0f;
+            ed.g = ecol.g() / 255.0f;
+            ed.b = ecol.b() / 255.0f;
+            ed.a = ecol.a() / 255.0f;
+
+            auto nodeSpan = pElement->nodes();
+            int nCount = std::min(static_cast<int>(nodeSpan.size()), 20);
+            for (int i = 0; i < nCount; ++i)
+            {
+                if (nodeSpan[i])
+                    ed.v[i] = static_cast<int>(nodeSpan[i]->id());
+                else
+                    ed.v[i] = 0;
+            }
+
+            elements.push_back(ed);
+        }
+    }
+
+    m_elements = elements;
+
+    // 3) Feed to renderer
+    m_pRenderModel->setMesh(positions, nodeColors, nodeIds, nodeIdToIndex, elements);
 
     fitView();
     m_pCamera->setFocus(m_pRenderModel->center());
@@ -559,24 +632,24 @@ bool GLViewWindow::getHitPosition(const QPointF &point, QVector3D &hit, int &ele
         std::vector<std::tuple<QVector3D, QVector3D, QVector3D>> vecTriangles;
         switch (elem.type)
         {
-        case Element::Type::Tri3:
-        case Element::Type::Tri6:
+        case ElementType::ElementTypeTri3:
+        case ElementType::ElementTypeTri6:
             vecTriangles.emplace_back(m_mapNodeIdPos.at(elem.v[0]), m_mapNodeIdPos.at(elem.v[1]), m_mapNodeIdPos.at(elem.v[2]));
             break;
-        case Element::Type::Quad4:
-        case Element::Type::Quad8:
+        case ElementType::ElementTypeQuad4:
+        case ElementType::ElementTypeQuad8:
             vecTriangles.emplace_back(m_mapNodeIdPos.at(elem.v[0]), m_mapNodeIdPos.at(elem.v[1]), m_mapNodeIdPos.at(elem.v[2]));
             vecTriangles.emplace_back(m_mapNodeIdPos.at(elem.v[0]), m_mapNodeIdPos.at(elem.v[2]), m_mapNodeIdPos.at(elem.v[3]));
             break;
-        case Element::Type::Tet4:
-        case Element::Type::Tet10:
+        case ElementType::ElementTypeTet4:
+        case ElementType::ElementTypeTet10:
             vecTriangles.emplace_back(m_mapNodeIdPos.at(elem.v[0]), m_mapNodeIdPos.at(elem.v[1]), m_mapNodeIdPos.at(elem.v[2]));
             vecTriangles.emplace_back(m_mapNodeIdPos.at(elem.v[0]), m_mapNodeIdPos.at(elem.v[3]), m_mapNodeIdPos.at(elem.v[1]));
             vecTriangles.emplace_back(m_mapNodeIdPos.at(elem.v[1]), m_mapNodeIdPos.at(elem.v[3]), m_mapNodeIdPos.at(elem.v[2]));
             vecTriangles.emplace_back(m_mapNodeIdPos.at(elem.v[2]), m_mapNodeIdPos.at(elem.v[3]), m_mapNodeIdPos.at(elem.v[0]));
             break;
-        case Element::Type::Hex8:
-        case Element::Type::Hex20:
+        case ElementType::ElementTypeHex8:
+        case ElementType::ElementTypeHex20:
             vecTriangles.emplace_back(m_mapNodeIdPos.at(elem.v[0]), m_mapNodeIdPos.at(elem.v[1]), m_mapNodeIdPos.at(elem.v[2]));
             vecTriangles.emplace_back(m_mapNodeIdPos.at(elem.v[0]), m_mapNodeIdPos.at(elem.v[2]), m_mapNodeIdPos.at(elem.v[3]));
 

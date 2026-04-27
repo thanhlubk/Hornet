@@ -23,6 +23,7 @@
 #include "HViewSelectionManager.h"
 #include "HViewDef.h"
 #include "HornetBase/NotifyDispatcher.h"
+#include "HornetBase/DatabaseSession.h"
 
 class HORNETVIEW_EXPORT GLViewWindow : public QOpenGLWindow, protected QOpenGLExtraFunctions
 {
@@ -34,10 +35,10 @@ public:
     // Helper to get a QWidget wrapper that you can put into layouts/FViewHost
     QWidget *createContainer(QWidget *parent = nullptr);
 
+    void setDatabase(DatabaseSession *pDb);
     void setNotifyDispatcher(NotifyDispatcher &disp);
     void onNotify(MessageType mess, MessageParam a, MessageParam b);
 
-    void setMesh(const std::vector<Node> &nodes, const std::vector<Element> &elements);
 
     void fitView();
 
@@ -78,8 +79,10 @@ protected:
 
 private:
     NotifyDispatcher::Observer m_observer;
+    DatabaseSession* m_pDb;
 
     void destroyGLObjects();
+    void rebuildFromDatabase();
     bool getHitPosition(const QPointF &point, QVector3D &hit, int &elemId) const;
     void selectAtPoint(const QPointF &point);
     void selectInRect(const QRectF &rectMarquee);
@@ -116,7 +119,7 @@ private:
     float m_fMarqueeBorderWidth; // px
 
     // Mesh cache for picking & framing
-    std::vector<Element> m_elements; // original elements (ids, topology, colors)
+    std::vector<RenderElementData> m_elements;
     std::unordered_map<int, QVector3D> m_mapNodeIdPos;
 
 public:

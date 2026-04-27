@@ -1,6 +1,6 @@
 #include <QApplication>
 #include "HornetApp.h"
-#include "MainWindow.h"
+#include "HornetWindow.h"
 #include <QTranslator>
 #include <QFontDatabase>
 #include <HornetBase/AppBase.h>
@@ -10,10 +10,10 @@
 int main(int argc, char *argv[]) {
     HornetApp app(argc, argv);
 
-    if (QStyleFactory::keys().contains("Fusion", Qt::CaseInsensitive))
-        QApplication::setStyle("Fusion");
+    // if (QStyleFactory::keys().contains("Fusion", Qt::CaseInsensitive))
+    //     QApplication::setStyle("Fusion");
 
-    // QApplication::setStyle("windows11");
+    QApplication::setStyle("windows11");
 
     qDebug() << "Qt version:" << QT_VERSION_STR;
     qDebug() << "Available styles:" << QStyleFactory::keys();
@@ -55,7 +55,7 @@ int main(int argc, char *argv[]) {
     // }
 #endif
 
-    MainWindow window(app.appBase());
+    HornetWindow window(app.appBase());
     window.show();
     return app.exec();
 }

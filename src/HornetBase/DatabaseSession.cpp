@@ -323,6 +323,7 @@ void DatabaseSession::commitTransaction()
     }
 
     m_transaction.commit();
+    m_observer.notify(MessageType::DataModified, 0, 0);
 }
 
 void DatabaseSession::rollbackTransaction()
@@ -370,6 +371,7 @@ bool DatabaseSession::undo()
                 break;
             }
         }
+        m_observer.notify(MessageType::DataModified, 0, 0);
         return true;
     }
     return false;
@@ -405,6 +407,7 @@ bool DatabaseSession::redo()
                 break;
             }
         }
+        m_observer.notify(MessageType::DataModified, 0, 0);
         return true;
     }
     return false;

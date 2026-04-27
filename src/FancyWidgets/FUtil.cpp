@@ -9,7 +9,8 @@ namespace FUtil
 {
     QString getTempPath()
     {
-        return QString("D:/Temp/Fancy/");
+        // e.g., return QString("D:/res/toolbar/res/")"
+        return QString();
     }
 
     QStringList getParentFolders(const QString &path) {

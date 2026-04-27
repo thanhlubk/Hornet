@@ -105,23 +105,27 @@ QVector3D HRenderModel::center() const
     return m_vCenter; 
 }
 
-void HRenderModel::setMesh(const std::vector<Node> &nodes, const std::vector<Element> &elements)
+void HRenderModel::setMesh(const std::vector<QVector3D> &positions,
+                           const std::vector<QVector4D> &nodeColors,
+                           const std::vector<int> &nodeIds,
+                           const std::unordered_map<int, int> &nodeIdToIndex,
+                           const std::vector<RenderElementData> &elements)
 {
-    m_renderNode.setNodes(nodes);
-    m_renderElement.setElements(nodes, elements);
+    m_renderNode.upload(positions, nodeColors, nodeIds);
+    m_renderElement.setElements(positions, nodeIdToIndex, elements);
 
-    if (!nodes.empty())
+    if (!positions.empty())
     {
-        QVector3D mn = {nodes.front().x, nodes.front().y, nodes.front().z};
+        QVector3D mn = positions.front();
         QVector3D mx = mn;
-        for (const auto &p : nodes)
+        for (const auto &p : positions)
         {
-            mn.setX(std::min(mn.x(), p.x));
-            mn.setY(std::min(mn.y(), p.y));
-            mn.setZ(std::min(mn.z(), p.z));
-            mx.setX(std::max(mx.x(), p.x));
-            mx.setY(std::max(mx.y(), p.y));
-            mx.setZ(std::max(mx.z(), p.z));
+            mn.setX(std::min(mn.x(), p.x()));
+            mn.setY(std::min(mn.y(), p.y()));
+            mn.setZ(std::min(mn.z(), p.z()));
+            mx.setX(std::max(mx.x(), p.x()));
+            mx.setY(std::max(mx.y(), p.y()));
+            mx.setZ(std::max(mx.z(), p.z()));
         }
 
         m_vCenter = 0.5f * (mn + mx);

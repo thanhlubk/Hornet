@@ -34,6 +34,14 @@ enum class ElementKind : std::uint8_t
     ElementKind3D,
 };
 
+enum class ElementTypeExtended : std::uint8_t
+{
+    ElementTypeExtendedStandard,
+    ElementTypeExtendedCrackBody,
+    ElementTypeExtendedCrackTip,
+    ElementTypeExtendedBlended,
+};
+
 inline constexpr std::array<ElementKind, 12> kKindOf = {
     ElementKind::ElementKindUnkown, // UNKNOWN
     ElementKind::ElementKind0D,     // POINT
@@ -81,10 +89,9 @@ class HORNETBASE_EXPORT HIElement : public HItem
     DECLARE_ITEM_VARIANT_ABSTRACT_TAGS(HIElement, CategoryType::CatElement, ItemType::ItemElement, (uint16_t)ElementType::ElementTypeUnkown)
 
 public:
-    HIElement(Id id, HCursor *cursor, HItemCreatorToken tok)
-        : HItem(id, cursor, tok) {}
+    HIElement(Id id, HCursor *cursor, HItemCreatorToken tok);
 
-    DEFINE_TRANSACTION_EXCHANGE(&HIElement::m_color) 
+    DEFINE_TRANSACTION_EXCHANGE(&HIElement::m_color, &HIElement::m_eTypeExtended)
 public:
     virtual ElementType elementType() const noexcept = 0;
 
@@ -98,7 +105,13 @@ public:
         return isElementTypeValid(elementType()) ? kKindOf[indexOfElementType(elementType())] : ElementKind::ElementKindUnkown;
     }
 
+    ElementTypeExtended elementTypeExtended() const noexcept { return m_eTypeExtended; }
+    void setElementTypeExtended(ElementTypeExtended t) noexcept { m_eTypeExtended = t; }
+
     int nodesCount() noexcept { return static_cast<int>(nodes().size()); }
+
+    HColor color() const noexcept { return m_color; }
+    void setColor(const HColor &color) noexcept { m_color = color; }
 
     // Returns true on success, false if pos is out of range.
     bool setNodeAt(std::size_t pos, HCursor* nodeCursor) noexcept
@@ -121,6 +134,7 @@ public:
 
 private:
     HColor m_color; // color
+    ElementTypeExtended m_eTypeExtended; // element type extended (optional; default standard)
 };
 
 // ===== Concrete elements (templated, zero-initialized storage) =====

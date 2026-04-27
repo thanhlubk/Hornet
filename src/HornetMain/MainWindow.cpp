@@ -4,7 +4,6 @@
 #include <QWidget>
 #include <HornetView/GLViewWindow.h>
 #include "ui_MainWindow.h"
-#include "SecondDialog.h"
 #include <QTextEdit>
 #include <FancyWidgets/FOutputWidget.h>
 #include <FancyWidgets/FArrowButton.h>
@@ -27,6 +26,7 @@
 #include <QGroupBox>
 #include <QComboBox>
 #include <QSpinBox>
+#include <QDialog>
 
 namespace
 { 
@@ -51,6 +51,7 @@ static inline int iOr(const QString &s, int def)
 static inline QStringList splitCSV(const QString &line) { return line.split(',', Qt::KeepEmptyParts); }
 static inline QString lc(const QString &s) { return s.trimmed().toLower(); }
 
+#if 0
 // ---- element type helpers ----
 static Element::Type parseElemTypeToken(const QString &tok, bool *ok = nullptr)
 {
@@ -352,6 +353,7 @@ static bool loadElementsCSV(const QString &path, std::vector<Element> &out)
     }
     return true;
 }
+#endif
 }
 
 MainWindow::MainWindow(AppBase* app, QWidget *parent)
@@ -386,82 +388,19 @@ void MainWindow::initWindow()
     ui->setupUi(this);
 
     connect(ui->fancyButton, &QPushButton::clicked, this, []()
-            {
-    //     // 1. Initialize the top-level QDialog [6]
-    // QDialog dialog;
-    // dialog.setWindowTitle("System Configuration - Main Implementation");
-    // dialog.setMinimumSize(450, 350);
-
-    // // 2. Set the Main Vertical Layout for the Dialog 
-    // QVBoxLayout *mainLayout = new QVBoxLayout(&dialog);
-
-    // // 3. Create the primary Vertical Group Box 
-    // QGroupBox *outerVGroupBox = new QGroupBox("Main Settings Container");
-    // QVBoxLayout *vGroupLayout = new QVBoxLayout();
-
-    // // 4. Create Nested Horizontal Group Boxes [12, 13]
-    
-    // // Group 1: Label and LineEdit
-    // QGroupBox *idGroup = new QGroupBox("User Identification");
-    // QVBoxLayout *vLayout1 = new QVBoxLayout();
-
-    // QHBoxLayout *hLayout1 = new QHBoxLayout();
-    // hLayout1->addWidget(new QLabel("User Name:"));
-    // hLayout1->addWidget(new QLineEdit());
-
-    // QHBoxLayout *hLayout4 = new QHBoxLayout();
-    // hLayout4->addWidget(new QLabel("Password:"));
-    // hLayout4->addWidget(new QLineEdit());
-
-    // vLayout1->addLayout(hLayout1);
-    // vLayout1->addLayout(hLayout4);
-
-    // idGroup->setLayout(vLayout1);
-    // vGroupLayout->addWidget(idGroup);
-
-    // // Group 2: Label and ComboBox 
-    // QGroupBox *accessGroup = new QGroupBox("Access Permissions");
-    // QHBoxLayout *hLayout2 = new QHBoxLayout();
-    // hLayout2->addWidget(new QLabel("Role:"));
-    // QComboBox *roleCombo = new QComboBox();
-    // roleCombo->addItems({"Administrator", "Power User", "Guest"});
-    // hLayout2->addWidget(roleCombo);
-    // accessGroup->setLayout(hLayout2);
-    // vGroupLayout->addWidget(accessGroup);
-
-    // // Group 3: Label and LineEdit
-    // QGroupBox *limitGroup = new QGroupBox("System Limits");
-    // QHBoxLayout *hLayout3 = new QHBoxLayout();
-    // hLayout3->addWidget(new QLabel("Max Connections:"));
-    // hLayout3->addWidget(new QLineEdit());
-    // limitGroup->setLayout(hLayout3);
-    // vGroupLayout->addWidget(limitGroup);
-
-    // // Additional Standalone Widget 
-    // QCheckBox *debugCheck = new QCheckBox("Enable Debug Mode");
-    // vGroupLayout->addWidget(debugCheck);
-
-    // // Install vertical layout on outer group box and add to dialog 
-    // outerVGroupBox->setLayout(vGroupLayout);
-    // mainLayout->addWidget(outerVGroupBox);
-
-    // // 5. Add a Spacer to ensure buttons stay at the bottom [10]
-    // mainLayout->addStretch(1);
-
-    // // 6. Action Section: Standard Dialog Button Box
-    // QHBoxLayout *hLayout5 = new QHBoxLayout();
-    // QPushButton *okButton = new QPushButton("OK");
-    // QPushButton *cancelButton = new QPushButton("Cancel");
-    // hLayout5->addStretch(1);
-    // hLayout5->addWidget(okButton);
-    // hLayout5->addWidget(cancelButton);
-
-    // mainLayout->addLayout(hLayout5);
-    FParserXml parser;
-    QWidget *root = parser.fromFile("C:/Data/Code/Antigravity/sample.xml");
-    qobject_cast<QDialog *>(root)->exec();
-    // dialog.exec();
+    {
+        FParserXml parser;
+        QWidget *root = parser.fromFile("C:/Data/Code/Antigravity/sample.xml");
+        qobject_cast<QDialog *>(root)->exec();
     });
+
+    // connect(ui->fancyButton, &QPushButton::clicked, this, []()
+    // {
+    //     SecondDialog dialog;
+    //     // QWidget *root = parser.fromFile("C:/Data/Code/Antigravity/sample.xml");
+    //     // qobject_cast<QDialog *>(root)->exec();
+    //     dialog.exec();
+    // });
 
     // connect(ui->fancyButton, &QPushButton::clicked, this, &MainWindow::on_fancyButton_clicked);
     connect(ui->splitWidget, &FSplitWidget::activeLeafChanged, this, &MainWindow::change_active_doc);
@@ -829,35 +768,26 @@ void MainWindow::populateTree(FTreeWidget *tree)
 
 void MainWindow::on_fancyButton_clicked()
 {
-    auto pDoc = dynamic_cast<DocumentModel*>(m_app->docs()->activeDocument());
-    if (!pDoc)
-        return;
-    
-    std::vector<Node> nodes;
-    std::vector<Element> elems;
-
-    const QString nodesCsv = "D:/Test/nodes_mixed_shapes_clean.csv";
-    const QString elemsCsv = "D:/Test/elements_mixed_shapes_clean.csv";
-
-    // If you place the downloaded CSVs next to your exe, use the above.
-    // Otherwise, set absolute paths to where you saved them.
-
-    if (!loadNodesCSV(nodesCsv, nodes))
-    {
-        qWarning("Failed to load nodes: %s", qPrintable(nodesCsv));
-    }
-    if (!loadElementsCSV(elemsCsv, elems))
-    {
-        qWarning("Failed to load elements: %s", qPrintable(elemsCsv));
-    }
-
-    pDoc->view()->setMesh(nodes, elems);
-    pDoc->view()->fitView();
-
-    pDoc->dispatcher()->notify(MessageType::DataEmplaced, nodes.size(), elems.size());
-
-    // auto pView = ui->splitWidget->viewWidget()->takeViewWidget();
-    // ui->splitWidget->viewWidget()->setViewWidget(pView);
+    // TODO: Rework to import CSV data into DatabaseSession instead of using setMesh
+    // auto pDoc = dynamic_cast<DocumentModel*>(m_app->docs()->activeDocument());
+    // if (!pDoc)
+    //     return;
+    // 
+    // std::vector<Node> nodes;
+    // std::vector<Element> elems;
+    // 
+    // const QString nodesCsv = "D:/Test/nodes_mixed_shapes_clean.csv";
+    // const QString elemsCsv = "D:/Test/elements_mixed_shapes_clean.csv";
+    // 
+    // if (!loadNodesCSV(nodesCsv, nodes))
+    //     qWarning("Failed to load nodes: %s", qPrintable(nodesCsv));
+    // if (!loadElementsCSV(elemsCsv, elems))
+    //     qWarning("Failed to load elements: %s", qPrintable(elemsCsv));
+    // 
+    // pDoc->view()->setMesh(nodes, elems);
+    // pDoc->view()->fitView();
+    // 
+    // pDoc->dispatcher()->notify(MessageType::DataEmplaced, nodes.size(), elems.size());
 }
 
 void MainWindow::change_active_doc(FSplitWidget* node)

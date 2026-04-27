@@ -2,6 +2,78 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="vi_VN">
 <context>
+    <name>HornetWindow</name>
+    <message>
+        <location filename="../src/HornetMain/HornetWindow.ui" line="14"/>
+        <source>HornetWindow</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/HornetMain/HornetWindow.ui" line="91"/>
+        <source>Analysis</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/HornetMain/HornetWindow.ui" line="118"/>
+        <source>Density</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/HornetMain/HornetWindow.ui" line="108"/>
+        <source>Young&apos;s Modulus</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/HornetMain/HornetWindow.ui" line="101"/>
+        <source>Poison Ratio</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/HornetMain/HornetWindow.ui" line="74"/>
+        <source>Type</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/HornetMain/HornetWindow.ui" line="154"/>
+        <source>Import</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/HornetMain/HornetWindow.ui" line="161"/>
+        <source>Solve</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/HornetMain/HornetWindow.ui" line="61"/>
+        <source>Crack</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/HornetMain/HornetWindow.ui" line="81"/>
+        <source>SIF Radius</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/HornetMain/HornetWindow.ui" line="128"/>
+        <source>Growth Length</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/HornetMain/HornetWindow.ui" line="138"/>
+        <source>Import Crack</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Fancy Button</source>
+        <translation type="obsolete">FancyButton</translation>
+    </message>
+    <message>
+        <location filename="../src/HornetMain/HornetWindow.ui" line="145"/>
+        <source>Next</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>MainWindow</name>
     <message>
         <location filename="../src/HornetMain/MainWindow.ui" line="14"/>
@@ -9,7 +81,7 @@
         <translation type="unfinished">MainWindow</translation>
     </message>
     <message>
-        <location filename="../src/HornetMain/MainWindow.ui" line="55"/>
+        <location filename="../src/HornetMain/MainWindow.ui" line="52"/>
         <source>Fancy Button</source>
         <translation type="unfinished">FancyButton</translation>
     </message>
@@ -31,39 +103,6 @@
     <message>
         <source>Click Me</source>
         <translation type="obsolete">Bấm vô</translation>
-    </message>
-</context>
-<context>
-    <name>SecondDialog</name>
-    <message>
-        <location filename="../src/HornetMain/SecondDialog.ui" line="14"/>
-        <source>Second Dialog</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/HornetMain/SecondDialog.ui" line="37"/>
-        <source>Add Picture</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/HornetMain/SecondDialog.ui" line="53"/>
-        <source>Select folder with images...</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/HornetMain/SecondDialog.ui" line="62"/>
-        <source>Scale %:</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/HornetMain/SecondDialog.ui" line="69"/>
-        <source>%</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/HornetMain/SecondDialog.ui" line="87"/>
-        <source>Compare</source>
-        <translation type="unfinished"></translation>
     </message>
 </context>
 </TS>
