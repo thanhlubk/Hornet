@@ -13,6 +13,7 @@ enum class CategoryType : std::uint16_t
     CatNode,
     CatElement,
     CatGroup,
+    CatLbc,
 
     // Add above this
     CatEnd,
@@ -24,6 +25,9 @@ enum class ItemType : std::uint16_t
     ItemNode,
     ItemNodeHeat,
     ItemElement,
+    ItemLbc,
+    ItemLbcForce,
+    ItemLbcConstraint,
 
     // Add above this
     ItemEnd,

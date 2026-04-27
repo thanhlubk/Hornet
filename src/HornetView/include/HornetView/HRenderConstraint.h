@@ -11,26 +11,26 @@
 #include "HViewLighting.h"
 #include "HViewCamera.h"
 
-struct RenderForceData
+struct RenderConstraintData
 {
     int id = -1;
     QVector3D position;
     QVector3D direction;
-    ForceArrow style;
+    ConstraintCone style;
 };
 
-class HORNETVIEW_EXPORT HRenderForce : public QObject, protected QOpenGLExtraFunctions
+class HORNETVIEW_EXPORT HRenderConstraint : public QObject, protected QOpenGLExtraFunctions
 {
     Q_OBJECT
 
 public:
-    explicit HRenderForce(QObject *parent = nullptr);
+    explicit HRenderConstraint(QObject *parent = nullptr);
     void initialize();
     void destroy();
 
-    void setForces(const std::vector<RenderForceData> &forces);
+    void setConstraints(const std::vector<RenderConstraintData> &constraints);
 
-    const std::vector<RenderForceData> &forces() const { return m_vecForces; }
+    const std::vector<RenderConstraintData> &constraints() const { return m_vecConstraints; }
 
     void setConstantScreenSize(bool on);
     void setBasePixelSize(float px);
@@ -41,8 +41,8 @@ public:
     // Draw. If constant-screen-size is on, we rebuild every frame to match the camera.
     void draw(const QMatrix4x4 &P, const QMatrix4x4 &V, const HViewLighting &lighting, int viewportW, int viewportH);
 
-    // --- Selection overlay (highlight chosen force IDs) ---
-    void setSelection(const std::vector<int> &forceIds, const QColor &color, float alpha);
+    // --- Selection overlay (highlight chosen constraint IDs) ---
+    void setSelection(const std::vector<int> &constraintIds, const QColor &color, float alpha);
     void clearSelection();
 
 signals:
@@ -60,7 +60,7 @@ private:
     bool m_bInitialize = false;
 
     // data
-    std::vector<RenderForceData> m_vecForces;
+    std::vector<RenderConstraintData> m_vecConstraints;
     bool m_bConstantScreenSize = true;
     bool m_bRebuild = true;
     float m_fSize = 80.0f;
@@ -71,8 +71,7 @@ private:
     float m_fSelectionAlpha = 0.45f;
     bool m_bIsSelected = false;
 
-    // per-force index ranges gathered during rebuild()
-    // stored relative to the *local* lit/unlit buffers; adjusted at draw time
+    // per-constraint index ranges gathered during rebuild()
     std::unordered_map<int, std::vector<std::pair<GLsizei,GLsizei>>> m_mapRangesLighting;
     std::unordered_map<int, std::vector<std::pair<GLsizei,GLsizei>>> m_mapRangesUnlighting;
     GLsizei m_iLightingCount = 0, m_iUnlightingCount = 0;

@@ -602,6 +602,7 @@ void MainWindow::createDocumentModel()
 
     // pView->clearForces();
 
+#if 0
     std::vector<ForceArrow> vecforces;
     vecforces.reserve(100);
     for (int i = 0; i < 100; ++i)
@@ -627,7 +628,7 @@ void MainWindow::createDocumentModel()
         //                                 /*lightingEnabled=*/(i % 2 == 0)); // mix lit/unlit
     }
     pView->forceRenderer()->setForces(vecforces);
-
+#endif
     // Choose mode
     pView->selectionManager()->setType(SelectType::Element);
 

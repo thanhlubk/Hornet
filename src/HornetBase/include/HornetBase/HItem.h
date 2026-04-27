@@ -192,6 +192,7 @@ struct std::hash<ItemTypeVariant>
     }
 };
 
+// Used for normal items that each class registers its own type; in a same category, different class must have different ItemType.
 #define DECLARE_ITEM_TAGS(className, cat, kind)                               \
     static inline const bool kTypeDescRegistered =                                   \
         HItemManager::getInstance().registerType<className>(cat, kind, 0);           \
@@ -207,6 +208,20 @@ public:                                                                         
     virtual ItemType type() const noexcept override { return kind; }                 \
     virtual uint16_t variant() const noexcept override { return 0; }
 
+// Used for abstract items that each concrete class registers its own type. Do not register the abstract base class.
+#define DECLARE_ITEM_ABSTRACT_TAGS(className, cat, kind)                             \
+public:                                                                              \
+    static constexpr CategoryType CategoryTypeTag = (cat);                           \
+    static constexpr ItemType ItemTypeTag = (kind);                                  \
+    static constexpr uint16_t VariantTag = 0;                                        \
+    static constexpr CategoryType categoryTag() noexcept { return CategoryTypeTag; } \
+    static constexpr ItemType typeTag() noexcept { return ItemTypeTag; }             \
+    static constexpr uint16_t variantTag() noexcept { return VariantTag; }           \
+    virtual CategoryType category() const noexcept override { return cat; }          \
+    virtual ItemType type() const noexcept override { return kind; }                 \
+    virtual uint16_t variant() const noexcept override { return 0; }
+
+// Used for items that have variants (e.g. element type); each class registers the same ItemType but different variant. So one class may have multiple variants (different member data), but all share the same ItemType. For abstract class only (e.g. HIElement), use DECLARE_ITEM_VARIANT_ABSTRACT_TAGS and do not register the base class; only register the concrete derived classes with different variants.
 #define DECLARE_ITEM_VARIANT_ABSTRACT_TAGS(className, cat, kind, var)                \
 public:                                                                              \
     static constexpr CategoryType CategoryTypeTag = (cat);                           \
@@ -219,6 +234,7 @@ public:                                                                         
     virtual ItemType type() const noexcept override { return kind; }                 \
     virtual uint16_t variant() const noexcept override { return var; }
 
+// Used for items that have variants but are not abstract
 #define DECLARE_ITEM_VARIANT_TAGS(className, cat, kind, var)                         \
     static inline const bool kTypeDescRegistered =                                   \
         HItemManager::getInstance().registerType<className>(cat, kind, var);         \

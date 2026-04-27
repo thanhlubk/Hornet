@@ -1,4 +1,4 @@
-#include <HornetView/HRenderForce.h>
+#include <HornetView/HRenderConstraint.h>
 #include <HornetView/HViewLighting.h>
 #include <HornetView/HViewCamera.h>
 #include <cmath>
@@ -10,7 +10,7 @@ static inline void addTri(std::vector<uint32_t> &idx, uint32_t a, uint32_t b, ui
     idx.push_back(c);
 }
 
-HRenderForce::HRenderForce(QObject *parent) 
+HRenderConstraint::HRenderConstraint(QObject *parent) 
     : QObject(parent)
 {
     m_vao = 0;
@@ -20,7 +20,7 @@ HRenderForce::HRenderForce(QObject *parent)
     m_ebo = 0;
     m_bInitialize = false;
 
-    m_vecForces.clear();
+    m_vecConstraints.clear();
     m_bConstantScreenSize = true;
     m_bRebuild = true;
     m_fSize = 80.0f;
@@ -35,9 +35,10 @@ HRenderForce::HRenderForce(QObject *parent)
     m_iUnlightingCount = 0;
 }
 
-void HRenderForce::initialize()
+void HRenderConstraint::initialize()
 {
     initializeOpenGLFunctions();
+    // We can reuse the force shaders since they just do basic lit/unlit vertex coloring
     if (!m_shaderProgram.addShaderFromSourceFile(QOpenGLShader::Vertex, ":/shader/vertex/force"))
         qWarning("Failed compiling shader: %s", m_shaderProgram.log());
 
@@ -55,7 +56,7 @@ void HRenderForce::initialize()
     m_bInitialize = true;
 }
 
-void HRenderForce::destroy()
+void HRenderConstraint::destroy()
 {
     if (!m_bInitialize)
         return;
@@ -74,47 +75,44 @@ void HRenderForce::destroy()
     m_bInitialize = false;
 }
 
-void HRenderForce::setForces(const std::vector<RenderForceData> &forces)
+void HRenderConstraint::setConstraints(const std::vector<RenderConstraintData> &constraints)
 {
-    m_vecForces = forces;
+    m_vecConstraints = constraints;
     m_bRebuild = true;
-
     emit dataChanged();
 }
 
-void HRenderForce::setConstantScreenSize(bool on)
+void HRenderConstraint::setConstantScreenSize(bool on)
 {
     m_bConstantScreenSize = on;
     m_bRebuild = true;
-
     emit dataChanged();
 }
 
-void HRenderForce::setBasePixelSize(float px)
+void HRenderConstraint::setBasePixelSize(float px)
 {
     m_fSize = std::max(1.0f, px);
     m_bRebuild = true;
-
     emit dataChanged();
 }
 
-bool HRenderForce::constantScreenSize() const 
+bool HRenderConstraint::constantScreenSize() const 
 { 
     return m_bConstantScreenSize; 
 }
 
-float HRenderForce::basePixelSize() const 
+float HRenderConstraint::basePixelSize() const 
 { 
     return m_fSize; 
 }
 
-void HRenderForce::ensureGL()
+void HRenderConstraint::ensureGL()
 {
     if (!m_bInitialize)
         initialize();
 }
 
-float HRenderForce::worldPerPixelAt(const QMatrix4x4 &VP, const QMatrix4x4 &invVP, int viewportH, const QVector3D &world) const
+float HRenderConstraint::worldPerPixelAt(const QMatrix4x4 &VP, const QMatrix4x4 &invVP, int viewportH, const QVector3D &world) const
 {
     QVector4D clip = VP * QVector4D(world, 1.0f);
     if (std::fabs(clip.w()) < 1e-12f)
@@ -135,12 +133,11 @@ float HRenderForce::worldPerPixelAt(const QMatrix4x4 &VP, const QMatrix4x4 &invV
     return (w1 - w0).length();
 }
 
-void HRenderForce::rebuild(const QMatrix4x4 &P, const QMatrix4x4 &V, int w, int h)
+void HRenderConstraint::rebuild(const QMatrix4x4 &P, const QMatrix4x4 &V, int w, int h)
 {
     const int segs = 20;
-    const float shaftR = 0.02f;
-    const float headR = 0.05f;
-    const float headL = 0.18f;
+    const float headR = 0.08f;
+    const float headL = 0.25f;
 
     const QMatrix4x4 VP = P * V;
     QMatrix4x4 invVP = VP.inverted();
@@ -157,9 +154,9 @@ void HRenderForce::rebuild(const QMatrix4x4 &P, const QMatrix4x4 &V, int w, int 
     m_mapRangesLighting.clear();
     m_mapRangesUnlighting.clear();
 
-    auto buildOne = [&](const RenderForceData& data, std::vector<uint32_t>& outIdx, bool isLit)
+    auto buildOne = [&](const RenderConstraintData& data, std::vector<uint32_t>& outIdx, bool isLit)
     {
-        const ForceArrow& A = data.style;
+        const ConstraintCone& A = data.style;
         QVector3D z = data.direction.lengthSquared() > 1e-12f ? data.direction.normalized() : QVector3D(0, 0, 1);
         QVector3D up0(0, 1, 0);
         if (std::fabs(QVector3D::dotProduct(z, up0)) > 0.99f)
@@ -172,89 +169,51 @@ void HRenderForce::rebuild(const QMatrix4x4 &P, const QMatrix4x4 &V, int w, int 
         const float totalLen = (m_bConstantScreenSize ? px * wpp : px); // if not constant, px acts as world-units scale
 
         const float headLen = headL * totalLen;
-        const float shaftLen0 = std::max(0.0f, totalLen - headLen);
-        const float shaftLen = shaftLen0 * std::max(0.0f, A.lengthScale);
-        const float rShaft = shaftR * totalLen;
         const float rHead = headR * totalLen;
 
-        QVector3D tailPos, headPos;
-        if (A.style == ForceStyle::Tail)
-        {
-            tailPos = data.position;
-            headPos = data.position + z * (shaftLen + headLen);
-        }
-        else
-        {
-            headPos = data.position;
-            tailPos = data.position - z * (shaftLen + headLen);
-        }
+        // Constraint cone points TO the target node.
+        // So apex is at the node position, base is headLen backwards along z.
+        QVector3D headPos = data.position;
+        QVector3D tailPos = data.position - z * headLen;
 
         auto toW = [&](const QVector3D &pL)
         { return tailPos + x * pL.x() + y * pL.y() + z * pL.z(); };
-        auto nToW = [&](const QVector3D &nL)
-        { return (x * nL.x() + y * nL.y() + z * nL.z()); };
 
         const uint32_t baseV = (uint32_t)m_pos.size();
         const GLsizei baseI = (GLsizei)outIdx.size();
 
-        // Shaft (cylinder strip)
-        if (shaftLen > 1e-6f && rShaft > 1e-7f)
-        {
-            for (int i = 0; i < segs; i++)
-            {
-                float th = float(i) / float(segs) * 6.28318530718f;
-                float cs = std::cos(th), sn = std::sin(th);
-                QVector3D nL(cs, sn, 0.0f);
-                QVector3D nW = nToW(nL).normalized();
-                QVector3D p0 = toW({rShaft * cs, rShaft * sn, 0.0f});
-                QVector3D p1 = toW({rShaft * cs, rShaft * sn, shaftLen});
-                m_pos.push_back(p0);
-                m_nrm.push_back(nW);
-                m_col.push_back(A.color);
-                m_pos.push_back(p1);
-                m_nrm.push_back(nW);
-                m_col.push_back(A.color);
-            }
-            for (int i = 0; i < segs; i++)
-            {
-                uint32_t i0 = baseV + 2 * i;
-                uint32_t i1 = baseV + 2 * i + 1;
-                uint32_t j0 = baseV + 2 * ((i + 1) % segs);
-                uint32_t j1 = baseV + 2 * ((i + 1) % segs) + 1;
-                addTri(outIdx, i0, j0, i1);
-                addTri(outIdx, i1, j0, j1);
-            }
-        }
-
         // Head (cone as triangle fan, per-tri normal)
-        uint32_t baseAfterShaft = (uint32_t)m_pos.size();
         if (headLen > 1e-6f && rHead > 1e-7f)
         {
-            QVector3D apexW = toW({0, 0, shaftLen + headLen});
+            QVector3D apexW = toW({0, 0, headLen}); // matches headPos
             for (int i = 0; i < segs; i++)
             {
                 float th = float(i) / float(segs) * 6.28318530718f;
                 float thn = float(i + 1) / float(segs) * 6.28318530718f;
-                QVector3D rim0 = toW({rHead * std::cos(th), rHead * std::sin(th), shaftLen});
-                QVector3D rim1 = toW({rHead * std::cos(thn), rHead * std::sin(thn), shaftLen});
+                QVector3D rim0 = toW({rHead * std::cos(th), rHead * std::sin(th), 0});
+                QVector3D rim1 = toW({rHead * std::cos(thn), rHead * std::sin(thn), 0});
                 QVector3D N = QVector3D::normal(rim0 - apexW, rim1 - apexW).normalized();
+                
                 m_pos.push_back(apexW);
                 m_nrm.push_back(N);
                 m_col.push_back(A.color);
+                
                 m_pos.push_back(rim0);
                 m_nrm.push_back(N);
                 m_col.push_back(A.color);
+                
                 m_pos.push_back(rim1);
                 m_nrm.push_back(N);
                 m_col.push_back(A.color);
-                uint32_t t0 = baseAfterShaft + 3 * i + 0;
-                uint32_t t1 = baseAfterShaft + 3 * i + 1;
-                uint32_t t2 = baseAfterShaft + 3 * i + 2;
+                
+                uint32_t t0 = baseV + 3 * i + 0;
+                uint32_t t1 = baseV + 3 * i + 1;
+                uint32_t t2 = baseV + 3 * i + 2;
                 addTri(outIdx, t0, t1, t2);
             }
         }
 
-        // record range for this force
+        // record range for this constraint
         GLsizei cnt = (GLsizei)outIdx.size() - baseI;
         if (cnt > 0)
         {
@@ -263,7 +222,7 @@ void HRenderForce::rebuild(const QMatrix4x4 &P, const QMatrix4x4 &V, int w, int 
         }
     };
 
-    for (const auto &data : m_vecForces)
+    for (const auto &data : m_vecConstraints)
     {
         if (data.style.lightingEnabled) 
             buildOne(data, idxLit, true);
@@ -301,10 +260,10 @@ void HRenderForce::rebuild(const QMatrix4x4 &P, const QMatrix4x4 &V, int w, int 
     m_bRebuild = false;
 }
 
-void HRenderForce::draw(const QMatrix4x4 &P, const QMatrix4x4 &V, const HViewLighting &lighting, int viewportW, int viewportH)
+void HRenderConstraint::draw(const QMatrix4x4 &P, const QMatrix4x4 &V, const HViewLighting &lighting, int viewportW, int viewportH)
 {
     ensureGL();
-    if (m_vecForces.empty())
+    if (m_vecConstraints.empty())
         return;
 
     if (m_bConstantScreenSize || m_bRebuild)
@@ -340,7 +299,7 @@ void HRenderForce::draw(const QMatrix4x4 &P, const QMatrix4x4 &V, const HViewLig
         glDrawElements(GL_TRIANGLES, m_iUnlightingCount, GL_UNSIGNED_INT, off);
     }
 
-    // --- Selection overlay (re-draw selected forces with color/alpha) ---
+    // --- Selection overlay (re-draw selected constraints with color/alpha) ---
     if (m_bIsSelected && !m_vecSelectionIds.empty())
     {
         glEnable(GL_BLEND);
@@ -354,9 +313,9 @@ void HRenderForce::draw(const QMatrix4x4 &P, const QMatrix4x4 &V, const HViewLig
         m_shaderProgram.setUniformValue("uAlpha", m_fSelectionAlpha);
 
         // draw lit/unlit sub-ranges for each selected id
-        for (int fid : m_vecSelectionIds)
+        for (int cid : m_vecSelectionIds)
         {
-            auto itL = m_mapRangesLighting.find(fid);
+            auto itL = m_mapRangesLighting.find(cid);
             if (itL != m_mapRangesLighting.end())
             {
                 for (auto &r : itL->second)
@@ -365,7 +324,7 @@ void HRenderForce::draw(const QMatrix4x4 &P, const QMatrix4x4 &V, const HViewLig
                     glDrawElements(GL_TRIANGLES, r.second, GL_UNSIGNED_INT, off);
                 }
             }
-            auto itU = m_mapRangesUnlighting.find(fid);
+            auto itU = m_mapRangesUnlighting.find(cid);
             if (itU != m_mapRangesUnlighting.end())
             {
                 for (auto &r : itU->second)
@@ -383,15 +342,15 @@ void HRenderForce::draw(const QMatrix4x4 &P, const QMatrix4x4 &V, const HViewLig
     glBindVertexArray(0);
 }
 
-void HRenderForce::setSelection(const std::vector<int> &forceIds, const QColor &color, float alpha)
+void HRenderConstraint::setSelection(const std::vector<int> &constraintIds, const QColor &color, float alpha)
 {
-    m_vecSelectionIds = forceIds;
+    m_vecSelectionIds = constraintIds;
     m_vSelectionColor = QVector3D(color.redF(), color.greenF(), color.blueF());
     m_fSelectionAlpha = std::clamp(alpha, 0.f, 1.f);
     m_bIsSelected = !m_vecSelectionIds.empty();
 }
 
-void HRenderForce::clearSelection()
+void HRenderConstraint::clearSelection()
 {
     m_vecSelectionIds.clear();
     m_bIsSelected = false;

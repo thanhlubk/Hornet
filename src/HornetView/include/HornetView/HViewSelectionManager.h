@@ -3,6 +3,7 @@
 #include <QColor>
 #include "HRenderModel.h"
 #include "HRenderForce.h"
+#include "HRenderConstraint.h"
 #include "HViewDef.h"
 #include "HornetViewExport.h"
 
@@ -19,10 +20,12 @@ public:
     void setSelectedNodeIds(const std::vector<int> &ids);
     void setSelectedElementIds(const std::vector<int> &ids);
     void setSelectedForceIds(const std::vector<int> &ids);
+    void setSelectedConstraintIds(const std::vector<int> &ids);
     const std::vector<int> &selectedNodeIds() const;
     const std::vector<int> &selectedElementIds() const;
     const std::vector<int> &selectedForceIds() const;
-    void clear(HRenderModel *model, HRenderForce *force);
+    const std::vector<int> &selectedConstraintIds() const;
+    void clear(HRenderModel *model, HRenderForce *force, HRenderConstraint *constraint);
 
     // highlight style
     void setNodeHighlightColor(const QColor &c);
@@ -31,12 +34,15 @@ public:
     void setElemAlpha(float a);
     void setForceHighlightColor(const QColor &c);
     void setForceAlpha(float a);
+    void setConstraintHighlightColor(const QColor &c);
+    void setConstraintAlpha(float a);
 
     // push into renderers
     void applyNode(HRenderModel *renderModel);
     void applyElement(HRenderModel *renderModel);
     void applyForce(HRenderForce *renderForce);
-    void applyTo(HRenderModel* model, HRenderForce* force);
+    void applyConstraint(HRenderConstraint *renderConstraint);
+    void applyTo(HRenderModel* model, HRenderForce* force, HRenderConstraint* constraint);
 
 signals:
     void selectionChanged();
@@ -47,6 +53,7 @@ private:
     std::vector<int> m_vecSelectionNodeId;
     std::vector<int> m_vecSelectionElementId;
     std::vector<int> m_vecSelectionForceId;
+    std::vector<int> m_vecSelectionConstraintId;
 
     QColor m_colorNode = QColor(255, 215, 0); // gold
     float m_fNodeScale = 1.5f;
@@ -55,4 +62,7 @@ private:
 
     QColor m_colorForce = QColor(255, 128, 0); // orange
     float m_fForceAlpha = 0.45f;
+
+    QColor m_colorConstraint = QColor(128, 255, 128); // light green
+    float m_fConstraintAlpha = 0.45f;
 };

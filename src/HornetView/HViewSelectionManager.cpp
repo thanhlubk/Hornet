@@ -7,6 +7,7 @@ HViewSelectionManager::HViewSelectionManager(QObject *parent)
     m_vecSelectionNodeId.clear();
     m_vecSelectionElementId.clear();
     m_vecSelectionForceId.clear();
+    m_vecSelectionConstraintId.clear();
 }
 
 void HViewSelectionManager::setType(SelectType type)
@@ -35,6 +36,11 @@ void HViewSelectionManager::setSelectedForceIds(const std::vector<int> &ids)
     m_vecSelectionForceId = ids; 
 }
 
+void HViewSelectionManager::setSelectedConstraintIds(const std::vector<int> &ids) 
+{ 
+    m_vecSelectionConstraintId = ids; 
+}
+
 const std::vector<int>& HViewSelectionManager::selectedNodeIds() const
 { 
     return m_vecSelectionNodeId; 
@@ -50,13 +56,19 @@ const std::vector<int>& HViewSelectionManager::selectedForceIds() const
     return m_vecSelectionForceId; 
 }
 
-void HViewSelectionManager::clear(HRenderModel *model, HRenderForce *force)
+const std::vector<int>& HViewSelectionManager::selectedConstraintIds() const
+{ 
+    return m_vecSelectionConstraintId; 
+}
+
+void HViewSelectionManager::clear(HRenderModel *model, HRenderForce *force, HRenderConstraint *constraint)
 {
     m_vecSelectionNodeId.clear();
     m_vecSelectionElementId.clear();
     m_vecSelectionForceId.clear();
+    m_vecSelectionConstraintId.clear();
 
-    applyTo(model, force);
+    applyTo(model, force, constraint);
 }
 
 // highlight style
@@ -93,6 +105,18 @@ void HViewSelectionManager::setForceHighlightColor(const QColor &color)
 void HViewSelectionManager::setForceAlpha(float alpha)
 {
     m_fForceAlpha = std::clamp(alpha, 0.f, 1.f);
+    emit selectionChanged();
+}
+
+void HViewSelectionManager::setConstraintHighlightColor(const QColor &color)
+{
+    m_colorConstraint = color;
+    emit selectionChanged();
+}
+
+void HViewSelectionManager::setConstraintAlpha(float alpha)
+{
+    m_fConstraintAlpha = std::clamp(alpha, 0.f, 1.f);
     emit selectionChanged();
 }
 
@@ -136,13 +160,27 @@ void HViewSelectionManager::applyForce(HRenderForce *renderForce)
     emit selectionChanged();
 }
 
-void HViewSelectionManager::applyTo(HRenderModel *model, HRenderForce *force)
+void HViewSelectionManager::applyConstraint(HRenderConstraint *renderConstraint)
+{
+    if (!renderConstraint)
+        return;
+
+    if (!m_vecSelectionConstraintId.empty())
+        renderConstraint->setSelection(m_vecSelectionConstraintId, m_colorConstraint, m_fConstraintAlpha);
+    else
+        renderConstraint->clearSelection();
+
+    emit selectionChanged();
+}
+
+void HViewSelectionManager::applyTo(HRenderModel *model, HRenderForce *force, HRenderConstraint *constraint)
 {
     blockSignals(true);
     // clear existing selections in all
     applyNode(model);
     applyElement(model);
     applyForce(force);
+    applyConstraint(constraint);
     blockSignals(false);
 
     emit selectionChanged();

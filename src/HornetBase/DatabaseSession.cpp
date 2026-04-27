@@ -12,6 +12,7 @@ DatabaseSession::DatabaseSession(std::size_t chunk_bytes_per_store, bool lazy_fi
     m_mapCategoryPoolType[CategoryType::CatNode] = PoolType::Unique;
     m_mapCategoryPoolType[CategoryType::CatElement] = PoolType::Mix;
     m_mapCategoryPoolType[CategoryType::CatGroup] = PoolType::Unique;
+    m_mapCategoryPoolType[CategoryType::CatLbc] = PoolType::Mix;
 }
 
 void DatabaseSession::setNotifyDispatcher(NotifyDispatcher &disp)

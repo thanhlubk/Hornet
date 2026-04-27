@@ -8,6 +8,8 @@
 #include <HornetBase/DocumentManager.h>
 #include "DocumentModel.h"
 #include <QBoxLayout>
+#include <HornetBase/HILbcForce.h>
+#include <HornetBase/HILbcConstraint.h>
 
 namespace
 { 
@@ -81,6 +83,30 @@ void HornetWindow::onImportModel()
             std::vector<HCursor*> myCursors2 = {pNode2->getCursor(), pNode4->getCursor(), pNode3->getCursor()};
             pElem2->setNodes(myCursors2);
 
+            pDb->emplace<HILbcForce>(1);
+            pDb->emplace<HILbcForce>(2);
+            pDb->emplace<HILbcConstraint>(3);
+            pDb->emplace<HILbcConstraint>(4);
+
+            auto pLbcForce1 = pDb->checkOut<HILbcForce>(1);
+            auto pLbcForce2 = pDb->checkOut<HILbcForce>(2);
+            auto pLbcConstraint1 = pDb->checkOut<HILbcConstraint>(3);
+            auto pLbcConstraint2 = pDb->checkOut<HILbcConstraint>(4);
+
+            pLbcForce1->addTarget(pNode1->getCursor());
+            pLbcForce1->addTarget(pNode2->getCursor());
+            pLbcForce1->setForce({1, 0, 0});
+
+            pLbcForce2->addTarget(pNode3->getCursor());
+            pLbcForce2->addTarget(pNode4->getCursor());
+            pLbcForce2->setForce({0, 1, 0});
+
+            pLbcConstraint1->addTarget(pNode2->getCursor());
+            pLbcConstraint2->addTarget(pNode1->getCursor());
+
+            pLbcConstraint1->addDof(LbcConstraintDof::LbcConstraintDofAll);
+            pLbcConstraint2->addDof(LbcConstraintDof::LbcConstraintDofAll);
+
             pDb->commitTransaction();
         }
     }
@@ -142,6 +168,7 @@ void HornetWindow::createDocumentModel()
 
     // pView->clearForces();
 
+#if 0
     std::vector<ForceArrow> vecforces;
     vecforces.reserve(100);
     for (int i = 0; i < 100; ++i)
@@ -167,6 +194,7 @@ void HornetWindow::createDocumentModel()
         //                                 /*lightingEnabled=*/(i % 2 == 0)); // mix lit/unlit
     }
     pView->forceRenderer()->setForces(vecforces);
+#endif
 
     // Choose mode
     pView->selectionManager()->setType(SelectType::Element);

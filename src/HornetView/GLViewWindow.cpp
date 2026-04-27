@@ -23,6 +23,8 @@
 #include <QWidget>
 #include "HornetBase/HINode.h"
 #include "HornetBase/HIElement.h"
+#include "HornetBase/HILbcForce.h"
+#include "HornetBase/HILbcConstraint.h"
 
 inline bool isRayIntersectTriangle(const QVector3D &orig, const QVector3D &dir, const QVector3D &v0, const QVector3D &v1, const QVector3D &v2, float &tOut, QVector3D &hitPosOut)
 {
@@ -95,6 +97,7 @@ GLViewWindow::GLViewWindow(QWindow *parent)
     m_pRenderCoordinate = new HRenderCoordinateGizmo(this);
     m_pRenderForce = new HRenderForce(this);
     m_pRenderModel = new HRenderModel(this);
+    m_pRenderConstraint = new HRenderConstraint(this);
 }
 
 GLViewWindow::~GLViewWindow()
@@ -208,8 +211,76 @@ void GLViewWindow::rebuildFromDatabase()
 
     m_elements = elements;
 
-    // 3) Feed to renderer
+    // 3) Collect forces and constraints from DB
+    std::vector<RenderForceData> renderForces;
+    std::vector<RenderConstraintData> renderConstraints;
+    auto pPoolLbc = m_pDb->getPoolMix(CategoryType::CatLbc);
+    if (pPoolLbc)
+    {
+        for (auto any : pPoolLbc->range())
+        {
+            auto crLbc = std::launder(reinterpret_cast<HCursor *>(any));
+            int id = static_cast<int>(crLbc->id());
+
+            if (auto pForce = crLbc->item<HILbcForce>())
+            {
+                HVector3d fdir = pForce->force();
+                QVector3D qdir(static_cast<float>(fdir.x), static_cast<float>(fdir.y), static_cast<float>(fdir.z));
+
+                for (auto crNode : pForce->targets())
+                {
+                    if (!crNode) continue;
+                    auto pNode = crNode->item<HINode>();
+                    if (!pNode) continue;
+                    
+                    HVector3d pos = pNode->position();
+                    QVector3D qpos(static_cast<float>(pos.x), static_cast<float>(pos.y), static_cast<float>(pos.z));
+                    
+                    RenderForceData fd;
+                    fd.id = id;
+                    fd.position = qpos;
+                    fd.direction = qdir;
+                    renderForces.push_back(fd);
+                }
+            }
+            else if (auto pConstraint = crLbc->item<HILbcConstraint>())
+            {
+                for (auto crNode : pConstraint->targets())
+                {
+                    if (!crNode) continue;
+                    auto pNode = crNode->item<HINode>();
+                    if (!pNode) continue;
+                    
+                    HVector3d pos = pNode->position();
+                    QVector3D qpos(static_cast<float>(pos.x), static_cast<float>(pos.y), static_cast<float>(pos.z));
+                    
+                    auto addCone = [&](LbcConstraintDof dofFlag, QVector3D dir) {
+                        if (pConstraint->hasDof(dofFlag)) {
+                            RenderConstraintData cd;
+                            cd.id = id;
+                            cd.position = qpos;
+                            cd.direction = dir;
+                            renderConstraints.push_back(cd);
+                        }
+                    };
+
+                    addCone(LbcConstraintDof::LbcConstraintDofTx, QVector3D(1, 0, 0));
+                    addCone(LbcConstraintDof::LbcConstraintDofTy, QVector3D(0, 1, 0));
+                    addCone(LbcConstraintDof::LbcConstraintDofTz, QVector3D(0, 0, 1));
+                    addCone(LbcConstraintDof::LbcConstraintDofRx, QVector3D(-1, 0, 0));
+                    addCone(LbcConstraintDof::LbcConstraintDofRy, QVector3D(0, -1, 0));
+                    addCone(LbcConstraintDof::LbcConstraintDofRz, QVector3D(0, 0, -1));
+                }
+            }
+        }
+    }
+
+    // 4) Feed to renderer
     m_pRenderModel->setMesh(positions, nodeColors, nodeIds, nodeIdToIndex, elements);
+    if (m_pRenderForce)
+        m_pRenderForce->setForces(renderForces);
+    if (m_pRenderConstraint)
+        m_pRenderConstraint->setConstraints(renderConstraints);
 
     fitView();
     m_pCamera->setFocus(m_pRenderModel->center());
@@ -295,6 +366,11 @@ HRenderForce *GLViewWindow::forceRenderer()
     return m_pRenderForce; 
 }
 
+HRenderConstraint *GLViewWindow::constraintRenderer() 
+{ 
+    return m_pRenderConstraint; 
+}
+
 void GLViewWindow::initializeGL()
 {
     GLenum err = glewInit();
@@ -316,12 +392,14 @@ void GLViewWindow::initializeGL()
     m_pRenderModel->initialize();
     m_pRenderCoordinate->initialize();
     m_pRenderForce->initialize();
+    m_pRenderConstraint->initialize();
 
     connect(m_pLighting, &HViewLighting::lightingChanged, this, [this]() { update(); });
     connect(m_pCamera, &HViewCamera::viewChanged, this, [this]() { update(); });
     connect(m_pSelection, &HViewSelectionManager::selectionChanged, this, [this]() { update(); });
     connect(m_pRenderCoordinate, &HRenderCoordinateGizmo::dataChanged, this, [this]() { update(); });
     connect(m_pRenderForce, &HRenderForce::dataChanged, this, [this]() { update(); });
+    connect(m_pRenderConstraint, &HRenderConstraint::dataChanged, this, [this]() { update(); });
     connect(m_pRenderModel, &HRenderModel::settingChanged, this, [this]() { update(); });
 
     // QObject::connect(context(), &QOpenGLContext::aboutToBeDestroyed, this, [this] { destroyGLObjects(); }, Qt::DirectConnection);
@@ -346,7 +424,8 @@ void GLViewWindow::paintGL()
 
     // Your existing overlays (forces/highlights) still use m_prog.
     // If you keep them, leave drawForces() and drawHighlights() calls here:
-    m_pRenderForce->draw(P, V, m_pLighting, width(), height());
+    m_pRenderForce->draw(P, V, *m_pLighting, width(), height());
+    m_pRenderConstraint->draw(P, V, *m_pLighting, width(), height());
     // Bottom-left mini-axes (drawn last, in its own mini-viewport)
     m_pRenderCoordinate->draw(m_pCamera->rotation(), width(), height());
 
@@ -599,6 +678,7 @@ void GLViewWindow::destroyGLObjects()
         makeCurrent();
 
     // ---- delete your GL stuff here ----
+    m_pRenderConstraint->destroy();
     m_pRenderForce->destroy();
     m_pRenderModel->destroy();
     m_pRenderCoordinate->destroy();
@@ -694,7 +774,7 @@ bool GLViewWindow::getHitPosition(const QPointF &point, QVector3D &hit, int &ele
 
 void GLViewWindow::selectAtPoint(const QPointF &point)
 {
-    std::vector<int> pickedNodes, pickedElems, pickedForces;
+    std::vector<int> pickedNodes, pickedElems, pickedForces, pickedConstraints;
     if (m_pSelection->type() == SelectType::None)
         return;
 
@@ -731,24 +811,45 @@ void GLViewWindow::selectAtPoint(const QPointF &point)
     }
     else if (m_pSelection->type() == SelectType::Force)
     {
-        // int best = -1;
-        // float bestD2 = 1e30f;
-        // float tol2 = float(m_iSelectRadius * m_iSelectRadius);
-        // for (const auto &f : m_renderForce.forces())
-        // {
-        //     QPointF sp;
-        //     if (!worldToScreen(f.position, sp, nullptr))
-        //         continue; // simple pick at base point
-        //     const float dx = float(p.x()) - sp.x(), dy = float(p.y()) - sp.y();
-        //     const float d2 = dx * dx + dy * dy;
-        //     if (d2 <= tol2 && d2 < bestD2)
-        //     {
-        //         bestD2 = d2;
-        //         best = f.id;
-        //     }
-        // }
-        // if (best >= 0)
-        //     pickedForces.push_back(best);
+        int best = -1;
+        float bestD2 = 1e30f;
+        float tol2 = float(m_iSelectRadius * m_iSelectRadius);
+        for (const auto &f : m_pRenderForce->forces())
+        {
+            QVector3D sp;
+            if (!convertWorldToScreen(m_pCamera, f.position, sp))
+                continue;
+            const float dx = float(point.x()) - sp.x(), dy = float(point.y()) - sp.y();
+            const float d2 = dx * dx + dy * dy;
+            if (d2 <= tol2 && d2 < bestD2)
+            {
+                bestD2 = d2;
+                best = f.id;
+            }
+        }
+        if (best >= 0)
+            pickedForces.push_back(best);
+    }
+    else if (m_pSelection->type() == SelectType::Constraint)
+    {
+        int best = -1;
+        float bestD2 = 1e30f;
+        float tol2 = float(m_iSelectRadius * m_iSelectRadius);
+        for (const auto &c : m_pRenderConstraint->constraints())
+        {
+            QVector3D sp;
+            if (!convertWorldToScreen(m_pCamera, c.position, sp))
+                continue;
+            const float dx = float(point.x()) - sp.x(), dy = float(point.y()) - sp.y();
+            const float d2 = dx * dx + dy * dy;
+            if (d2 <= tol2 && d2 < bestD2)
+            {
+                bestD2 = d2;
+                best = c.id;
+            }
+        }
+        if (best >= 0)
+            pickedConstraints.push_back(best);
     }
 
     if (!pickedNodes.empty())
@@ -766,12 +867,17 @@ void GLViewWindow::selectAtPoint(const QPointF &point)
         m_pSelection->setType(SelectType::Force);
         m_pSelection->setSelectedForceIds(pickedForces);
     }
-    m_pSelection->applyTo(m_pRenderModel, m_pRenderForce);
+    else if (!pickedConstraints.empty())
+    {
+        m_pSelection->setType(SelectType::Constraint);
+        m_pSelection->setSelectedConstraintIds(pickedConstraints);
+    }
+    m_pSelection->applyTo(m_pRenderModel, m_pRenderForce, m_pRenderConstraint);
 }
 
 void GLViewWindow::selectInRect(const QRectF &rectMarquee)
 {
-    std::vector<int> pickedNodes, pickedElems, pickedForces;
+    std::vector<int> pickedNodes, pickedElems, pickedForces, pickedConstraints;
     const auto checkContains = [&](const QPointF &q)
     { return rectMarquee.contains(q.toPoint()); };
 
@@ -840,14 +946,25 @@ void GLViewWindow::selectInRect(const QRectF &rectMarquee)
     }
     else if (m_pSelection->type() == SelectType::Force)
     {
-        // for (const auto &f : m_renderForce.forces())
-        // {
-        //     QPointF sp;
-        //     if (worldToScreen(f.position, sp, nullptr) && contains(sp))
-        //         pickedForces.push_back(f.id);
-        // }
-        // std::sort(pickedForces.begin(), pickedForces.end());
-        // pickedForces.erase(std::unique(pickedForces.begin(), pickedForces.end()), pickedForces.end());
+        for (const auto &f : m_pRenderForce->forces())
+        {
+            QVector3D sp;
+            if (convertWorldToScreen(m_pCamera, f.position, sp) && checkContains(QPointF(sp.x(), sp.y())))
+            {
+                pickedForces.push_back(f.id);
+            }
+        }
+    }
+    else if (m_pSelection->type() == SelectType::Constraint)
+    {
+        for (const auto &c : m_pRenderConstraint->constraints())
+        {
+            QVector3D sp;
+            if (convertWorldToScreen(m_pCamera, c.position, sp) && checkContains(QPointF(sp.x(), sp.y())))
+            {
+                pickedConstraints.push_back(c.id);
+            }
+        }
     }
 
     if (!pickedNodes.empty())
@@ -865,7 +982,12 @@ void GLViewWindow::selectInRect(const QRectF &rectMarquee)
         m_pSelection->setType(SelectType::Force);
         m_pSelection->setSelectedForceIds(pickedForces);
     }
-    m_pSelection->applyTo(m_pRenderModel, m_pRenderForce);
+    else if (!pickedConstraints.empty())
+    {
+        m_pSelection->setType(SelectType::Constraint);
+        m_pSelection->setSelectedConstraintIds(pickedConstraints);
+    }
+    m_pSelection->applyTo(m_pRenderModel, m_pRenderForce, m_pRenderConstraint);
 }
 
 bool GLViewWindow::convertWorldToScreen(const HViewCamera *pCamera, const QVector3D &vWorldPosition, QVector3D &vScreenPosition) const

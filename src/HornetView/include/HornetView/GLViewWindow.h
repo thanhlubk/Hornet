@@ -20,6 +20,7 @@
 #include "HRenderCoordinateGizmo.h"
 #include "HViewLighting.h"
 #include "HRenderForce.h"
+#include "HRenderConstraint.h"
 #include "HViewSelectionManager.h"
 #include "HViewDef.h"
 #include "HornetBase/NotifyDispatcher.h"
@@ -62,6 +63,7 @@ public:
     HRenderCoordinateGizmo* coordinateGizmo();
     HRenderModel* modelRenderer();
     HRenderForce* forceRenderer();
+    HRenderConstraint* constraintRenderer();
 
 protected:
     // QOpenGLWidget
@@ -91,6 +93,7 @@ private:
     HRenderModel *m_pRenderModel;
     HRenderCoordinateGizmo* m_pRenderCoordinate;
     HRenderForce* m_pRenderForce;
+    HRenderConstraint* m_pRenderConstraint;
 
     // View control
     HViewSelectionManager* m_pSelection;
