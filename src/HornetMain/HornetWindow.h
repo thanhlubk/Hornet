@@ -31,6 +31,8 @@ private slots:
     void onSolve();
     void onShowResult();
     void onUnshowResult();
+    void onToggleMeshLine();
+    void onToggleNode();
 
 private:
     void createDocumentModel();

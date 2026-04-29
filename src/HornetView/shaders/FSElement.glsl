@@ -1,10 +1,13 @@
 #version 330 core
 
-in vec3 vPos; in vec3 vNrm;
+in vec3 vPos;
+in vec3 vNrm;
+in vec4 vCol;
 out vec4 FragColor;
 
 uniform vec3 uColor;
 uniform int  uLit;
+uniform int  uUseVertexColor;
 
 // Lighting uniforms provided by HViewLighting::applyTo(...)
 uniform int  uAmbOn, uDifOn, uSpeOn;
@@ -13,24 +16,28 @@ uniform float uAmbI, uDifI, uSpeI, uShininess;
 
 void main()
 {
-    vec3 col = uColor;
-    if (uLit==1)
+    vec3 col = (uUseVertexColor == 1) ? vCol.rgb : uColor;
+    float alpha = (uUseVertexColor == 1) ? vCol.a : 1.0;
+
+    if (uLit == 1)
     {
         vec3 N = normalize(vNrm);
         vec3 V = normalize(-vPos);
         vec3 L = V; // headlight
-        float ndl = max(dot(N,L), 0.0);
+        float ndl = max(dot(N, L), 0.0);
 
-        float amb = (uAmbOn==1?uAmbI:0.0);
-        float dif = (uDifOn==1?uDifI*ndl:0.0);
+        float amb = (uAmbOn == 1 ? uAmbI : 0.0);
+        float dif = (uDifOn == 1 ? uDifI * ndl : 0.0);
         float spe = 0.0;
 
-        if (uSpeOn==1 && ndl>0.0)
+        if (uSpeOn == 1 && ndl > 0.0)
         {
-            vec3 R = reflect(-L,N);
-            spe = uSpeI * pow(max(dot(R,V),0.0), uShininess);
+            vec3 R = reflect(-L, N);
+            spe = uSpeI * pow(max(dot(R, V), 0.0), uShininess);
         }
-        col = col * (uAmbColor*amb + uDifColor*dif) + uSpeColor*spe;
+
+        col = col * (uAmbColor * amb + uDifColor * dif) + uSpeColor * spe;
     }
-    FragColor = vec4(col,1.0);
+
+    FragColor = vec4(col, alpha);
 }

@@ -37,20 +37,44 @@ void HRenderModel::draw(const QMatrix4x4 &P, const QMatrix4x4 &V, const HViewLig
 
 void HRenderModel::setShowFaces(bool on)
 {
+    if (m_bShowFace == on)
+        return;
+
     m_bShowFace = on;
     emit settingChanged();
 }
 
+bool HRenderModel::showFaces() const
+{
+    return m_bShowFace;
+}
+
 void HRenderModel::setShowEdges(bool on)
 {
+    if (m_bShowEdge == on)
+        return;
+
     m_bShowEdge = on;
     emit settingChanged();
 }
 
+bool HRenderModel::showEdges() const
+{
+    return m_bShowEdge;
+}
+
 void HRenderModel::setShowNodes(bool on)
 {
+    if (m_bShowNode == on)
+        return;
+
     m_bShowNode = on;
     emit settingChanged();
+}
+
+bool HRenderModel::showNodes() const
+{
+    return m_bShowNode;
 }
 
 void HRenderModel::setDefaultElementFaceColor(const QColor &color)

@@ -9,48 +9,58 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/HornetMain/HornetWindow.ui" line="156"/>
+        <location filename="../src/HornetMain/HornetWindow.ui" line="48"/>
         <source>Analysis</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/HornetMain/HornetWindow.ui" line="118"/>
+        <location filename="../src/HornetMain/HornetWindow.ui" line="86"/>
         <source>Density</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/HornetMain/HornetWindow.ui" line="135"/>
+        <location filename="../src/HornetMain/HornetWindow.ui" line="115"/>
         <source>Young&apos;s Modulus</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/HornetMain/HornetWindow.ui" line="74"/>
+        <location filename="../src/HornetMain/HornetWindow.ui" line="79"/>
         <source>Poison Ratio</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/HornetMain/HornetWindow.ui" line="88"/>
+        <location filename="../src/HornetMain/HornetWindow.ui" line="142"/>
         <source>Unshow Result</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/HornetMain/HornetWindow.ui" line="111"/>
+        <location filename="../src/HornetMain/HornetWindow.ui" line="135"/>
         <source>Show Result</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/HornetMain/HornetWindow.ui" line="125"/>
+        <location filename="../src/HornetMain/HornetWindow.ui" line="163"/>
         <source>Type</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/HornetMain/HornetWindow.ui" line="149"/>
+        <location filename="../src/HornetMain/HornetWindow.ui" line="69"/>
         <source>Step</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/HornetMain/HornetWindow.ui" line="166"/>
+        <location filename="../src/HornetMain/HornetWindow.ui" line="125"/>
         <source>Result Type</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/HornetMain/HornetWindow.ui" line="149"/>
+        <source>Toggle Node</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/HornetMain/HornetWindow.ui" line="156"/>
+        <source>Toggle Meshline</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -64,33 +74,23 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/HornetMain/HornetWindow.ui" line="67"/>
+        <location filename="../src/HornetMain/HornetWindow.ui" line="55"/>
         <source>Crack</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/HornetMain/HornetWindow.ui" line="101"/>
+        <location filename="../src/HornetMain/HornetWindow.ui" line="96"/>
         <source>SIF Radius</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/HornetMain/HornetWindow.ui" line="142"/>
+        <location filename="../src/HornetMain/HornetWindow.ui" line="62"/>
         <source>Growth Length</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/HornetMain/HornetWindow.ui" line="81"/>
-        <source>Import Crack</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <source>Fancy Button</source>
         <translation type="obsolete">FancyButton</translation>
-    </message>
-    <message>
-        <location filename="../src/HornetMain/HornetWindow.ui" line="57"/>
-        <source>Next</source>
-        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>

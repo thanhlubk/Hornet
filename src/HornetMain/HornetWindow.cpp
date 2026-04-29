@@ -52,6 +52,9 @@ void HornetWindow::initWindow()
     connect(ui->pushButtonShowResult, &QPushButton::clicked, this, &HornetWindow::onShowResult);
     connect(ui->pushButtonUnshowResult, &QPushButton::clicked, this, &HornetWindow::onUnshowResult);
 
+    connect(ui->pushButtonToggleMeshline, &QPushButton::clicked, this, &HornetWindow::onToggleMeshLine);
+    connect(ui->pushButtonToggleNode, &QPushButton::clicked, this, &HornetWindow::onToggleNode);
+
     createDocumentModel();
 }
 
@@ -427,4 +430,24 @@ void HornetWindow::onUnshowResult()
     pDoc->view()->setShowStress(false);
     pDoc->view()->setShowLbc(true);
     pDoc->notify(MessageType::ViewRequestRedraw);
+}
+
+void HornetWindow::onToggleMeshLine()
+{
+    auto pDoc = dynamic_cast<DocumentModel*>(m_app->docs()->activeDocument());
+    if (!pDoc)
+        return;
+
+    bool show = !pDoc->view()->showMeshLine();
+    pDoc->view()->setShowMeshLine(show);
+}
+
+void HornetWindow::onToggleNode()
+{
+    auto pDoc = dynamic_cast<DocumentModel*>(m_app->docs()->activeDocument());
+    if (!pDoc)
+        return;
+
+    bool show = !pDoc->view()->showNode();
+    pDoc->view()->setShowNode(show);
 }

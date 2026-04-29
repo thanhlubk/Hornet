@@ -17,8 +17,13 @@ public:
     void draw(const QMatrix4x4 &P, const QMatrix4x4 &V, const HViewLighting &lighting);
 
     void setShowFaces(bool on);
+    bool showFaces() const;
+
     void setShowEdges(bool on);
+    bool showEdges() const;
+
     void setShowNodes(bool on);
+    bool showNodes() const;
 
     void setDefaultElementFaceColor(const QColor &color);
     void setDefaultElementEdgeColor(const QColor &color);

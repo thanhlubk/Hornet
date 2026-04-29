@@ -46,6 +46,14 @@ public:
     void setShowLbc(bool show);
     bool showLbc() const;
 
+    // Mesh visibility controls. These do not rebuild the database mesh;
+    // they only toggle the renderer passes.
+    void setShowMeshLine(bool show);
+    bool showMeshLine() const;
+
+    void setShowNode(bool show);
+    bool showNode() const;
+
     void setShowDisplacement(bool show);
     bool showDisplacement() const;
 

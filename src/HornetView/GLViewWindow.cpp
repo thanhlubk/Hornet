@@ -229,6 +229,40 @@ bool GLViewWindow::showLbc() const
     return m_bShowLbc;
 }
 
+void GLViewWindow::setShowMeshLine(bool show)
+{
+    if (!m_pRenderModel)
+        return;
+
+    if (m_pRenderModel->showEdges() == show)
+        return;
+
+    m_pRenderModel->setShowEdges(show);
+    update();
+}
+
+bool GLViewWindow::showMeshLine() const
+{
+    return m_pRenderModel ? m_pRenderModel->showEdges() : false;
+}
+
+void GLViewWindow::setShowNode(bool show)
+{
+    if (!m_pRenderModel)
+        return;
+
+    if (m_pRenderModel->showNodes() == show)
+        return;
+
+    m_pRenderModel->setShowNodes(show);
+    update();
+}
+
+bool GLViewWindow::showNode() const
+{
+    return m_pRenderModel ? m_pRenderModel->showNodes() : false;
+}
+
 void GLViewWindow::setShowDisplacement(bool show)
 {
     if (m_bShowDisplacement == show)
@@ -489,7 +523,7 @@ void GLViewWindow::rebuildFromDatabase()
                 if (stressValid[i])
                     nodeColors[i] = contourColorVector(stressValues[i], minValue, maxValue);
                 else
-                    nodeColors[i] = QVector4D(0.45f, 0.45f, 0.45f, 1.0f);
+                    nodeColors[i] = QVector4D(0.0f, 0.0f, 0.0f, 1.0f);
             }
         }
     }
