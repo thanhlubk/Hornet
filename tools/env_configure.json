@@ -3,11 +3,15 @@
     "qtPath": "<qtPath>",
     "compilerPath": "<compilerPath>",
     "glewPath": "<glewPath>",
+    "glmPath": "<glmPath>",
+    "eigen3Path": "<eigen3Path>",
     "cmakeGenerator": "<cmakeGenerator>"
   },
   "vs": {
     "qtPath": "<qtPath>",
     "glewPath": "<glewPath>",
+    "glmPath": "<glmPath>",
+    "eigen3Path": "<eigen3Path>",
     "vsVersion": "<vsVersion>"
   }
 }

@@ -470,6 +470,24 @@ def copy_glew(repo_root: Path, os_name: str, glew_path: Optional[str]) -> None:
     # Import lib: lib/glew32.lib -> repo lib/<os>/glew32.lib
     copy_file_if_exists(src_lib / "glew32.lib", repo_root / "lib" / os_name / "glew32.lib")
 
+def copy_glm(repo_root: Path, glm_path: Optional[str]) -> None:
+    if not glm_path:
+        print("[glm] glmPath not set; skipping.")
+        return
+
+    glm_root = Path(glm_path)
+    src_inc = glm_root / "include" / "glm"
+    copy_tree_merge(src_inc, repo_root / "include" / "glm")
+
+def copy_eigen3(repo_root: Path, eigen3_path: Optional[str]) -> None:
+    if not eigen3_path:
+        print("[eigen3] eigen3Path not set; skipping.")
+        return
+
+    eigen3_root = Path(eigen3_path)
+    src_inc = eigen3_root / "include" / "eigen3"
+    copy_tree_merge(src_inc, repo_root / "include" / "eigen3")
+
 def write_build_bats_windows(repo_root: Path, *, qt_path: str, force: bool) -> None:
     """Generate tools/build_debug.bat and tools/build_release.bat for Windows (single-config generator)."""
     tools_dir = repo_root / "tools"
@@ -597,7 +615,7 @@ def make_launch(os_name: str, app_name: str) -> Dict[str, Any]:
         ],
     }
 
-def make_c_cpp_properties(os_name: str, cpp_standard: str, qt_path: str, compiler_path: str, app_name: str, glew_path: Optional[str]) -> Dict[str, Any]:
+def make_c_cpp_properties(os_name: str, cpp_standard: str, qt_path: str, compiler_path: str, app_name: str, glew_path: Optional[str], glm_path: Optional[str], eigen3_path: Optional[str]) -> Dict[str, Any]:
     cfg_name = "Windows-MSVC" if os_name == "windows" else "Linux-GCC"
     temp_os = "windows" if os_name == "windows" else "linux"
 
@@ -616,6 +634,10 @@ def make_c_cpp_properties(os_name: str, cpp_standard: str, qt_path: str, compile
     # Add GLEW include root if provided in setup_local_*.json
     if glew_path:
         include_paths.append(f"{glew_path}/include/**")
+    if glm_path:
+        include_paths.append(f"{glm_path}/include/**")
+    if eigen3_path:
+        include_paths.append(f"{eigen3_path}/include/**")
 
     return {
         "configurations": [
@@ -657,6 +679,8 @@ def run_mode_vscode(repo_root: Path, env: Dict[str, Any], *, os_name: str, force
     compiler_path = cfg.get("compilerPath", "")
     cmake_generator = cfg.get("cmakeGenerator", "Ninja")
     glew_path = cfg.get("glewPath")
+    glm_path = cfg.get("glmPath")
+    eigen3_path = cfg.get("eigen3Path")
 
     if not qt_path or not compiler_path:
         print("[error] vsCode.qtPath and vsCode.compilerPath are required")
@@ -671,6 +695,8 @@ def run_mode_vscode(repo_root: Path, env: Dict[str, Any], *, os_name: str, force
         else:
             copy_qt_linux(repo_root, os_name, qt_path)
     copy_glew(repo_root, os_name, glew_path)
+    copy_glm(repo_root, glm_path)
+    copy_eigen3(repo_root, eigen3_path)
 
     # generate build scripts
     if os_name == "windows":
@@ -685,7 +711,7 @@ def run_mode_vscode(repo_root: Path, env: Dict[str, Any], *, os_name: str, force
     write_json(vscode_dir / "launch.json", make_launch(os_name, app_name), force=force)
     write_json(
         vscode_dir / "c_cpp_properties.json",
-        make_c_cpp_properties(os_name, cpp_standard, qt_path, compiler_path, app_name, glew_path),
+        make_c_cpp_properties(os_name, cpp_standard, qt_path, compiler_path, app_name, glew_path, glm_path, eigen3_path),
         force=force,
     )
     write_json(vscode_dir / "settings.json", make_settings(os_name, qt_path, cmake_generator), force=force)
@@ -703,6 +729,8 @@ def run_mode_vs(repo_root: Path, env: Dict[str, Any], no_copy_qt: bool) -> int:
     os_name = "windows"
     qt_path = cfg.get("qtPath", "")
     glew_path = cfg.get("glewPath")
+    glm_path = cfg.get("glmPath")
+    eigen3_path = cfg.get("eigen3Path")
     vs_version = cfg.get("vsVersion", "")
 
     if not qt_path or not vs_version:
@@ -714,6 +742,8 @@ def run_mode_vs(repo_root: Path, env: Dict[str, Any], no_copy_qt: bool) -> int:
     if not no_copy_qt:
         copy_qt_windows(repo_root, os_name, qt_path, cfg)
     copy_glew(repo_root, os_name, glew_path)
+    copy_glm(repo_root, glm_path)
+    copy_eigen3(repo_root, eigen3_path)
 
     # generate build scripts
     if os_name == "windows":

@@ -14,8 +14,7 @@ CMakeCache.txt
 /plugins/
 
 # Lib directories
-/include/GL/ 
-/include/eigen3/
+/include/
 
 # Dev directories
 /*.user
