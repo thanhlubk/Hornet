@@ -28,6 +28,7 @@ public:
 
     void enablePerNodeColor(bool enable);
     void enablePerElementColor(bool enable);
+    void enablePerElementVertexColor(bool enable);
 
     float frameRadius() const;
     QVector3D center() const;

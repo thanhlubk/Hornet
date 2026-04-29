@@ -39,6 +39,7 @@ install(FILES ${QM_OUTPUT} DESTINATION ${CMAKE_SOURCE_DIR}/translations)
 
 target_include_directories(HornetMain
     PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
+    PUBLIC ${CMAKE_SOURCE_DIR}/include
 )
 
 target_link_libraries(HornetMain

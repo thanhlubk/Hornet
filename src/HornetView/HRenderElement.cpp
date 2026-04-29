@@ -38,6 +38,7 @@ HRenderElement::HRenderElement()
     m_vao = 0;
     m_vboPosition = 0;
     m_vboNormal = 0;
+    m_vboColor = 0;
     m_eboTri = 0;
     m_eboEdge = 0;
     m_bInitialize = false;
@@ -49,6 +50,7 @@ HRenderElement::HRenderElement()
     m_vecEdgeBatches.clear();
 
     m_bEnablePerElementColor = true;
+    m_bEnablePerVertexColor = false;
 
     m_vDefaultEdgeColor = QVector3D(0.1f, 0.1f, 0.1f);
     m_vDefaultElementColor = QVector3D(0.75f, 0.75f, 0.78f);
@@ -65,6 +67,8 @@ void HRenderElement::initialize()
 {
     initializeOpenGLFunctions();
 
+    m_shaderProgram.removeAllShaders();
+
     if (!m_shaderProgram.addShaderFromSourceFile(QOpenGLShader::Vertex, ":/shader/vertex/element"))
         qWarning("Failed compiling shader: %s", m_shaderProgram.log());
 
@@ -77,12 +81,13 @@ void HRenderElement::initialize()
     glGenVertexArrays(1, &m_vao);
     glGenBuffers(1, &m_vboPosition);
     glGenBuffers(1, &m_vboNormal);
+    glGenBuffers(1, &m_vboColor);
     glGenBuffers(1, &m_eboTri);
     glGenBuffers(1, &m_eboEdge);
 
     m_bInitialize = true;
 
-    upload({}, {}, {}, {}, {}, {});
+    upload({}, {}, {}, {}, {}, {}, {});
 }
 
 void HRenderElement::destroy()
@@ -102,6 +107,11 @@ void HRenderElement::destroy()
         glDeleteBuffers(1, &m_vboNormal);
         m_vboNormal = 0;
     }
+    if (m_vboColor)
+    {
+        glDeleteBuffers(1, &m_vboColor);
+        m_vboColor = 0;
+    }
     if (m_vboPosition)
     {
         glDeleteBuffers(1, &m_vboPosition);
@@ -113,9 +123,10 @@ void HRenderElement::destroy()
         m_vao = 0;
     }
     m_shaderProgram.removeAllShaders();
+    m_bInitialize = false;
 }
 
-void HRenderElement::setElements(const std::vector<QVector3D> &pos, const std::unordered_map<int, int> &idToIdx, const std::vector<RenderElementData> &elements)
+void HRenderElement::setElements(const std::vector<QVector3D> &pos, const std::vector<QVector4D> &colors, const std::unordered_map<int, int> &idToIdx, const std::vector<RenderElementData> &elements)
 {
     // Build everything we need, then call upload(...)
     auto IDX = [&](int nodeId) -> int
@@ -492,12 +503,12 @@ void HRenderElement::setElements(const std::vector<QVector3D> &pos, const std::u
 
     // 4) upload to GPU + build element selection ranges
     if (m_bInitialize)
-        upload(pos, nrm, triIdx, lineIdx, faceBatches, lineBatches);
+        upload(pos, nrm, colors, triIdx, lineIdx, faceBatches, lineBatches);
     // 4) upload to GPU + build element selection ranges
     // upload(pos, nrm, triIdx, lineIdx, faceBatches, lineBatches);
 }
 
-void HRenderElement::upload(const std::vector<QVector3D> &pos, const std::vector<QVector3D> &nrm, const std::vector<uint32_t> &triIdx, const std::vector<uint32_t> &lineIdx, const std::vector<FaceBatch> &faceBatches, const std::vector<LineBatch> &lineBatches)
+void HRenderElement::upload(const std::vector<QVector3D> &pos, const std::vector<QVector3D> &nrm, const std::vector<QVector4D> &colors, const std::vector<uint32_t> &triIdx, const std::vector<uint32_t> &lineIdx, const std::vector<FaceBatch> &faceBatches, const std::vector<LineBatch> &lineBatches)
 {
     glBindVertexArray(m_vao);
 
@@ -511,6 +522,11 @@ void HRenderElement::upload(const std::vector<QVector3D> &pos, const std::vector
     glBufferData(GL_ARRAY_BUFFER, GLsizeiptr(nrm.size() * sizeof(QVector3D)), nrm.data(), GL_STATIC_DRAW);
     glEnableVertexAttribArray(2);
     glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(QVector3D), (void *)0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, m_vboColor);
+    glBufferData(GL_ARRAY_BUFFER, GLsizeiptr(colors.size() * sizeof(QVector4D)), colors.data(), GL_STATIC_DRAW);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(QVector4D), (void *)0);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_eboTri);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, GLsizeiptr(triIdx.size() * sizeof(uint32_t)), triIdx.data(), GL_STATIC_DRAW);
@@ -590,6 +606,7 @@ void HRenderElement::drawElement(const QMatrix4x4 &P, const QMatrix4x4 &V, const
         m_shaderProgram.setUniformValue("uMVP", MVP);
         m_shaderProgram.setUniformValue("uView", V);
         m_shaderProgram.setUniformValue("uLit", 1);
+        m_shaderProgram.setUniformValue("uUseVertexColor", m_bEnablePerVertexColor ? 1 : 0);
 
         // NEW: feed all lighting uniforms in one call
         lighting.applyTo(m_shaderProgram);
@@ -627,6 +644,7 @@ void HRenderElement::drawElement(const QMatrix4x4 &P, const QMatrix4x4 &V, const
         m_shaderProgram.setUniformValue("uMVP", MVP);
         m_shaderProgram.setUniformValue("uView", V);
         m_shaderProgram.setUniformValue("uLit", 0);
+        m_shaderProgram.setUniformValue("uUseVertexColor", 0);
         m_shaderProgram.setUniformValue("uColor", m_vSelectionElementColor);
 
         glBindVertexArray(m_vao);
@@ -674,6 +692,7 @@ void HRenderElement::drawEdges(const QMatrix4x4 &P, const QMatrix4x4 &V)
         m_shaderProgram.setUniformValue("uMVP", MVP);
         m_shaderProgram.setUniformValue("uView", V);
         m_shaderProgram.setUniformValue("uLit", 0); // unlit wire
+        m_shaderProgram.setUniformValue("uUseVertexColor", 0);
         // We can still apply lighting (uniforms exist), but uLit=0 skips lighting in shader.
 
         glBindVertexArray(m_vao);
@@ -712,4 +731,9 @@ void HRenderElement::clearSelection()
 void HRenderElement::enablePerElementColor(bool enable)
 {
     m_bEnablePerElementColor = enable;
+}
+
+void HRenderElement::enablePerVertexColor(bool enable)
+{
+    m_bEnablePerVertexColor = enable;
 }

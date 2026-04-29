@@ -1,20 +1,19 @@
 #pragma once
+#include "HornetExecuteExport.h"
+#include <HornetBase/DatabaseSession.h>
 
-#if defined(_WIN32)
-#  if defined(HORNETEXECUTE_LIBRARY)
-#    define HORNETEXECUTE_EXPORT __declspec(dllexport)
-#  else
-#    define HORNETEXECUTE_EXPORT __declspec(dllimport)
-#  endif
-#else
-#  define HORNETEXECUTE_EXPORT
-#endif
-
-// #include <HornetBase/HDataBase.h>
-
-class HORNETEXECUTE_EXPORT HExecute {
+class HORNETEXECUTE_EXPORT HExecute
+{
 public:
-    void Execute();
-private:
-    // HDataBase helper;
+    HExecute(DatabaseSession* db, bool transaction=true, bool logCommand=true);
+    virtual ~HExecute() = default;
+    bool execute();
+
+protected:
+    virtual bool onExecute() = 0;
+    virtual void logCommand() = 0;
+
+    DatabaseSession* m_pDb;
+    bool m_bTransaction;
+    bool m_bLogCommand;
 };

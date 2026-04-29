@@ -32,7 +32,7 @@ public:
     LbcType lbcType() const noexcept override { return LbcType::LbcTypeConstraint; }
 
     uint32_t dof() const noexcept { return m_iDof; }
-    void setDof(uint32_t dof) noexcept { m_iDof = dof; }
+    void setDof(LbcConstraintDof dof) noexcept { m_iDof = static_cast<uint32_t>(dof); }
     void addDof(LbcConstraintDof dof) noexcept { m_iDof |= static_cast<uint32_t>(dof); }
     void removeDof(LbcConstraintDof dof) noexcept { m_iDof &= ~static_cast<uint32_t>(dof); }
     bool hasDof(LbcConstraintDof dof) const noexcept { return (m_iDof & static_cast<uint32_t>(dof)) != 0; }

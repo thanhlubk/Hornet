@@ -14,6 +14,7 @@ enum class CategoryType : std::uint16_t
     CatElement,
     CatGroup,
     CatLbc,
+    CatResult,
 
     // Add above this
     CatEnd,
@@ -28,7 +29,7 @@ enum class ItemType : std::uint16_t
     ItemLbc,
     ItemLbcForce,
     ItemLbcConstraint,
-
+    ItemResult,
     // Add above this
     ItemEnd,
 };

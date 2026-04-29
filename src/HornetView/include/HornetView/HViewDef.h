@@ -46,3 +46,16 @@ enum class SelectType
     Force,
     Constraint
 };
+
+
+// Result stress component used for contour rendering.
+enum class StressComponent
+{
+    XX,
+    YY,
+    ZZ,
+    XY,
+    YZ,
+    XZ,
+    VonMises
+};

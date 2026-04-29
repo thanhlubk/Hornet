@@ -32,6 +32,13 @@ public:
     const std::string& name() const noexcept { return m_strName; }
     void setName(std::string name) { m_strName = std::move(name); }
 
+    void notify(MessageType type, MessageParam wparam = 0, MessageParam lparam = 0)
+    {
+        if (auto* disp = dispatcher())
+        {
+            disp->notify(type, wparam, lparam);
+        }
+    }
 protected:
     void notifySomething(); // placeholder hook if you want a generic event
 

@@ -25,6 +25,7 @@
 #include "HornetBase/HIElement.h"
 #include "HornetBase/HILbcForce.h"
 #include "HornetBase/HILbcConstraint.h"
+#include "HornetBase/HIResult.h"
 
 inline bool isRayIntersectTriangle(const QVector3D &orig, const QVector3D &dir, const QVector3D &v0, const QVector3D &v1, const QVector3D &v2, float &tOut, QVector3D &hitPosOut)
 {
@@ -59,9 +60,88 @@ inline bool isRayIntersectTriangle(const QVector3D &orig, const QVector3D &dir, 
     return true;
 }
 
+
+static QColor contourColor(double t)
+{
+    t = std::clamp(t, 0.0, 1.0);
+
+    // Blue -> cyan -> green -> yellow -> red.
+    const double x = t * 4.0;
+    const int band = static_cast<int>(std::floor(x));
+    const double f = x - band;
+
+    auto lerp = [](double a, double b, double u) {
+        return a + (b - a) * u;
+    };
+
+    double r = 0.0, g = 0.0, b = 0.0;
+    switch (band)
+    {
+    case 0: r = 0.0;        g = f;          b = 1.0;        break; // blue -> cyan
+    case 1: r = 0.0;        g = 1.0;        b = 1.0 - f;    break; // cyan -> green
+    case 2: r = f;          g = 1.0;        b = 0.0;        break; // green -> yellow
+    default:r = 1.0;        g = 1.0 - f;    b = 0.0;        break; // yellow -> red
+    }
+
+    return QColor::fromRgbF(lerp(0.0, 1.0, r),
+                            lerp(0.0, 1.0, g),
+                            lerp(0.0, 1.0, b),
+                            1.0);
+}
+
+static double stressComponentValue(const HIResultDataStress &stress, StressComponent component)
+{
+    switch (component)
+    {
+    case StressComponent::XX:       return stress.xx;
+    case StressComponent::YY:       return stress.yy;
+    case StressComponent::ZZ:       return stress.zz;
+    case StressComponent::XY:       return stress.xy;
+    case StressComponent::YZ:       return stress.yz;
+    case StressComponent::XZ:       return stress.xz;
+    case StressComponent::VonMises: return stress.vonMises;
+    }
+    return stress.vonMises;
+}
+
+static QString stressComponentLabel(StressComponent component)
+{
+    switch (component)
+    {
+    case StressComponent::XX:       return QStringLiteral("Sxx");
+    case StressComponent::YY:       return QStringLiteral("Syy");
+    case StressComponent::ZZ:       return QStringLiteral("Szz");
+    case StressComponent::XY:       return QStringLiteral("Sxy");
+    case StressComponent::YZ:       return QStringLiteral("Syz");
+    case StressComponent::XZ:       return QStringLiteral("Sxz");
+    case StressComponent::VonMises: return QStringLiteral("von Mises");
+    }
+    return QStringLiteral("von Mises");
+}
+
+static QVector4D contourColorVector(double value, double minValue, double maxValue)
+{
+    double t = 0.5;
+    if (std::abs(maxValue - minValue) > 1.0e-30)
+        t = (value - minValue) / (maxValue - minValue);
+
+    const QColor c = contourColor(t);
+    return QVector4D(c.redF(), c.greenF(), c.blueF(), 1.0f);
+}
+
 GLViewWindow::GLViewWindow(QWindow *parent)
     : QOpenGLWindow(QOpenGLWindow::NoPartialUpdate, parent)
     , m_pDb(nullptr)
+    , m_iResultStep(0)
+    , m_bShowDisplacement(false)
+    , m_bShowStress(false)
+    , m_bShowLbc(true)
+    , m_bAutoScale(true)
+    , m_fResultScale(1e9)
+    , m_eStressComponent(StressComponent::VonMises)
+    , m_bHasStressRange(false)
+    , m_fStressMin(0.0)
+    , m_fStressMax(0.0)
 {
     // QWidget-specific calls like setFocusPolicy / setMouseTracking
     // are NOT available here. Focus/mouse handling will be handled
@@ -120,6 +200,92 @@ void GLViewWindow::setDatabase(DatabaseSession *pDb)
     m_pDb = pDb;
 }
 
+void GLViewWindow::setStep(int step)
+{
+    const int clampedStep = std::max(0, step);
+    if (m_iResultStep == clampedStep)
+        return;
+
+    m_iResultStep = clampedStep;
+    // rebuildFromDatabase();
+}
+
+int GLViewWindow::step() const
+{
+    return m_iResultStep;
+}
+
+void GLViewWindow::setShowLbc(bool show)
+{
+    if (m_bShowLbc == show)
+        return;
+
+    m_bShowLbc = show;
+    // rebuildFromDatabase();
+}
+
+bool GLViewWindow::showLbc() const
+{
+    return m_bShowLbc;
+}
+
+void GLViewWindow::setShowDisplacement(bool show)
+{
+    if (m_bShowDisplacement == show)
+        return;
+
+    m_bShowDisplacement = show;
+    // rebuildFromDatabase();
+}
+
+bool GLViewWindow::showDisplacement() const
+{
+    return m_bShowDisplacement;
+}
+
+void GLViewWindow::setShowStress(bool show)
+{
+    if (m_bShowStress == show)
+        return;
+
+    m_bShowStress = show;
+    // rebuildFromDatabase();
+}
+
+bool GLViewWindow::showStress() const
+{
+    return m_bShowStress;
+}
+
+void GLViewWindow::setScale(double scale)
+{
+    if (std::abs(m_fResultScale - scale) < 1.0e-12)
+        return;
+
+    m_fResultScale = scale;
+    // rebuildFromDatabase();
+}
+
+double GLViewWindow::scale() const
+{
+    return m_fResultScale;
+}
+
+void GLViewWindow::setStress(StressComponent component)
+{
+    if (m_eStressComponent == component)
+        return;
+
+    m_eStressComponent = component;
+    // rebuildFromDatabase();
+}
+
+StressComponent GLViewWindow::stress() const
+{
+    return m_eStressComponent;
+}
+
+
 void GLViewWindow::setNotifyDispatcher(NotifyDispatcher &disp)
 {
     m_observer = disp.attach(this, &GLViewWindow::onNotify);
@@ -127,7 +293,7 @@ void GLViewWindow::setNotifyDispatcher(NotifyDispatcher &disp)
 
 void GLViewWindow::onNotify(MessageType mess, MessageParam a, MessageParam b)
 {
-    if (mess == MessageType::DataModified || mess == MessageType::DataEmplaced)
+    if (mess == MessageType::DataModified || mess == MessageType::DataEmplaced || mess == MessageType::ViewRequestRedraw)
     {
         rebuildFromDatabase();
     }
@@ -138,13 +304,108 @@ void GLViewWindow::rebuildFromDatabase()
     if (!m_pDb)
         return;
 
+    m_bHasStressRange = false;
+    m_fStressMin = 0.0;
+    m_fStressMax = 0.0;
+
+    HCursor* crResult = nullptr;
+    if (m_iResultStep != 0)
+    {
+        auto pPoolResult = m_pDb->getPoolUnique(CategoryType::CatResult);
+        if (pPoolResult)
+        {
+            for (auto any : pPoolResult->range())
+            {
+                auto crCurrentResult = std::launder(reinterpret_cast<HCursor *>(any));
+                if (!crCurrentResult || static_cast<int>(crCurrentResult->id()) != m_iResultStep)
+                    continue;
+
+                crResult = crCurrentResult;
+                break;
+            }
+        }
+    }
+
+    auto pResult = crResult ? crResult->item<HIResult>() : nullptr;
+
     // 1) Collect nodes from DB
     std::vector<QVector3D> positions;
     std::vector<QVector4D> nodeColors;
     std::vector<int> nodeIds;
+    std::vector<double> stressValues;
+    std::vector<unsigned char> stressValid;
     std::unordered_map<int, int> nodeIdToIndex;
 
     m_mapNodeIdPos.clear();
+    double dScale = m_fResultScale;
+    if (m_bAutoScale)
+    {
+        dScale = 1.0; // ignore user scale when auto-scaling to fit model
+
+        auto pPoolNode = m_pDb->getPoolUnique(CategoryType::CatNode);
+        if (pPoolNode)
+        {
+            double minX =  std::numeric_limits<double>::max();
+            double minY =  std::numeric_limits<double>::max();
+            double minZ =  std::numeric_limits<double>::max();
+            double maxX = -std::numeric_limits<double>::max();
+            double maxY = -std::numeric_limits<double>::max();
+            double maxZ = -std::numeric_limits<double>::max();
+            double maxDisp = 0.0;
+
+            for (auto any : pPoolNode->range())
+            {
+                auto crNode = std::launder(reinterpret_cast<HCursor *>(any));
+                auto pNode = crNode->item<HINode>();
+                if (!pNode)
+                    continue;
+
+                HVector3d pos = pNode->position();
+
+                minX = std::min(minX, pos.x);
+                minY = std::min(minY, pos.y);
+                maxX = std::max(maxX, pos.x);
+                maxY = std::max(maxY, pos.y);
+                minZ = std::min(minZ, pos.z);
+                maxZ = std::max(maxZ, pos.z);
+
+                if (pResult && m_iResultStep != 0 && m_bShowDisplacement)
+                {
+                    HIResultDataDisplacement disp;
+                    if (pResult->getDisplacement(crNode, disp))
+                    {
+                        maxDisp = std::max(maxDisp, std::hypot(disp.x, disp.y, disp.z));
+                    }
+                }
+            }
+            
+            if (maxDisp > 0)
+            {
+                const double dx = maxX - minX;
+                const double dy = maxY - minY;
+                const double dz = maxZ - minZ;
+                
+                const double padX = dx * 0.08;
+                const double padY = dy * 0.08;
+                const double padZ = dz * 0.08;
+                
+                minX -= padX;
+                maxX += padX;
+                minY -= padY;
+                maxY += padY;
+                minZ -= padZ;
+                maxZ += padZ;
+                
+                const double worldW = std::max(maxX - minX, 1e-12);
+                const double worldH = std::max(maxY - minY, 1e-12);
+                const double worldD = std::max(maxZ - minZ, 1e-12);
+                
+                double maxBoxSize = std::max({worldW, worldH, worldD});
+                
+                dScale = maxDisp > 1e-18 ? (0.05 * maxBoxSize / maxDisp) : 1.0;
+            }
+        }
+    }
 
     auto pPoolNode = m_pDb->getPoolUnique(CategoryType::CatNode);
     if (pPoolNode)
@@ -160,14 +421,76 @@ void GLViewWindow::rebuildFromDatabase()
             HVector3d pos = pNode->position();
             HColor col = pNode->color();
 
+            QVector3D qpos(static_cast<float>(pos.x),
+                            static_cast<float>(pos.y),
+                            static_cast<float>(pos.z));
+
+            if (pResult && m_iResultStep != 0 && m_bShowDisplacement)
+            {
+                HIResultDataDisplacement disp;
+                if (pResult->getDisplacement(crNode, disp))
+                {
+                    qpos += QVector3D(static_cast<float>(disp.x * dScale),
+                                      static_cast<float>(disp.y * dScale),
+                                      static_cast<float>(disp.z * dScale));
+                }
+            }
+
             int idx = static_cast<int>(positions.size());
-            QVector3D qpos(static_cast<float>(pos.x), static_cast<float>(pos.y), static_cast<float>(pos.z));
             positions.push_back(qpos);
-            nodeColors.emplace_back(col.r() / 255.0f, col.g() / 255.0f, col.b() / 255.0f, col.a() / 255.0f);
+            nodeColors.emplace_back(col.r() / 255.0f,
+                                    col.g() / 255.0f,
+                                    col.b() / 255.0f,
+                                    col.a() / 255.0f);
             nodeIds.push_back(id);
             nodeIdToIndex[id] = idx;
-
             m_mapNodeIdPos[id] = qpos;
+
+            double stressValue = 0.0;
+            bool hasStress = false;
+            if (pResult && m_iResultStep != 0 && m_bShowStress)
+            {
+                HIResultDataStress stress;
+                if (pResult->getStress(crNode, stress))
+                {
+                    stressValue = stressComponentValue(stress, m_eStressComponent);
+                    hasStress = true;
+                }
+            }
+            stressValues.push_back(stressValue);
+            stressValid.push_back(hasStress ? 1 : 0);
+        }
+    }
+
+    if (pResult && m_iResultStep != 0 && m_bShowStress)
+    {
+        double minValue = std::numeric_limits<double>::max();
+        double maxValue = std::numeric_limits<double>::lowest();
+        bool hasAnyStress = false;
+
+        for (size_t i = 0; i < stressValues.size(); ++i)
+        {
+            if (!stressValid[i])
+                continue;
+
+            minValue = std::min(minValue, stressValues[i]);
+            maxValue = std::max(maxValue, stressValues[i]);
+            hasAnyStress = true;
+        }
+
+        if (hasAnyStress)
+        {
+            m_bHasStressRange = true;
+            m_fStressMin = minValue;
+            m_fStressMax = maxValue;
+
+            for (size_t i = 0; i < nodeColors.size(); ++i)
+            {
+                if (stressValid[i])
+                    nodeColors[i] = contourColorVector(stressValues[i], minValue, maxValue);
+                else
+                    nodeColors[i] = QVector4D(0.45f, 0.45f, 0.45f, 1.0f);
+            }
         }
     }
 
@@ -214,6 +537,8 @@ void GLViewWindow::rebuildFromDatabase()
     // 3) Collect forces and constraints from DB
     std::vector<RenderForceData> renderForces;
     std::vector<RenderConstraintData> renderConstraints;
+    if (m_bShowLbc)
+    {
     auto pPoolLbc = m_pDb->getPoolMix(CategoryType::CatLbc);
     if (pPoolLbc)
     {
@@ -229,13 +554,28 @@ void GLViewWindow::rebuildFromDatabase()
 
                 for (auto crNode : pForce->targets())
                 {
-                    if (!crNode) continue;
+                    if (!crNode)
+                        continue;
                     auto pNode = crNode->item<HINode>();
-                    if (!pNode) continue;
-                    
+                    if (!pNode)
+                        continue;
+
                     HVector3d pos = pNode->position();
-                    QVector3D qpos(static_cast<float>(pos.x), static_cast<float>(pos.y), static_cast<float>(pos.z));
-                    
+                    QVector3D qpos(static_cast<float>(pos.x),
+                                    static_cast<float>(pos.y),
+                                    static_cast<float>(pos.z));
+
+                    if (pResult && m_iResultStep != 0 && m_bShowDisplacement)
+                    {
+                        HIResultDataDisplacement disp;
+                        if (pResult->getDisplacement(crNode, disp))
+                        {
+                            qpos += QVector3D(static_cast<float>(disp.x * dScale),
+                                              static_cast<float>(disp.y * dScale),
+                                              static_cast<float>(disp.z * dScale));
+                        }
+                    }
+
                     RenderForceData fd;
                     fd.id = id;
                     fd.position = qpos;
@@ -247,13 +587,28 @@ void GLViewWindow::rebuildFromDatabase()
             {
                 for (auto crNode : pConstraint->targets())
                 {
-                    if (!crNode) continue;
+                    if (!crNode)
+                        continue;
                     auto pNode = crNode->item<HINode>();
-                    if (!pNode) continue;
-                    
+                    if (!pNode)
+                        continue;
+
                     HVector3d pos = pNode->position();
-                    QVector3D qpos(static_cast<float>(pos.x), static_cast<float>(pos.y), static_cast<float>(pos.z));
-                    
+                    QVector3D qpos(static_cast<float>(pos.x),
+                                    static_cast<float>(pos.y),
+                                    static_cast<float>(pos.z));
+
+                    if (pResult && m_iResultStep != 0 && m_bShowDisplacement)
+                    {
+                        HIResultDataDisplacement disp;
+                        if (pResult->getDisplacement(crNode, disp))
+                        {
+                            qpos += QVector3D(static_cast<float>(disp.x * dScale),
+                                              static_cast<float>(disp.y * dScale),
+                                              static_cast<float>(disp.z * dScale));
+                        }
+                    }
+
                     auto addCone = [&](LbcConstraintDof dofFlag, QVector3D dir) {
                         if (pConstraint->hasDof(dofFlag)) {
                             RenderConstraintData cd;
@@ -274,9 +629,12 @@ void GLViewWindow::rebuildFromDatabase()
             }
         }
     }
-
+    }
     // 4) Feed to renderer
+    
     m_pRenderModel->setMesh(positions, nodeColors, nodeIds, nodeIdToIndex, elements);
+    m_pRenderModel->enablePerElementVertexColor(m_bHasStressRange);
+
     if (m_pRenderForce)
         m_pRenderForce->setForces(renderForces);
     if (m_pRenderConstraint)
@@ -429,6 +787,8 @@ void GLViewWindow::paintGL()
     // Bottom-left mini-axes (drawn last, in its own mini-viewport)
     m_pRenderCoordinate->draw(m_pCamera->rotation(), width(), height());
 
+    drawStressLegend();
+
     // === 2D UI overlay: marquee rectangle ===
     if (m_bDragSelect)
     {
@@ -447,6 +807,41 @@ void GLViewWindow::paintGL()
         painter.setBrush(QBrush(m_colorMarquee));
         painter.drawRect(rect);
     }
+}
+
+void GLViewWindow::drawStressLegend()
+{
+    if (!m_bShowStress || !m_bHasStressRange)
+        return;
+
+    QPainter painter(this);
+    painter.setRenderHint(QPainter::Antialiasing, true);
+
+    const int margin = 16;
+    const int barWidth = 18;
+    const int barHeight = std::min(220, std::max(100, height() - 80));
+    const int textWidth = 96;
+    const int x = std::max(margin, width() - margin - textWidth);
+    const int y = margin + 24;
+
+    painter.setPen(Qt::NoPen);
+    for (int i = 0; i < barHeight; ++i)
+    {
+        const double t = 1.0 - double(i) / double(std::max(1, barHeight - 1));
+        painter.setBrush(contourColor(t));
+        painter.drawRect(QRect(x, y + i, barWidth, 1));
+    }
+
+    painter.setPen(Qt::white);
+    painter.setBrush(Qt::NoBrush);
+    painter.drawRect(QRect(x, y, barWidth, barHeight));
+
+    const QString label = stressComponentLabel(m_eStressComponent);
+    painter.drawText(QPoint(x, y - 6), label);
+    painter.drawText(QPoint(x + barWidth + 8, y + 4),
+                     QString::number(m_fStressMax, 'g', 6));
+    painter.drawText(QPoint(x + barWidth + 8, y + barHeight),
+                     QString::number(m_fStressMin, 'g', 6));
 }
 
 void GLViewWindow::keyPressEvent(QKeyEvent *event)

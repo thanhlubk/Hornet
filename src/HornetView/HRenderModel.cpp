@@ -95,6 +95,12 @@ void HRenderModel::enablePerElementColor(bool enable)
     emit settingChanged();
 }
 
+void HRenderModel::enablePerElementVertexColor(bool enable)
+{
+    m_renderElement.enablePerVertexColor(enable);
+    emit settingChanged();
+}
+
 float HRenderModel::frameRadius() const 
 { 
     return m_fFrameRadius; 
@@ -112,7 +118,7 @@ void HRenderModel::setMesh(const std::vector<QVector3D> &positions,
                            const std::vector<RenderElementData> &elements)
 {
     m_renderNode.upload(positions, nodeColors, nodeIds);
-    m_renderElement.setElements(positions, nodeIdToIndex, elements);
+    m_renderElement.setElements(positions, nodeColors, nodeIdToIndex, elements);
 
     if (!positions.empty())
     {

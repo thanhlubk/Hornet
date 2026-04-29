@@ -37,6 +37,28 @@ public:
     QWidget *createContainer(QWidget *parent = nullptr);
 
     void setDatabase(DatabaseSession *pDb);
+
+    // Result display controls.
+    // step == 0 means show the undeformed model with no result contour.
+    void setStep(int step);
+    int step() const;
+
+    void setShowLbc(bool show);
+    bool showLbc() const;
+
+    void setShowDisplacement(bool show);
+    bool showDisplacement() const;
+
+    void setShowStress(bool show);
+    bool showStress() const;
+
+    // Multiplier for displacement visualization. Default is 1000.0.
+    void setScale(double scale);
+    double scale() const;
+
+    void setStress(StressComponent component);
+    StressComponent stress() const;
+
     void setNotifyDispatcher(NotifyDispatcher &disp);
     void onNotify(MessageType mess, MessageParam a, MessageParam b);
 
@@ -83,8 +105,20 @@ private:
     NotifyDispatcher::Observer m_observer;
     DatabaseSession* m_pDb;
 
+    int m_iResultStep;
+    bool m_bShowDisplacement;
+    bool m_bShowStress;
+    bool m_bShowLbc;
+    bool m_bAutoScale;
+    double m_fResultScale;
+    StressComponent m_eStressComponent;
+    bool m_bHasStressRange;
+    double m_fStressMin;
+    double m_fStressMax;
+
     void destroyGLObjects();
     void rebuildFromDatabase();
+    void drawStressLegend();
     bool getHitPosition(const QPointF &point, QVector3D &hit, int &elemId) const;
     void selectAtPoint(const QPointF &point);
     void selectInRect(const QRectF &rectMarquee);

@@ -25,6 +25,8 @@ void HRenderNode::initialize()
 {
     initializeOpenGLFunctions();
 
+    m_shaderProgram.removeAllShaders();
+
     if (!m_shaderProgram.addShaderFromSourceFile(QOpenGLShader::Vertex, ":/shader/vertex/node"))
         qWarning("Failed compiling shader: %s", m_shaderProgram.log());
 
@@ -45,6 +47,11 @@ void HRenderNode::initialize()
 
 void HRenderNode::destroy()
 {
+    if (m_eboSelection)
+    {
+        glDeleteBuffers(1, &m_eboSelection);
+        m_eboSelection = 0;
+    }
     if (m_vboColor)
     {
         glDeleteBuffers(1, &m_vboColor);
@@ -61,6 +68,7 @@ void HRenderNode::destroy()
         m_vao = 0;
     }
     m_shaderProgram.removeAllShaders();
+    m_bInitialize = false;
 }
 
 

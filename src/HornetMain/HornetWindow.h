@@ -28,6 +28,9 @@ protected:
 
 private slots:
     void onImportModel();
+    void onSolve();
+    void onShowResult();
+    void onUnshowResult();
 
 private:
     void createDocumentModel();

@@ -18,6 +18,7 @@ add_library(HornetExecute SHARED
 
 target_include_directories(HornetExecute
     PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
+    PUBLIC ${CMAKE_SOURCE_DIR}/include
 )
 
 target_compile_definitions(HornetExecute PRIVATE HORNETEXECUTE_LIBRARY)
