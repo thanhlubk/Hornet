@@ -43,8 +43,13 @@ public:
     void setStep(int step);
     int step() const;
 
+    // LBC visibility control. This does not rebuild or reload LBC data; it only toggles drawing.
     void setShowLbc(bool show);
     bool showLbc() const;
+
+    // Coordinate-gizmo visibility control. This only toggles drawing.
+    void setShowCoordinate(bool show);
+    bool showCoordinate() const;
 
     // Mesh visibility controls. These do not rebuild the database mesh;
     // they only toggle the renderer passes.
@@ -117,6 +122,7 @@ private:
     bool m_bShowDisplacement;
     bool m_bShowStress;
     bool m_bShowLbc;
+    bool m_bShowCoordinate;
     bool m_bAutoScale;
     double m_fResultScale;
     StressComponent m_eStressComponent;

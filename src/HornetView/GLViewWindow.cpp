@@ -136,6 +136,7 @@ GLViewWindow::GLViewWindow(QWindow *parent)
     , m_bShowDisplacement(false)
     , m_bShowStress(false)
     , m_bShowLbc(true)
+    , m_bShowCoordinate(true)
     , m_bAutoScale(true)
     , m_fResultScale(1e9)
     , m_eStressComponent(StressComponent::VonMises)
@@ -221,12 +222,26 @@ void GLViewWindow::setShowLbc(bool show)
         return;
 
     m_bShowLbc = show;
-    // rebuildFromDatabase();
+    update();
 }
 
 bool GLViewWindow::showLbc() const
 {
     return m_bShowLbc;
+}
+
+void GLViewWindow::setShowCoordinate(bool show)
+{
+    if (m_bShowCoordinate == show)
+        return;
+
+    m_bShowCoordinate = show;
+    update();
+}
+
+bool GLViewWindow::showCoordinate() const
+{
+    return m_bShowCoordinate;
 }
 
 void GLViewWindow::setShowMeshLine(bool show)
@@ -568,11 +583,11 @@ void GLViewWindow::rebuildFromDatabase()
 
     m_elements = elements;
 
-    // 3) Collect forces and constraints from DB
+    // 3) Collect forces and constraints from DB.
+    // LBC visibility is controlled in paintGL(); keep the renderer data uploaded
+    // so setShowLbc() can toggle drawing without looping database data again.
     std::vector<RenderForceData> renderForces;
     std::vector<RenderConstraintData> renderConstraints;
-    if (m_bShowLbc)
-    {
     auto pPoolLbc = m_pDb->getPoolMix(CategoryType::CatLbc);
     if (pPoolLbc)
     {
@@ -662,7 +677,6 @@ void GLViewWindow::rebuildFromDatabase()
                 }
             }
         }
-    }
     }
     // 4) Feed to renderer
     
@@ -814,12 +828,16 @@ void GLViewWindow::paintGL()
     // Main mesh
     m_pRenderModel->draw(P, V, m_pLighting);
 
-    // Your existing overlays (forces/highlights) still use m_prog.
-    // If you keep them, leave drawForces() and drawHighlights() calls here:
-    m_pRenderForce->draw(P, V, *m_pLighting, width(), height());
-    m_pRenderConstraint->draw(P, V, *m_pLighting, width(), height());
+    // LBC overlay. Data stays cached in the renderers; this flag only controls drawing.
+    if (m_bShowLbc)
+    {
+        m_pRenderForce->draw(P, V, *m_pLighting, width(), height());
+        m_pRenderConstraint->draw(P, V, *m_pLighting, width(), height());
+    }
+
     // Bottom-left mini-axes (drawn last, in its own mini-viewport)
-    m_pRenderCoordinate->draw(m_pCamera->rotation(), width(), height());
+    if (m_bShowCoordinate)
+        m_pRenderCoordinate->draw(m_pCamera->rotation(), width(), height());
 
     drawStressLegend();
 

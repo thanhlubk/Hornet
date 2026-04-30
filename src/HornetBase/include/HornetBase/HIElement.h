@@ -21,6 +21,8 @@ enum class ElementType : std::uint16_t
     ElementTypeQuad8,
     ElementTypeTet4,
     ElementTypeTet10,
+    ElementTypePrism6,
+    ElementTypePrism15,
     ElementTypeHex8,
     ElementTypeHex20,
 };
@@ -42,7 +44,7 @@ enum class ElementTypeExtended : std::uint8_t
     ElementTypeExtendedBlended,
 };
 
-inline constexpr std::array<ElementKind, 12> kKindOf = {
+inline constexpr std::array<ElementKind, 14> kKindOf = {
     ElementKind::ElementKindUnkown, // UNKNOWN
     ElementKind::ElementKind0D,     // POINT
     ElementKind::ElementKind1D,     // LINE2
@@ -53,11 +55,13 @@ inline constexpr std::array<ElementKind, 12> kKindOf = {
     ElementKind::ElementKind2D,     // QUAD8
     ElementKind::ElementKind3D,     // TET4
     ElementKind::ElementKind3D,     // TET10
+    ElementKind::ElementKind3D,     // PRISM6
+    ElementKind::ElementKind3D,     // PRISM15
     ElementKind::ElementKind3D,     // HEX8
     ElementKind::ElementKind3D,     // HEX20
 };
 
-inline constexpr std::array<int, 12> kNodeCount = {
+inline constexpr std::array<int, 14> kNodeCount = {
     0,  // UNKNOWN
     1,  // POINT
     2,  // LINE2
@@ -68,6 +72,8 @@ inline constexpr std::array<int, 12> kNodeCount = {
     8,  // QUAD8
     4,  // TET4
     10, // TET10
+    6,  // PRISM6
+    15, // PRISM15
     8,  // HEX8
     20, // HEX20
 };
@@ -174,6 +180,8 @@ using HIElementQuad4 = HIElementOf<ElementType::ElementTypeQuad4>;
 using HIElementQuad8 = HIElementOf<ElementType::ElementTypeQuad8>;
 using HIElementTet4 = HIElementOf<ElementType::ElementTypeTet4>;
 using HIElementTet10 = HIElementOf<ElementType::ElementTypeTet10>;
+using HIElementPrism6 = HIElementOf<ElementType::ElementTypePrism6>;
+using HIElementPrism15 = HIElementOf<ElementType::ElementTypePrism15>;
 using HIElementHex8 = HIElementOf<ElementType::ElementTypeHex8>;
 using HIElementHex20 = HIElementOf<ElementType::ElementTypeHex20>;
 

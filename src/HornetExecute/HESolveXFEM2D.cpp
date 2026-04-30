@@ -6,7 +6,7 @@
 #include "HornetExecute/HESolverXFEM2DModel.h"
 #include "HornetExecute/HESolverXFEM2DCommon.h"
 
-HESolveXFEM2D::HESolveXFEM2D(std::vector<std::vector<HVector2d>> vecCrack, double thickness, double density, double youngsModulus, double poissonRatio, XfemAnalysisType analysisType, XfemConditionType conditionType, double sifRadius, double growthStepLength, DatabaseSession* db, int step, bool transaction, bool logCommand)
+HESolveXFEM2D::HESolveXFEM2D(std::vector<std::vector<HVector2d>> vecCrack, double thickness, double density, double youngsModulus, double poissonRatio, HESolve::AnalysisType analysisType, HESolve::ConditionType conditionType, double sifRadius, double growthStepLength, DatabaseSession* db, int step, bool transaction, bool logCommand)
     : HExecute(db, transaction, logCommand),
     m_vecCrack(std::move(vecCrack)),
     m_dThickness(thickness),

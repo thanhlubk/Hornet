@@ -13,6 +13,8 @@
 #include <QDir>
 #include "Csv.h"
 #include <HornetExecute/HESolveXFEM2D.h>
+#include <HornetExecute/HESolveLinearAnalysis.h>
+#include <HornetExecute/HESolveDef.h>
 
 namespace
 { 
@@ -54,11 +56,11 @@ void HornetWindow::initWindow()
 
     connect(ui->pushButtonToggleMeshline, &QPushButton::clicked, this, &HornetWindow::onToggleMeshLine);
     connect(ui->pushButtonToggleNode, &QPushButton::clicked, this, &HornetWindow::onToggleNode);
+    connect(ui->pushButtonToggleLbc, &QPushButton::clicked, this, &HornetWindow::onToggleLbc);
 
     createDocumentModel();
 }
 
-#if 0
 void HornetWindow::onImportModel()
 {
     auto pDoc = dynamic_cast<DocumentModel*>(m_app->docs()->activeDocument());
@@ -69,64 +71,170 @@ void HornetWindow::onImportModel()
     if (!pDb)
         return;
     
+    auto strDatatDir = QStringLiteral("C:\\Data\\Source\\Temp\\fem_solver\\hex8_bracket_with_hole_over_5000_nodes");
+    auto nodePath = QDir(strDatatDir).filePath(QStringLiteral("Node_file.csv"));
+    auto elementPath = QDir(strDatatDir).filePath(QStringLiteral("Element_file.csv"));
+    auto loadPath = QDir(strDatatDir).filePath(QStringLiteral("Load_file.csv"));
+    auto bcPath = QDir(strDatatDir).filePath(QStringLiteral("BC_file.csv"));
+
+
     pDb->beginTransaction();
-    pDb->emplace<HINode>(1);
-    pDb->emplace<HINode>(2);
-    pDb->emplace<HINode>(3);
-    pDb->emplace<HINode>(4);
 
-    pDb->emplace<HIElementTri3>(1);
-    pDb->emplace<HIElement>(2, ElementType::ElementTypeTri3);
+    CsvTable nodeCsv(nodePath.toStdString());
+    for (std::size_t i = 0; i < nodeCsv.rowCount(); ++i)
+    {
+        auto id = nodeCsv.getDouble(i, "Node Number");
+        auto x = nodeCsv.getDouble(i, "X Location (m)");
+        auto y = nodeCsv.getDouble(i, "Y Location (m)");
+        auto z = nodeCsv.getDouble(i, "Z Location (m)");
 
-    auto pNode1 = pDb->checkOut<HINode>(1);
-    pNode1->setPosition({0, 0, 0});
+        pDb->emplace<HINode>(static_cast<Id>(id));
+        auto pNode = pDb->checkOut<HINode>(static_cast<Id>(id));
+        pNode->setPosition({x, y, z});
+    }
 
-    auto pNode2 = pDb->checkOut<HINode>(2);
-    pNode2->setPosition({1, 0, 0});
+    CsvTable elementCsv(elementPath.toStdString());
+    for (std::size_t i = 0; i < elementCsv.rowCount(); ++i)
+    {
+        auto id = static_cast<Id>(i + 1);
+        if (elementCsv.getString(i, "Element Type") == "TET4")
+        {
+            std::vector<Id> nodeIds = {
+                static_cast<Id>(elementCsv.getInt(i, "Nodes 1")),
+                static_cast<Id>(elementCsv.getInt(i, "Nodes 2")),
+                static_cast<Id>(elementCsv.getInt(i, "Nodes 3")),
+                static_cast<Id>(elementCsv.getInt(i, "Nodes 4"))
+            };
 
-    auto pNode3 = pDb->checkOut<HINode>(3);
-    pNode3->setPosition({0, 1, 0});
+            pDb->emplace<HIElementTet4>(id);
+            auto pElem = pDb->checkOut<HIElementTet4>(id);
+            std::vector<HCursor*> nodeCursors;
+            for (const auto& nodeId : nodeIds)
+            {
+                auto pNode = pDb->checkOut<HINode>(nodeId);
+                if (pNode)
+                    nodeCursors.push_back(pNode->getCursor());
+            }
+            pElem->setNodes(nodeCursors);
+        }
+        else if (elementCsv.getString(i, "Element Type") == "PRISM6")
+        {
+            std::vector<Id> nodeIds = {
+                static_cast<Id>(elementCsv.getInt(i, "Nodes 1")),
+                static_cast<Id>(elementCsv.getInt(i, "Nodes 2")),
+                static_cast<Id>(elementCsv.getInt(i, "Nodes 3")),
+                static_cast<Id>(elementCsv.getInt(i, "Nodes 4")),
+                static_cast<Id>(elementCsv.getInt(i, "Nodes 5")),
+                static_cast<Id>(elementCsv.getInt(i, "Nodes 6"))
+            };
+            pDb->emplace<HIElementPrism6>(id);
+            auto pElem = pDb->checkOut<HIElementPrism6>(id);
+            std::vector<HCursor*> nodeCursors;
+            for (const auto& nodeId : nodeIds)
+            {
+                auto pNode = pDb->checkOut<HINode>(nodeId);
+                if (pNode)
+                    nodeCursors.push_back(pNode->getCursor());
+            }
+            pElem->setNodes(nodeCursors);
+        }
+        else if (elementCsv.getString(i, "Element Type") == "HEX8")
+        {
+            std::vector<Id> nodeIds = {
+                static_cast<Id>(elementCsv.getInt(i, "Nodes 1")),
+                static_cast<Id>(elementCsv.getInt(i, "Nodes 2")),
+                static_cast<Id>(elementCsv.getInt(i, "Nodes 3")),
+                static_cast<Id>(elementCsv.getInt(i, "Nodes 4")),
+                static_cast<Id>(elementCsv.getInt(i, "Nodes 5")),
+                static_cast<Id>(elementCsv.getInt(i, "Nodes 6")),
+                static_cast<Id>(elementCsv.getInt(i, "Nodes 7")),
+                static_cast<Id>(elementCsv.getInt(i, "Nodes 8"))
+            };
+            pDb->emplace<HIElementHex8>(id);
+            auto pElem = pDb->checkOut<HIElementHex8>(id);
+            std::vector<HCursor*> nodeCursors;
+            for (const auto& nodeId : nodeIds)
+            {
+                auto pNode = pDb->checkOut<HINode>(nodeId);
+                if (pNode)
+                    nodeCursors.push_back(pNode->getCursor());
+            }
+            pElem->setNodes(nodeCursors);
+        }
+    }
 
-    auto pNode4 = pDb->checkOut<HINode>(4);
-    pNode4->setPosition({1, 1, 0});
+    CsvTable loadCsv(loadPath.toStdString());
+    for (std::size_t i = 0; i < loadCsv.rowCount(); ++i)
+    {
+        auto id = static_cast<Id>(i + 1);
+        auto nodeId = static_cast<Id>(loadCsv.getInt(i, "Node Number"));
+        auto fx = loadCsv.getDouble(i, "X Load");
+        auto fy = loadCsv.getDouble(i, "Y Load");
+        auto fz = loadCsv.getDouble(i, "Z Load");
 
-    auto pElem1 = pDb->checkOut<HIElementTri3>(1);
-    std::vector<HCursor*> myCursors1 = {pNode1->getCursor(), pNode2->getCursor(), pNode3->getCursor()};
-    pElem1->setNodes(myCursors1);
+        pDb->emplace<HILbcForce>(id);
+        auto pLbcForce = pDb->checkOut<HILbcForce>(id);
+        auto pNode = pDb->checkOut<HINode>(nodeId);
+        if (pLbcForce && pNode)
+        {
+            pLbcForce->addTarget(pNode->getCursor());
+            pLbcForce->setForce({fx, fy, fz});
+        }
+    }
 
-    auto pElem2 = pDb->checkOut<HIElementTri3>(2);
-    std::vector<HCursor*> myCursors2 = {pNode2->getCursor(), pNode4->getCursor(), pNode3->getCursor()};
-    pElem2->setNodes(myCursors2);
+    CsvTable bcCsv(bcPath.toStdString());
+    for (std::size_t i = 0; i < bcCsv.rowCount(); ++i)
+    {
+        auto id = static_cast<Id>(i + 1);
+        auto nodeId = static_cast<Id>(bcCsv.getInt(i, "Node Number"));
+        auto dofX = bcCsv.getInt(i, "X BC");
+        auto dofY = bcCsv.getInt(i, "Y BC");
+        auto dofZ = bcCsv.getInt(i, "Z BC");
 
-    pDb->emplace<HILbcForce>(1);
-    pDb->emplace<HILbcForce>(2);
-    pDb->emplace<HILbcConstraint>(3);
-    pDb->emplace<HILbcConstraint>(4);
-
-    auto pLbcForce1 = pDb->checkOut<HILbcForce>(1);
-    auto pLbcForce2 = pDb->checkOut<HILbcForce>(2);
-    auto pLbcConstraint1 = pDb->checkOut<HILbcConstraint>(3);
-    auto pLbcConstraint2 = pDb->checkOut<HILbcConstraint>(4);
-
-    pLbcForce1->addTarget(pNode1->getCursor());
-    pLbcForce1->addTarget(pNode2->getCursor());
-    pLbcForce1->setForce({1, 0, 0});
-
-    pLbcForce2->addTarget(pNode3->getCursor());
-    pLbcForce2->addTarget(pNode4->getCursor());
-    pLbcForce2->setForce({0, 1, 0});
-
-    pLbcConstraint1->addTarget(pNode2->getCursor());
-    pLbcConstraint2->addTarget(pNode1->getCursor());
-
-    pLbcConstraint1->addDof(LbcConstraintDof::LbcConstraintDofAll);
-    pLbcConstraint2->addDof(LbcConstraintDof::LbcConstraintDofAll);
-
+        pDb->emplace<HILbcConstraint>(id);
+        auto pLbcConstraint = pDb->checkOut<HILbcConstraint>(id);
+        auto pNode = pDb->checkOut<HINode>(nodeId);
+        if (pLbcConstraint && pNode)
+        {
+            pLbcConstraint->addTarget(pNode->getCursor());
+            pLbcConstraint->setDof(LbcConstraintDof::LbcConstraintDofNone);
+            // Set the degrees of freedom based on the CSV data
+            if (dofX == 0) pLbcConstraint->addDof(LbcConstraintDof::LbcConstraintDofTx);
+            if (dofY == 0) pLbcConstraint->addDof(LbcConstraintDof::LbcConstraintDofTy);
+            if (dofZ == 0) pLbcConstraint->addDof(LbcConstraintDof::LbcConstraintDofTz);
+        }
+    }
     pDb->commitTransaction();
 }
-#endif
 
-void HornetWindow::onImportModel()
+void HornetWindow::onSolve()
+{
+    auto pDoc = dynamic_cast<DocumentModel*>(m_app->docs()->activeDocument());
+    if (!pDoc)
+        return;
+    
+    auto pDb = pDoc->database();
+    if (!pDb)
+        return;
+
+    double youngsModulus = 210.0e9;
+    double poissonRatio = 0.3;
+    double density = 7850.0;
+
+    HESolveLinearAnalysis solver(density, youngsModulus, poissonRatio, HESolve::AnalysisType::Static, pDb);
+    solver.execute();
+    
+    ui->comboBoxStep->clear();
+    ui->comboBoxStep->addItem("Initial", 0);
+    ui->comboBoxStep->addItem(QString("Static"), 1);
+
+    ui->comboBoxResultType->clear();
+    ui->comboBoxResultType->addItem("Displacement", 0);
+    ui->comboBoxResultType->addItem("Von Mises Stress", 1);
+    ui->comboBoxResultType->setCurrentIndex(0);
+}
+
+void HornetWindow::onImportModelXfem()
 {
     auto pDoc = dynamic_cast<DocumentModel*>(m_app->docs()->activeDocument());
     if (!pDoc)
@@ -223,7 +331,7 @@ void HornetWindow::onImportModel()
     pDb->commitTransaction();
 }
 
-void HornetWindow::onSolve()
+void HornetWindow::onSolveXfem()
 {
     auto pDoc = dynamic_cast<DocumentModel*>(m_app->docs()->activeDocument());
     if (!pDoc)
@@ -247,7 +355,7 @@ void HornetWindow::onSolve()
 
     for (size_t i = 0; i < iterations; i++)
     {
-        HESolveXFEM2D solver(crack, thickness, density, youngsModulus, poissonRatio, HESolveXFEM2D::XfemAnalysisType::Static, HESolveXFEM2D::XfemConditionType::PlaneStrain, sifRadius, growthStepLength, pDb, static_cast<int>(i + 1));
+        HESolveXFEM2D solver(crack, thickness, density, youngsModulus, poissonRatio, HESolve::AnalysisType::Static, HESolve::ConditionType::PlaneStrain, sifRadius, growthStepLength, pDb, static_cast<int>(i + 1));
         solver.execute();
 
         auto crackResult = solver.getCrackResult(); // Get results for visualization or further processing
@@ -400,7 +508,6 @@ void HornetWindow::onShowResult()
     auto step = ui->comboBoxStep->currentData().toInt(); // can be used to get the step number for more complex scenarios
     if (step != 0)
     {
-        pDoc->view()->setShowLbc(false);
         pDoc->view()->setStep(step);
         auto resultIdx = ui->comboBoxResultType->currentIndex();
         if (resultIdx == 0) // Displacement
@@ -428,7 +535,6 @@ void HornetWindow::onUnshowResult()
     pDoc->view()->setStep(0);
     pDoc->view()->setShowDisplacement(false);
     pDoc->view()->setShowStress(false);
-    pDoc->view()->setShowLbc(true);
     pDoc->notify(MessageType::ViewRequestRedraw);
 }
 
@@ -450,4 +556,14 @@ void HornetWindow::onToggleNode()
 
     bool show = !pDoc->view()->showNode();
     pDoc->view()->setShowNode(show);
+}
+
+void HornetWindow::onToggleLbc()
+{
+    auto pDoc = dynamic_cast<DocumentModel*>(m_app->docs()->activeDocument());
+    if (!pDoc)
+        return;
+
+    bool show = !pDoc->view()->showLbc();
+    pDoc->view()->setShowLbc(show);
 }

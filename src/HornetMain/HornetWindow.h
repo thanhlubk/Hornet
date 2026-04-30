@@ -29,10 +29,13 @@ protected:
 private slots:
     void onImportModel();
     void onSolve();
+    void onImportModelXfem();
+    void onSolveXfem();
     void onShowResult();
     void onUnshowResult();
     void onToggleMeshLine();
     void onToggleNode();
+    void onToggleLbc();
 
 private:
     void createDocumentModel();
