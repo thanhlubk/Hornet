@@ -1,4 +1,4 @@
-#include "HornetExecute/HESolverXFEM2DModel.h"
+#include "HornetExecute/HESolveCrackPropagationModel.h"
 #include <HornetBase/HIElement.h>
 #include <HornetBase/HINode.h>
 #include <HornetBase/HILbcConstraint.h>
@@ -7,7 +7,7 @@
 #include <eigen3/Eigen/SparseCholesky>
 #include <eigen3/Eigen/SparseLU>
 
-namespace xfem {
+namespace XFEMCrackPropagation {
 constexpr double kPi = 3.141592653589793238462643383279502884;
 namespace {
 
@@ -18,15 +18,15 @@ Eigen::Matrix2d rotationLocal(double alpha) {
     return QT;
 }
 
-HESolverXFEM2DConditionType parseCondition(const HESolverXFEM2DConditionType condition) {
+HESolveCrackPropagationConditionType parseCondition(const HESolveCrackPropagationConditionType condition) {
     return condition;
 }
 
-Mat33 makeDMatrix(const Eigen::Vector2d& properties, HESolverXFEM2DConditionType condition) {
+Mat33 makeDMatrix(const Eigen::Vector2d& properties, HESolveCrackPropagationConditionType condition) {
     const double E = properties.x();
     const double v = properties.y();
     Mat33 D = Mat33::Zero();
-    if (condition == HESolverXFEM2DConditionType::PlaneStrain) {
+    if (condition == HESolveCrackPropagationConditionType::PlaneStrain) {
         D << 1 - v, v, 0,
              v, 1 - v, 0,
              0, 0, (1 - 2 * v) / 2.0;
@@ -42,12 +42,12 @@ Mat33 makeDMatrix(const Eigen::Vector2d& properties, HESolverXFEM2DConditionType
 
 } // namespace
 
-HESolverXFEM2DModel::HESolverXFEM2DModel(DatabaseSession* db,
+HESolveCrackPropagationModel::HESolveCrackPropagationModel(DatabaseSession* db,
              const std::vector<std::vector<Vec2>>& crack,
              const Eigen::Vector2d& properties,
              double thickness,
              double density,
-             HESolverXFEM2DConditionType condition)
+             HESolveCrackPropagationConditionType condition)
     : condition_(parseCondition(condition)),
     dMatrix_(makeDMatrix(properties, condition_)),
     crack_(crack),
@@ -111,25 +111,25 @@ HESolverXFEM2DModel::HESolverXFEM2DModel(DatabaseSession* db,
     std::vector<int> stdIds, hevIds, asymIds;
     for (std::size_t i = 0; i < nodeData.size(); ++i) {
         if (nodeData[i].kind == 0) {
-            nodes_.push_back(std::make_shared<HESolverXFEM2DStdNode>(nodeData[i].xy.x(), nodeData[i].xy.y()));
+            nodes_.push_back(std::make_shared<HESolveCrackPropagationStdNode>(nodeData[i].xy.x(), nodeData[i].xy.y()));
             stdIds.push_back(static_cast<int>(i));
             dofs_ += 2;
         } else if (nodeData[i].kind == 1) {
-            nodes_.push_back(std::make_shared<HESolverXFEM2DHevNode>(nodeData[i].xy.x(), nodeData[i].xy.y()));
+            nodes_.push_back(std::make_shared<HESolveCrackPropagationHevNode>(nodeData[i].xy.x(), nodeData[i].xy.y()));
             hevIds.push_back(static_cast<int>(i));
             dofs_ += 4;
         } else {
-            nodes_.push_back(std::make_shared<HESolverXFEM2DAsymptNode>(nodeData[i].xy.x(), nodeData[i].xy.y()));
+            nodes_.push_back(std::make_shared<HESolveCrackPropagationAsymptNode>(nodeData[i].xy.x(), nodeData[i].xy.y()));
             asymIds.push_back(static_cast<int>(i));
             dofs_ += 10;
         }
     }
 
     for (const auto& elem : elementData) {
-        const std::vector<HESolverXFEM2DNodePtr> elemNodes = {nodes_[elem[0]], nodes_[elem[1]], nodes_[elem[2]], nodes_[elem[3]]};
-        const bool allStd = std::all_of(elemNodes.begin(), elemNodes.end(), [](const HESolverXFEM2DNodePtr& n) { return n->classify() == HESolverXFEM2DNodeClass::Standard; });
-        const bool allHev = std::all_of(elemNodes.begin(), elemNodes.end(), [](const HESolverXFEM2DNodePtr& n) { return n->classify() == HESolverXFEM2DNodeClass::Heaviside; });
-        const bool allAsym = std::all_of(elemNodes.begin(), elemNodes.end(), [](const HESolverXFEM2DNodePtr& n) { return n->classify() == HESolverXFEM2DNodeClass::Asymptotic; });
+        const std::vector<HESolveCrackPropagationNodePtr> elemNodes = {nodes_[elem[0]], nodes_[elem[1]], nodes_[elem[2]], nodes_[elem[3]]};
+        const bool allStd = std::all_of(elemNodes.begin(), elemNodes.end(), [](const HESolveCrackPropagationNodePtr& n) { return n->classify() == HESolveCrackPropagationNodeClass::Standard; });
+        const bool allHev = std::all_of(elemNodes.begin(), elemNodes.end(), [](const HESolveCrackPropagationNodePtr& n) { return n->classify() == HESolveCrackPropagationNodeClass::Heaviside; });
+        const bool allAsym = std::all_of(elemNodes.begin(), elemNodes.end(), [](const HESolveCrackPropagationNodePtr& n) { return n->classify() == HESolveCrackPropagationNodeClass::Asymptotic; });
 
         std::vector<int> subBool;
         for (int i = 0; i < 8; ++i) {
@@ -137,7 +137,7 @@ HESolverXFEM2DModel::HESolverXFEM2DModel(DatabaseSession* db,
         }
 
         if (allStd) {
-            elements_.push_back(std::make_shared<HESolverXFEM2DStandardElement>(elemNodes, dMatrix_, thickness, density));
+            elements_.push_back(std::make_shared<HESolveCrackPropagationStandardElement>(elemNodes, dMatrix_, thickness, density));
             boolean_.push_back(subBool);
             continue;
         }
@@ -165,9 +165,9 @@ HESolverXFEM2DModel::HESolverXFEM2DModel(DatabaseSession* db,
                 }
             }
             if (insideCrack.empty()) {
-                elements_.push_back(std::make_shared<HESolverXFEM2DBlendedElement>(elemNodes, dMatrix_, insideCrack, thickness, density));
+                elements_.push_back(std::make_shared<HESolveCrackPropagationBlendedElement>(elemNodes, dMatrix_, insideCrack, thickness, density));
             } else {
-                elements_.push_back(std::make_shared<HESolverXFEM2DCrackBodyElement>(elemNodes, dMatrix_, insideCrack, thickness, density));
+                elements_.push_back(std::make_shared<HESolveCrackPropagationCrackBodyElement>(elemNodes, dMatrix_, insideCrack, thickness, density));
             }
             boolean_.push_back(subBool);
             continue;
@@ -204,7 +204,7 @@ HESolverXFEM2DModel::HESolverXFEM2DModel(DatabaseSession* db,
                 }
                 insideCrack = getCrackInPolygon(crack_.front(), {nodes_[elem[0]]->coordinate(), nodes_[elem[1]]->coordinate(), nodes_[elem[2]]->coordinate(), nodes_[elem[3]]->coordinate()});
             }
-            auto tipElem = std::make_shared<HESolverXFEM2DCrackTipElement>(elemNodes, dMatrix_, insideCrack, thickness, density);
+            auto tipElem = std::make_shared<HESolveCrackPropagationCrackTipElement>(elemNodes, dMatrix_, insideCrack, thickness, density);
             elements_.push_back(tipElem);
             boolean_.push_back(subBool);
             alpha_.push_back(tipElem->alpha());
@@ -213,7 +213,7 @@ HESolverXFEM2DModel::HESolverXFEM2DModel(DatabaseSession* db,
         }
 
         for (int i = 0; i < 4; ++i) {
-            if (nodes_[elem[i]]->classify() == HESolverXFEM2DNodeClass::Heaviside) {
+            if (nodes_[elem[i]]->classify() == HESolveCrackPropagationNodeClass::Heaviside) {
                 const auto it = std::find(hevIds.begin(), hevIds.end(), elem[i]);
                 const int idx = static_cast<int>(std::distance(hevIds.begin(), it));
                 subBool.push_back(static_cast<int>(nodes_.size()) * 2 + idx * 2);
@@ -221,7 +221,7 @@ HESolverXFEM2DModel::HESolverXFEM2DModel(DatabaseSession* db,
             }
         }
         for (int i = 0; i < 4; ++i) {
-            if (nodes_[elem[i]]->classify() == HESolverXFEM2DNodeClass::Asymptotic) {
+            if (nodes_[elem[i]]->classify() == HESolveCrackPropagationNodeClass::Asymptotic) {
                 const auto it = std::find(asymIds.begin(), asymIds.end(), elem[i]);
                 const int idx = static_cast<int>(std::distance(asymIds.begin(), it));
                 for (int d = 0; d < 8; ++d) {
@@ -241,7 +241,7 @@ HESolverXFEM2DModel::HESolverXFEM2DModel(DatabaseSession* db,
                 break;
             }
         }
-        elements_.push_back(std::make_shared<HESolverXFEM2DBlendedElement>(elemNodes, dMatrix_, insideCrack, thickness, density));
+        elements_.push_back(std::make_shared<HESolveCrackPropagationBlendedElement>(elemNodes, dMatrix_, insideCrack, thickness, density));
         boolean_.push_back(subBool);
     }
 
@@ -301,7 +301,7 @@ HESolverXFEM2DModel::HESolverXFEM2DModel(DatabaseSession* db,
     // }
 }
 
-void HESolverXFEM2DModel::createStiffnessMatrix() {
+void HESolveCrackPropagationModel::createStiffnessMatrix() {
     std::vector<Eigen::Triplet<double>> triplets;
     std::size_t reserveCount = 0;
     for (const auto& map : boolean_) {
@@ -332,7 +332,7 @@ void HESolverXFEM2DModel::createStiffnessMatrix() {
     stiffnessMatrix_.makeCompressed();
 }
 
-void HESolverXFEM2DModel::createMassMatrix() {
+void HESolveCrackPropagationModel::createMassMatrix() {
     std::vector<Eigen::Triplet<double>> triplets;
     std::size_t reserveCount = 0;
     for (const auto& map : boolean_) {
@@ -362,7 +362,7 @@ void HESolverXFEM2DModel::createMassMatrix() {
     massMatrix_.makeCompressed();
 }
 
-void HESolverXFEM2DModel::solve(HESolverXFEM2DAnalysisType analysis, int numberOfMode) {
+void HESolveCrackPropagationModel::solve(HESolveCrackPropagationAnalysisType analysis, int numberOfMode) {
     std::vector<int> freeDofs;
     freeDofs.reserve(dofs_);
 
@@ -400,7 +400,7 @@ void HESolverXFEM2DModel::solve(HESolverXFEM2DAnalysisType analysis, int numberO
     Kred.makeCompressed();
 
     root_ = Eigen::VectorXd::Zero(dofs_);
-    if (analysis == HESolverXFEM2DAnalysisType::Static) {
+    if (analysis == HESolveCrackPropagationAnalysisType::Static) {
         Eigen::VectorXd x;
 
         Eigen::SimplicialLDLT<Eigen::SparseMatrix<double>> ldlt;
@@ -462,7 +462,7 @@ void HESolverXFEM2DModel::solve(HESolverXFEM2DAnalysisType analysis, int numberO
     }
 }
 
-void HESolverXFEM2DModel::createDisplacement() {
+void HESolveCrackPropagationModel::createDisplacement() {
     displacement_ = root_;
     for (std::size_t i = 0; i < elements_.size(); ++i) {
         Eigen::VectorXd elemDisp(boolean_[i].size());
@@ -485,7 +485,7 @@ void HESolverXFEM2DModel::createDisplacement() {
     }
 }
 
-void HESolverXFEM2DModel::createStress() {
+void HESolveCrackPropagationModel::createStress() {
     for (auto& element : elements_) {
         element->createStress();
     }
@@ -494,7 +494,7 @@ void HESolverXFEM2DModel::createStress() {
     }
 }
 
-bool HESolverXFEM2DModel::getResultNode(HCursor* target, HIResultData& data) const noexcept {
+bool HESolveCrackPropagationModel::getResultNode(HCursor* target, HIResultData& data) const noexcept {
     auto pNode = target->item<HINode>();
     if (!pNode)
         return false;
@@ -514,7 +514,7 @@ bool HESolverXFEM2DModel::getResultNode(HCursor* target, HIResultData& data) con
     return true;
 }
 
-bool HESolverXFEM2DModel::isItInCircle(const std::vector<Vec2>& polygon, double radius, const Vec2& origin) {
+bool HESolveCrackPropagationModel::isItInCircle(const std::vector<Vec2>& polygon, double radius, const Vec2& origin) {
     for (const auto& p : polygon) {
         if (distance(p, origin) > radius) {
             return false;
@@ -523,7 +523,7 @@ bool HESolverXFEM2DModel::isItInCircle(const std::vector<Vec2>& polygon, double 
     return true;
 }
 
-std::vector<int> HESolverXFEM2DModel::getElementOnCircle(double radius, const Vec2& origin) const {
+std::vector<int> HESolveCrackPropagationModel::getElementOnCircle(double radius, const Vec2& origin) const {
     std::vector<int> nodesInside;
     for (std::size_t i = 0; i < nodes_.size(); ++i) {
         if (distance(nodes_[i]->coordinate(), origin) < radius) {
@@ -552,7 +552,7 @@ std::vector<int> HESolverXFEM2DModel::getElementOnCircle(double radius, const Ve
     return onCircle;
 }
 
-void HESolverXFEM2DModel::createSIF(double radius, int tipIndex, double growthStepLength) {
+void HESolveCrackPropagationModel::createSIF(double radius, int tipIndex, double growthStepLength) {
     const Vec2 origin = tip_.at(tipIndex);
     const double alpha = alpha_.at(tipIndex);
     const auto jIntegralElement = getElementOnCircle(radius, origin);
@@ -687,7 +687,7 @@ void HESolverXFEM2DModel::createSIF(double radius, int tipIndex, double growthSt
         }
     }
 
-    if (condition_ == HESolverXFEM2DConditionType::PlaneStrain) {
+    if (condition_ == HESolveCrackPropagationConditionType::PlaneStrain) {
         K1_ = I(0) * properties_.x() / (2.0 * (1.0 - properties_.y() * properties_.y()));
         K2_ = I(1) * properties_.x() / (2.0 * (1.0 - properties_.y() * properties_.y()));
     } else {
@@ -699,4 +699,4 @@ void HESolverXFEM2DModel::createSIF(double radius, int tipIndex, double growthSt
     nextPoint_ = Vec2(growthStepLength * std::cos(gama) + origin.x(), growthStepLength * std::sin(gama) + origin.y());
 }
 
-} // namespace xfem
+} // namespace XFEMCrackPropagation

@@ -18,7 +18,7 @@
 #include <utility>
 #include <vector>
 
-namespace xfem {
+namespace XFEMCrackPropagation {
 
 using Vec2 = Eigen::Vector2d;
 using Vec3 = Eigen::Vector3d;
@@ -48,4 +48,4 @@ inline std::string trim(std::string s) {
     return s;
 }
 
-} // namespace xfem
+} // namespace XFEMCrackPropagation

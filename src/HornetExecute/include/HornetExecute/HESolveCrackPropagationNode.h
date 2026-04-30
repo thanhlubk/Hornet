@@ -1,27 +1,27 @@
 #pragma once
-#include "HESolverXFEM2DCommon.h"
+#include "HESolveCrackPropagationCommon.h"
 
-namespace xfem {
+namespace XFEMCrackPropagation {
 
-enum class HESolverXFEM2DNodeClass {
+enum class HESolveCrackPropagationNodeClass {
     Standard,
     Heaviside,
     Asymptotic
 };
 
-std::string toString(HESolverXFEM2DNodeClass value);
+std::string toString(HESolveCrackPropagationNodeClass value);
 
-class HESolverXFEM2DNode {
+class HESolveCrackPropagationNode {
 public:
-    HESolverXFEM2DNode(double x, double y, HESolverXFEM2DNodeClass classify);
-    virtual ~HESolverXFEM2DNode() = default;
+    HESolveCrackPropagationNode(double x, double y, HESolveCrackPropagationNodeClass classify);
+    virtual ~HESolveCrackPropagationNode() = default;
 
     const Vec2& coordinate() const noexcept { return coordinate_; }
     const Vec2& displacement() const noexcept { return displacement_; }
     const Vec4& stress() const noexcept { return stress_; }
     const std::vector<Vec4>& stressList() const noexcept { return stressList_; }
     std::vector<Vec4>& stressList() noexcept { return stressList_; }
-    HESolverXFEM2DNodeClass classify() const noexcept { return classify_; }
+    HESolveCrackPropagationNodeClass classify() const noexcept { return classify_; }
 
     virtual double levelSet() const noexcept { return 0.0; }
     virtual void setLevelSet(double) {}
@@ -37,24 +37,24 @@ public:
 
 protected:
     Vec2 coordinate_;
-    HESolverXFEM2DNodeClass classify_;
+    HESolveCrackPropagationNodeClass classify_;
     std::vector<Vec4> stressList_;
     Vec4 stress_ = Vec4::Zero();
     Vec2 displacement_ = Vec2::Zero();
 };
 
-class HESolverXFEM2DStdNode final : public HESolverXFEM2DNode {
+class HESolveCrackPropagationStdNode final : public HESolveCrackPropagationNode {
 public:
-    HESolverXFEM2DStdNode(double x, double y);
+    HESolveCrackPropagationStdNode(double x, double y);
     double levelSet() const noexcept override { return levelSet_; }
 
 private:
     double levelSet_ = 0.0;
 };
 
-class HESolverXFEM2DHevNode final : public HESolverXFEM2DNode {
+class HESolveCrackPropagationHevNode final : public HESolveCrackPropagationNode {
 public:
-    HESolverXFEM2DHevNode(double x, double y);
+    HESolveCrackPropagationHevNode(double x, double y);
     double levelSet() const noexcept override { return levelSet_; }
     void setLevelSet(double value) override { levelSet_ = value; }
 
@@ -62,9 +62,9 @@ private:
     double levelSet_ = 0.0;
 };
 
-class HESolverXFEM2DAsymptNode final : public HESolverXFEM2DNode {
+class HESolveCrackPropagationAsymptNode final : public HESolveCrackPropagationNode {
 public:
-    HESolverXFEM2DAsymptNode(double x, double y);
+    HESolveCrackPropagationAsymptNode(double x, double y);
 
     double levelSet() const noexcept override { return levelSet_; }
     void setLevelSet(double value) override { levelSet_ = value; }
@@ -81,6 +81,6 @@ private:
     double levelSet_ = 0.0;
 };
 
-using HESolverXFEM2DNodePtr = std::shared_ptr<HESolverXFEM2DNode>;
+using HESolveCrackPropagationNodePtr = std::shared_ptr<HESolveCrackPropagationNode>;
 
-} // namespace xfem
+} // namespace XFEMCrackPropagation

@@ -1,14 +1,14 @@
 #pragma once
-#include "HESolverXFEM2DCommon.h"
-#include "HESolverXFEM2DNode.h"
-#include "HESolverXFEM2DTools.h"
+#include "HESolveCrackPropagationCommon.h"
+#include "HESolveCrackPropagationNode.h"
+#include "HESolveCrackPropagationTools.h"
 
-namespace xfem {
+namespace XFEMCrackPropagation {
 
-class HESolverXFEM2DElement {
+class HESolveCrackPropagationElement {
 public:
-    HESolverXFEM2DElement(std::vector<HESolverXFEM2DNodePtr> nodes, const Mat33& dMatrix, double thickness = 1.0, double density = 0.0);
-    virtual ~HESolverXFEM2DElement() = default;
+    HESolveCrackPropagationElement(std::vector<HESolveCrackPropagationNodePtr> nodes, const Mat33& dMatrix, double thickness = 1.0, double density = 0.0);
+    virtual ~HESolveCrackPropagationElement() = default;
 
     virtual void createGaussPoint() = 0;
     virtual void createStiffnessMatrix() = 0;
@@ -16,7 +16,7 @@ public:
     virtual void createDisplacement(const Eigen::VectorXd& displacementOfElement);
     virtual void createStress();
 
-    const std::vector<HESolverXFEM2DNodePtr>& nodes() const noexcept { return nodes_; }
+    const std::vector<HESolveCrackPropagationNodePtr>& nodes() const noexcept { return nodes_; }
     const Mat33& dMatrix() const noexcept { return dMatrix_; }
     double thickness() const noexcept { return thickness_; }
     double density() const noexcept { return density_; }
@@ -43,7 +43,7 @@ protected:
     void createGlobalGaussPoint();
     static void appendColumns(Eigen::MatrixXd& dst, const Eigen::MatrixXd& src);
 
-    std::vector<HESolverXFEM2DNodePtr> nodes_;
+    std::vector<HESolveCrackPropagationNodePtr> nodes_;
     Mat33 dMatrix_;
     double thickness_;
     double density_;
@@ -58,18 +58,18 @@ protected:
     Eigen::VectorXd displacement_;
 };
 
-class HESolverXFEM2DStandardElement final : public HESolverXFEM2DElement {
+class HESolveCrackPropagationStandardElement final : public HESolveCrackPropagationElement {
 public:
-    using HESolverXFEM2DElement::HESolverXFEM2DElement;
+    using HESolveCrackPropagationElement::HESolveCrackPropagationElement;
     int localDofs() const override { return 8; }
     void createGaussPoint() override;
     void createStiffnessMatrix() override;
     void createMassMatrix() override;
 };
 
-class HESolverXFEM2DCrackBodyElement final : public HESolverXFEM2DElement {
+class HESolveCrackPropagationCrackBodyElement final : public HESolveCrackPropagationElement {
 public:
-    HESolverXFEM2DCrackBodyElement(std::vector<HESolverXFEM2DNodePtr> nodes, const Mat33& dMatrix, std::vector<Vec2> crack, double thickness = 1.0, double density = 0.0);
+    HESolveCrackPropagationCrackBodyElement(std::vector<HESolveCrackPropagationNodePtr> nodes, const Mat33& dMatrix, std::vector<Vec2> crack, double thickness = 1.0, double density = 0.0);
 
     int localDofs() const override { return 16; }
     void createGaussPoint() override;
@@ -94,9 +94,9 @@ private:
     std::vector<Vec2> secondSubPolygonDisplacement_;
 };
 
-class HESolverXFEM2DCrackTipElement final : public HESolverXFEM2DElement {
+class HESolveCrackPropagationCrackTipElement final : public HESolveCrackPropagationElement {
 public:
-    HESolverXFEM2DCrackTipElement(std::vector<HESolverXFEM2DNodePtr> nodes, const Mat33& dMatrix, std::vector<Vec2> crack, double thickness = 1.0, double density = 0.0);
+    HESolveCrackPropagationCrackTipElement(std::vector<HESolveCrackPropagationNodePtr> nodes, const Mat33& dMatrix, std::vector<Vec2> crack, double thickness = 1.0, double density = 0.0);
 
     int localDofs() const override { return 40; }
     void createGaussPoint() override;
@@ -116,9 +116,9 @@ private:
     double alpha_;
 };
 
-class HESolverXFEM2DBlendedElement final : public HESolverXFEM2DElement {
+class HESolveCrackPropagationBlendedElement final : public HESolveCrackPropagationElement {
 public:
-    HESolverXFEM2DBlendedElement(std::vector<HESolverXFEM2DNodePtr> nodes, const Mat33& dMatrix, std::vector<Vec2> crack = {}, double thickness = 1.0, double density = 0.0);
+    HESolveCrackPropagationBlendedElement(std::vector<HESolveCrackPropagationNodePtr> nodes, const Mat33& dMatrix, std::vector<Vec2> crack = {}, double thickness = 1.0, double density = 0.0);
 
     int localDofs() const override { return dofs_; }
     void createGaussPoint() override;
@@ -147,6 +147,6 @@ private:
     std::vector<Vec2> secondSubPolygonDisplacement_;
 };
 
-using HESolverXFEM2DElementPtr = std::shared_ptr<HESolverXFEM2DElement>;
+using HESolveCrackPropagationElementPtr = std::shared_ptr<HESolveCrackPropagationElement>;
 
-} // namespace xfem
+} // namespace XFEMCrackPropagation

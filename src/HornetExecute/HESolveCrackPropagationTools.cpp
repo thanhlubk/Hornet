@@ -1,6 +1,6 @@
-#include "HornetExecute/HESolverXFEM2DTools.h"
+#include "HornetExecute/HESolveCrackPropagationTools.h"
 
-namespace xfem {
+namespace XFEMCrackPropagation {
 namespace {
 
 double cross2(const Vec2& a, const Vec2& b) {
@@ -199,8 +199,8 @@ std::vector<std::vector<Vec2>> subQuadMesh(const std::vector<Vec2>& nodes, int n
     return result;
 }
 
-HESolverXFEM2DQuadGaussData getQuadGaussData(int order) {
-    HESolverXFEM2DQuadGaussData data;
+HESolveCrackPropagationQuadGaussData getQuadGaussData(int order) {
+    HESolveCrackPropagationQuadGaussData data;
     std::vector<double> op;
     std::vector<double> wt;
     switch (order) {
@@ -249,10 +249,10 @@ HESolverXFEM2DQuadGaussData getQuadGaussData(int order) {
     return data;
 }
 
-HESolverXFEM2DQuadGaussData getQuadGaussPoint(int numberOfMesh, int order) {
+HESolveCrackPropagationQuadGaussData getQuadGaussPoint(int numberOfMesh, int order) {
     const std::vector<Vec2> ref = {Vec2(-1, -1), Vec2(1, -1), Vec2(1, 1), Vec2(-1, 1)};
     auto subNodes = subQuadMesh(ref, numberOfMesh);
-    HESolverXFEM2DQuadGaussData result;
+    HESolveCrackPropagationQuadGaussData result;
     for (const auto& sub : subNodes) {
         const auto local = getQuadGaussData(order);
         for (std::size_t i = 0; i < local.points.size(); ++i) {
@@ -263,8 +263,8 @@ HESolverXFEM2DQuadGaussData getQuadGaussPoint(int numberOfMesh, int order) {
     return result;
 }
 
-HESolverXFEM2DTriGaussData getTriGaussData(int order) {
-    HESolverXFEM2DTriGaussData data;
+HESolveCrackPropagationTriGaussData getTriGaussData(int order) {
+    HESolveCrackPropagationTriGaussData data;
     switch (order) {
         case 1:
             data.points = {Vec2(1.0 / 3.0, 1.0 / 3.0)};
@@ -284,8 +284,8 @@ HESolverXFEM2DTriGaussData getTriGaussData(int order) {
     return data;
 }
 
-HESolverXFEM2DTriGaussData getTriGaussPoint(const std::vector<Vec2>& nodes, int order) {
-    HESolverXFEM2DTriGaussData out;
+HESolveCrackPropagationTriGaussData getTriGaussPoint(const std::vector<Vec2>& nodes, int order) {
+    HESolveCrackPropagationTriGaussData out;
     const auto base = getTriGaussData(order);
     const double area = triArea(nodes);
     out.weights.reserve(base.weights.size());
@@ -364,8 +364,8 @@ std::vector<Vec2> getPolygonOrdinary(const std::vector<Vec2>& firstSetPoints, co
     return (a2 < a1) ? first : rev;
 }
 
-HESolverXFEM2DTriangleMesh getTriMesh(const std::vector<Vec2>& polygon) {
-    HESolverXFEM2DTriangleMesh mesh;
+HESolveCrackPropagationTriangleMesh getTriMesh(const std::vector<Vec2>& polygon) {
+    HESolveCrackPropagationTriangleMesh mesh;
     mesh.points = polygon;
     if (polygon.size() < 3) {
         return mesh;
@@ -455,4 +455,4 @@ std::vector<Vec2> getCrackInPolygon(const std::vector<Vec2>& crack, const std::v
     return inside;
 }
 
-} // namespace xfem
+} // namespace XFEMCrackPropagation

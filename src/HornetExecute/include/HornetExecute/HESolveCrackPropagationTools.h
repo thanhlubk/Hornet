@@ -1,19 +1,19 @@
 #pragma once
-#include "HESolverXFEM2DCommon.h"
+#include "HESolveCrackPropagationCommon.h"
 
-namespace xfem {
+namespace XFEMCrackPropagation {
 
-struct HESolverXFEM2DTriangleMesh {
+struct HESolveCrackPropagationTriangleMesh {
     std::vector<Vec2> points;
     std::vector<Eigen::Vector3i> triangles;
 };
 
-struct HESolverXFEM2DQuadGaussData {
+struct HESolveCrackPropagationQuadGaussData {
     std::vector<Vec2> points;
     std::vector<double> weights;
 };
 
-struct HESolverXFEM2DTriGaussData {
+struct HESolveCrackPropagationTriGaussData {
     std::vector<Vec2> points;
     std::vector<double> weights;
 };
@@ -26,19 +26,19 @@ Vec2 quadNaturalToGlobal(const Vec2& point, const std::vector<Vec2>& nodes);
 Vec2 quadGlobalToNatural(const Vec2& point, const std::vector<Vec2>& nodes, int maxIterations = 30);
 std::vector<std::vector<Vec2>> subQuadMesh(const std::vector<Vec2>& nodes, int numberOfMesh);
 
-HESolverXFEM2DQuadGaussData getQuadGaussData(int order);
-HESolverXFEM2DQuadGaussData getQuadGaussPoint(int numberOfMesh, int order);
+HESolveCrackPropagationQuadGaussData getQuadGaussData(int order);
+HESolveCrackPropagationQuadGaussData getQuadGaussPoint(int numberOfMesh, int order);
 
-HESolverXFEM2DTriGaussData getTriGaussData(int order);
-HESolverXFEM2DTriGaussData getTriGaussPoint(const std::vector<Vec2>& nodes, int order);
+HESolveCrackPropagationTriGaussData getTriGaussData(int order);
+HESolveCrackPropagationTriGaussData getTriGaussPoint(const std::vector<Vec2>& nodes, int order);
 Vec2 triNaturalToGlobal(const Vec2& point, const std::vector<Vec2>& nodes);
 
 double getLevelSet(const std::vector<Vec2>& crack, const Vec2& point);
 bool isItIntersect(const std::vector<Vec2>& line, const std::vector<Vec2>& polygon);
 std::vector<Vec2> getIntersectionPoints(const std::vector<Vec2>& line, const std::vector<Vec2>& polygon);
 std::vector<Vec2> getPolygonOrdinary(const std::vector<Vec2>& firstSetPoints, const std::vector<Vec2>& secondSetPoints);
-HESolverXFEM2DTriangleMesh getTriMesh(const std::vector<Vec2>& polygon);
+HESolveCrackPropagationTriangleMesh getTriMesh(const std::vector<Vec2>& polygon);
 int getEdgeContainPoint(const Vec2& point, const std::vector<Vec2>& polygon);
 std::vector<Vec2> getCrackInPolygon(const std::vector<Vec2>& crack, const std::vector<Vec2>& polygon);
 
-} // namespace xfem
+} // namespace XFEMCrackPropagation

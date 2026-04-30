@@ -1,6 +1,6 @@
-#include "HornetExecute/HESolverXFEM2DElement.h"
+#include "HornetExecute/HESolveCrackPropagationElement.h"
 
-namespace xfem {
+namespace XFEMCrackPropagation {
 namespace {
 
 
@@ -9,7 +9,7 @@ int wrap4(int i) {
     return v < 0 ? v + 4 : v;
 }
 
-std::vector<Vec2> extractCoordinates(const std::vector<HESolverXFEM2DNodePtr>& nodes) {
+std::vector<Vec2> extractCoordinates(const std::vector<HESolveCrackPropagationNodePtr>& nodes) {
     std::vector<Vec2> out;
     out.reserve(nodes.size());
     for (const auto& node : nodes) {
@@ -25,30 +25,30 @@ Eigen::Matrix<double, 2, 2> rotation(double alpha) {
     return QT;
 }
 
-void accumulateNodeStress(const Mat33& dMatrix, const Eigen::MatrixXd& bMatrix, const Eigen::VectorXd& displacement, HESolverXFEM2DNodePtr node) {
+void accumulateNodeStress(const Mat33& dMatrix, const Eigen::MatrixXd& bMatrix, const Eigen::VectorXd& displacement, HESolveCrackPropagationNodePtr node) {
     const Vec3 sigma = dMatrix * (bMatrix * displacement);
-    node->stressList().push_back(HESolverXFEM2DElement::stressWithVonMises(sigma));
+    node->stressList().push_back(HESolveCrackPropagationElement::stressWithVonMises(sigma));
 }
 
 } // namespace
 
-HESolverXFEM2DElement::HESolverXFEM2DElement(std::vector<HESolverXFEM2DNodePtr> nodes, const Mat33& dMatrix, double thickness, double density)
+HESolveCrackPropagationElement::HESolveCrackPropagationElement(std::vector<HESolveCrackPropagationNodePtr> nodes, const Mat33& dMatrix, double thickness, double density)
     : nodes_(std::move(nodes)),
     dMatrix_(dMatrix),
     thickness_(thickness),
     density_(density) {}
 
-void HESolverXFEM2DElement::createDisplacement(const Eigen::VectorXd& displacementOfElement) {
+void HESolveCrackPropagationElement::createDisplacement(const Eigen::VectorXd& displacementOfElement) {
     displacement_ = displacementOfElement;
 }
 
-void HESolverXFEM2DElement::appendColumns(Eigen::MatrixXd& dst, const Eigen::MatrixXd& src) {
+void HESolveCrackPropagationElement::appendColumns(Eigen::MatrixXd& dst, const Eigen::MatrixXd& src) {
     const Eigen::Index oldCols = dst.cols();
     dst.conservativeResize(dst.rows(), oldCols + src.cols());
     dst.block(0, oldCols, dst.rows(), src.cols()) = src;
 }
 
-Mat22 HESolverXFEM2DElement::jacobianForOneGaussPoint(const Vec2& gpts) const {
+Mat22 HESolveCrackPropagationElement::jacobianForOneGaussPoint(const Vec2& gpts) const {
     const double e = gpts.x();
     const double n = gpts.y();
     Eigen::Matrix<double, 2, 4> dN;
@@ -63,7 +63,7 @@ Mat22 HESolverXFEM2DElement::jacobianForOneGaussPoint(const Vec2& gpts) const {
     return dN * xy;
 }
 
-Mat28 HESolverXFEM2DElement::shapeMatrixForOneGaussPoint(const Vec2& gpts) {
+Mat28 HESolveCrackPropagationElement::shapeMatrixForOneGaussPoint(const Vec2& gpts) {
     const double e = gpts.x();
     const double n = gpts.y();
     const std::array<double, 4> shape = {
@@ -81,7 +81,7 @@ Mat28 HESolverXFEM2DElement::shapeMatrixForOneGaussPoint(const Vec2& gpts) {
     return out;
 }
 
-Eigen::MatrixXd HESolverXFEM2DElement::bMatrixForOneGaussPoint(const Vec2& gpts) const {
+Eigen::MatrixXd HESolveCrackPropagationElement::bMatrixForOneGaussPoint(const Vec2& gpts) const {
     const auto J = jacobianForOneGaussPoint(gpts);
     const double detJ = J.determinant();
     Mat34 A;
@@ -102,14 +102,14 @@ Eigen::MatrixXd HESolverXFEM2DElement::bMatrixForOneGaussPoint(const Vec2& gpts)
     return A * G;
 }
 
-Vec4 HESolverXFEM2DElement::stressWithVonMises(const Vec3& sigma) {
+Vec4 HESolveCrackPropagationElement::stressWithVonMises(const Vec3& sigma) {
     const double vm = std::sqrt(((sigma(0) - sigma(1)) * (sigma(0) - sigma(1)) +
                                  sigma(0) * sigma(0) + sigma(1) * sigma(1) +
                                  6.0 * sigma(2) * sigma(2)) / 2.0);
     return Vec4(sigma(0), sigma(1), sigma(2), vm);
 }
 
-void HESolverXFEM2DElement::createGlobalGaussPoint() {
+void HESolveCrackPropagationElement::createGlobalGaussPoint() {
     globalGaussPoints_.clear();
     const auto coords = extractCoordinates(nodes_);
     for (const auto& gp : gaussPoints_) {
@@ -117,7 +117,7 @@ void HESolverXFEM2DElement::createGlobalGaussPoint() {
     }
 }
 
-void HESolverXFEM2DElement::createStress() {
+void HESolveCrackPropagationElement::createStress() {
     createGlobalGaussPoint();
     stress_.clear();
     for (std::size_t i = 0; i < gaussPoints_.size(); ++i) {
@@ -130,13 +130,13 @@ void HESolverXFEM2DElement::createStress() {
     }
 }
 
-void HESolverXFEM2DStandardElement::createGaussPoint() {
+void HESolveCrackPropagationStandardElement::createGaussPoint() {
     const auto data = getQuadGaussPoint(1, 2);
     gaussPoints_ = data.points;
     gaussWeight_ = data.weights;
 }
 
-void HESolverXFEM2DStandardElement::createStiffnessMatrix() {
+void HESolveCrackPropagationStandardElement::createStiffnessMatrix() {
     stiffnessMatrix_ = Eigen::MatrixXd::Zero(localDofs(), localDofs());
     bMatrixForAllGaussPoint_.clear();
     for (std::size_t i = 0; i < gaussPoints_.size(); ++i) {
@@ -147,7 +147,7 @@ void HESolverXFEM2DStandardElement::createStiffnessMatrix() {
     }
 }
 
-void HESolverXFEM2DStandardElement::createMassMatrix() {
+void HESolveCrackPropagationStandardElement::createMassMatrix() {
     massMatrix_ = Eigen::MatrixXd::Zero(localDofs(), localDofs());
     for (std::size_t i = 0; i < gaussPoints_.size(); ++i) {
         const auto N = shapeMatrixForOneGaussPoint(gaussPoints_[i]);
@@ -156,12 +156,12 @@ void HESolverXFEM2DStandardElement::createMassMatrix() {
     }
 }
 
-HESolverXFEM2DCrackBodyElement::HESolverXFEM2DCrackBodyElement(std::vector<HESolverXFEM2DNodePtr> nodes, const Mat33& dMatrix, std::vector<Vec2> crack, double thickness, double density)
-    : HESolverXFEM2DElement(std::move(nodes), dMatrix, thickness, density), crack_(std::move(crack)) {
+HESolveCrackPropagationCrackBodyElement::HESolveCrackPropagationCrackBodyElement(std::vector<HESolveCrackPropagationNodePtr> nodes, const Mat33& dMatrix, std::vector<Vec2> crack, double thickness, double density)
+    : HESolveCrackPropagationElement(std::move(nodes), dMatrix, thickness, density), crack_(std::move(crack)) {
     classify_ = "CrackBody";
 }
 
-void HESolverXFEM2DCrackBodyElement::createGaussPoint() {
+void HESolveCrackPropagationCrackBodyElement::createGaussPoint() {
     gaussPoints_.clear();
     gaussWeight_.clear();
     gaussLevelSet_.clear();
@@ -223,13 +223,13 @@ void HESolverXFEM2DCrackBodyElement::createGaussPoint() {
     }
 }
 
-Eigen::MatrixXd HESolverXFEM2DCrackBodyElement::bMatrixForOneGaussPoint(const Vec2& gpts) const {
+Eigen::MatrixXd HESolveCrackPropagationCrackBodyElement::bMatrixForOneGaussPoint(const Vec2& gpts) const {
     const double ls = gaussLevelSet_.empty() ? 0.0 : gaussLevelSet_.front();
     return bMatrixForOneGaussPoint(gpts, ls);
 }
 
-Eigen::MatrixXd HESolverXFEM2DCrackBodyElement::bMatrixForOneGaussPoint(const Vec2& gpts, double gptsLevelSet) const {
-    const auto stdB = HESolverXFEM2DElement::bMatrixForOneGaussPoint(gpts);
+Eigen::MatrixXd HESolveCrackPropagationCrackBodyElement::bMatrixForOneGaussPoint(const Vec2& gpts, double gptsLevelSet) const {
+    const auto stdB = HESolveCrackPropagationElement::bMatrixForOneGaussPoint(gpts);
     Eigen::MatrixXd out(3, 0);
     for (int i = 0; i < 4; ++i) {
         Eigen::Matrix<double, 3, 2> sub;
@@ -247,8 +247,8 @@ Eigen::MatrixXd HESolverXFEM2DCrackBodyElement::bMatrixForOneGaussPoint(const Ve
     return full;
 }
 
-Eigen::MatrixXd HESolverXFEM2DCrackBodyElement::shapeMatrixForOneGaussPoint(const Vec2& gpts, double gptsLevelSet) const {
-    const auto stdN = HESolverXFEM2DElement::shapeMatrixForOneGaussPoint(gpts);
+Eigen::MatrixXd HESolveCrackPropagationCrackBodyElement::shapeMatrixForOneGaussPoint(const Vec2& gpts, double gptsLevelSet) const {
+    const auto stdN = HESolveCrackPropagationElement::shapeMatrixForOneGaussPoint(gpts);
     Eigen::MatrixXd enr(2, 0);
     for (int i = 0; i < 4; ++i) {
         Eigen::Matrix<double, 2, 2> sub = Eigen::Matrix<double, 2, 2>::Zero();
@@ -263,7 +263,7 @@ Eigen::MatrixXd HESolverXFEM2DCrackBodyElement::shapeMatrixForOneGaussPoint(cons
     return full;
 }
 
-void HESolverXFEM2DCrackBodyElement::createStiffnessMatrix() {
+void HESolveCrackPropagationCrackBodyElement::createStiffnessMatrix() {
     stiffnessMatrix_ = Eigen::MatrixXd::Zero(localDofs(), localDofs());
     bMatrixForAllGaussPoint_.clear();
     for (std::size_t i = 0; i < gaussPoints_.size(); ++i) {
@@ -274,7 +274,7 @@ void HESolverXFEM2DCrackBodyElement::createStiffnessMatrix() {
     }
 }
 
-void HESolverXFEM2DCrackBodyElement::createMassMatrix() {
+void HESolveCrackPropagationCrackBodyElement::createMassMatrix() {
     massMatrix_ = Eigen::MatrixXd::Zero(localDofs(), localDofs());
     for (std::size_t i = 0; i < gaussPoints_.size(); ++i) {
         const auto N = shapeMatrixForOneGaussPoint(gaussPoints_[i], gaussLevelSet_[i]);
@@ -283,7 +283,7 @@ void HESolverXFEM2DCrackBodyElement::createMassMatrix() {
     }
 }
 
-void HESolverXFEM2DCrackBodyElement::createDisplacement(const Eigen::VectorXd& displacementOfElement) {
+void HESolveCrackPropagationCrackBodyElement::createDisplacement(const Eigen::VectorXd& displacementOfElement) {
     displacement_ = displacementOfElement;
     firstSubPolygonDisplacement_.clear();
     secondSubPolygonDisplacement_.clear();
@@ -297,7 +297,7 @@ void HESolverXFEM2DCrackBodyElement::createDisplacement(const Eigen::VectorXd& d
     }
 }
 
-void HESolverXFEM2DCrackBodyElement::createStress() {
+void HESolveCrackPropagationCrackBodyElement::createStress() {
     createGlobalGaussPoint();
     stress_.clear();
     for (std::size_t i = 0; i < gaussPoints_.size(); ++i) {
@@ -310,8 +310,8 @@ void HESolverXFEM2DCrackBodyElement::createStress() {
     }
 }
 
-HESolverXFEM2DCrackTipElement::HESolverXFEM2DCrackTipElement(std::vector<HESolverXFEM2DNodePtr> nodes, const Mat33& dMatrix, std::vector<Vec2> crack, double thickness, double density)
-    : HESolverXFEM2DElement(std::move(nodes), dMatrix, thickness, density), crack_(std::move(crack)),
+HESolveCrackPropagationCrackTipElement::HESolveCrackPropagationCrackTipElement(std::vector<HESolveCrackPropagationNodePtr> nodes, const Mat33& dMatrix, std::vector<Vec2> crack, double thickness, double density)
+    : HESolveCrackPropagationElement(std::move(nodes), dMatrix, thickness, density), crack_(std::move(crack)),
       alpha_(std::atan2(crack_.back().y() - crack_[crack_.size() - 2].y(), crack_.back().x() - crack_[crack_.size() - 2].x())) {
     classify_ = "CrackTip";
     for (auto& node : nodes_) {
@@ -320,7 +320,7 @@ HESolverXFEM2DCrackTipElement::HESolverXFEM2DCrackTipElement(std::vector<HESolve
     }
 }
 
-Eigen::Vector4d HESolverXFEM2DCrackTipElement::branch(double r, double theta) {
+Eigen::Vector4d HESolveCrackPropagationCrackTipElement::branch(double r, double theta) {
     const double r2 = safeSqrt(r);
     const double st2 = std::sin(theta / 2.0);
     const double ct2 = std::cos(theta / 2.0);
@@ -328,7 +328,7 @@ Eigen::Vector4d HESolverXFEM2DCrackTipElement::branch(double r, double theta) {
     return Eigen::Vector4d(r2 * st2, r2 * ct2, r2 * st2 * st, r2 * ct2 * st);
 }
 
-std::array<Eigen::Vector4d, 3> HESolverXFEM2DCrackTipElement::branchDerivative(double r, double theta, double alpha) {
+std::array<Eigen::Vector4d, 3> HESolveCrackPropagationCrackTipElement::branchDerivative(double r, double theta, double alpha) {
     const double r2 = safeSqrt(r);
     const double fac = 0.5 / std::max(r2, 1e-12);
     const double st2 = std::sin(theta / 2.0);
@@ -351,9 +351,9 @@ std::array<Eigen::Vector4d, 3> HESolverXFEM2DCrackTipElement::branchDerivative(d
     return {f, dfdx, dfdy};
 }
 
-Eigen::MatrixXd HESolverXFEM2DCrackTipElement::bMatrixForOneGaussPoint(const Vec2& gpts) const {
-    const auto stdB = HESolverXFEM2DElement::bMatrixForOneGaussPoint(gpts);
-    const auto stdN = HESolverXFEM2DElement::shapeMatrixForOneGaussPoint(gpts);
+Eigen::MatrixXd HESolveCrackPropagationCrackTipElement::bMatrixForOneGaussPoint(const Vec2& gpts) const {
+    const auto stdB = HESolveCrackPropagationElement::bMatrixForOneGaussPoint(gpts);
+    const auto stdN = HESolveCrackPropagationElement::shapeMatrixForOneGaussPoint(gpts);
     const auto QT = rotation(alpha_);
     const Vec2 xy = quadNaturalToGlobal(gpts, extractCoordinates(nodes_));
     const Vec2 xp = QT * (xy - crack_.back());
@@ -386,8 +386,8 @@ Eigen::MatrixXd HESolverXFEM2DCrackTipElement::bMatrixForOneGaussPoint(const Vec
     return full;
 }
 
-Eigen::MatrixXd HESolverXFEM2DCrackTipElement::shapeMatrixForOneGaussPoint(const Vec2& gpts) const {
-    const auto stdN = HESolverXFEM2DElement::shapeMatrixForOneGaussPoint(gpts);
+Eigen::MatrixXd HESolveCrackPropagationCrackTipElement::shapeMatrixForOneGaussPoint(const Vec2& gpts) const {
+    const auto stdN = HESolveCrackPropagationElement::shapeMatrixForOneGaussPoint(gpts);
     const auto QT = rotation(alpha_);
     const Vec2 xy = quadNaturalToGlobal(gpts, extractCoordinates(nodes_));
     const Vec2 xp = QT * (xy - crack_.back());
@@ -410,7 +410,7 @@ Eigen::MatrixXd HESolverXFEM2DCrackTipElement::shapeMatrixForOneGaussPoint(const
     return full;
 }
 
-void HESolverXFEM2DCrackTipElement::createGaussPoint() {
+void HESolveCrackPropagationCrackTipElement::createGaussPoint() {
     gaussPoints_.clear();
     gaussWeight_.clear();
     const int direction = getEdgeContainPoint(crack_.front(), extractCoordinates(nodes_));
@@ -447,7 +447,7 @@ void HESolverXFEM2DCrackTipElement::createGaussPoint() {
     }
 }
 
-void HESolverXFEM2DCrackTipElement::createStiffnessMatrix() {
+void HESolveCrackPropagationCrackTipElement::createStiffnessMatrix() {
     stiffnessMatrix_ = Eigen::MatrixXd::Zero(localDofs(), localDofs());
     bMatrixForAllGaussPoint_.clear();
     for (std::size_t i = 0; i < gaussPoints_.size(); ++i) {
@@ -458,7 +458,7 @@ void HESolverXFEM2DCrackTipElement::createStiffnessMatrix() {
     }
 }
 
-void HESolverXFEM2DCrackTipElement::createMassMatrix() {
+void HESolveCrackPropagationCrackTipElement::createMassMatrix() {
     massMatrix_ = Eigen::MatrixXd::Zero(localDofs(), localDofs());
     for (std::size_t i = 0; i < gaussPoints_.size(); ++i) {
         const auto N = shapeMatrixForOneGaussPoint(gaussPoints_[i]);
@@ -467,39 +467,39 @@ void HESolverXFEM2DCrackTipElement::createMassMatrix() {
     }
 }
 
-HESolverXFEM2DBlendedElement::HESolverXFEM2DBlendedElement(std::vector<HESolverXFEM2DNodePtr> nodes, const Mat33& dMatrix, std::vector<Vec2> crack, double thickness, double density)
-    : HESolverXFEM2DElement(std::move(nodes), dMatrix, thickness, density), crack_(std::move(crack)) {
+HESolveCrackPropagationBlendedElement::HESolveCrackPropagationBlendedElement(std::vector<HESolveCrackPropagationNodePtr> nodes, const Mat33& dMatrix, std::vector<Vec2> crack, double thickness, double density)
+    : HESolveCrackPropagationElement(std::move(nodes), dMatrix, thickness, density), crack_(std::move(crack)) {
     classify_ = "Blended";
     dofs_ = 8;
     for (const auto& node : nodes_) {
-        if (node->classify() == HESolverXFEM2DNodeClass::Heaviside) {
+        if (node->classify() == HESolveCrackPropagationNodeClass::Heaviside) {
             dofs_ += 2;
-        } else if (node->classify() == HESolverXFEM2DNodeClass::Asymptotic) {
+        } else if (node->classify() == HESolveCrackPropagationNodeClass::Asymptotic) {
             dofs_ += 8;
         }
     }
 }
 
-Eigen::Vector4d HESolverXFEM2DBlendedElement::branch(double r, double theta) {
-    return HESolverXFEM2DCrackTipElement::branch(r, theta);
+Eigen::Vector4d HESolveCrackPropagationBlendedElement::branch(double r, double theta) {
+    return HESolveCrackPropagationCrackTipElement::branch(r, theta);
 }
 
-std::array<Eigen::Vector4d, 3> HESolverXFEM2DBlendedElement::branchDerivative(double r, double theta, double alpha) {
-    return HESolverXFEM2DCrackTipElement::branchDerivative(r, theta, alpha);
+std::array<Eigen::Vector4d, 3> HESolveCrackPropagationBlendedElement::branchDerivative(double r, double theta, double alpha) {
+    return HESolveCrackPropagationCrackTipElement::branchDerivative(r, theta, alpha);
 }
 
-void HESolverXFEM2DBlendedElement::createGaussPoint() {
+void HESolveCrackPropagationBlendedElement::createGaussPoint() {
     gaussPoints_.clear();
     gaussWeight_.clear();
     gaussLevelSet_.clear();
 
     if (crack_.empty()) {
-        const bool hasAsym = std::any_of(nodes_.begin(), nodes_.end(), [](const HESolverXFEM2DNodePtr& node) { return node->classify() == HESolverXFEM2DNodeClass::Asymptotic; });
+        const bool hasAsym = std::any_of(nodes_.begin(), nodes_.end(), [](const HESolveCrackPropagationNodePtr& node) { return node->classify() == HESolveCrackPropagationNodeClass::Asymptotic; });
         const auto data = hasAsym ? getQuadGaussPoint(2, 4) : getQuadGaussPoint(1, 2);
         gaussPoints_ = data.points;
         gaussWeight_ = data.weights;
 
-        const auto it = std::find_if(nodes_.begin(), nodes_.end(), [](const HESolverXFEM2DNodePtr& node) { return node->classify() == HESolverXFEM2DNodeClass::Heaviside; });
+        const auto it = std::find_if(nodes_.begin(), nodes_.end(), [](const HESolveCrackPropagationNodePtr& node) { return node->classify() == HESolveCrackPropagationNodeClass::Heaviside; });
         if (it != nodes_.end()) {
             gaussLevelSet_.assign(gaussPoints_.size(), (*it)->levelSet());
         } else {
@@ -565,18 +565,18 @@ void HESolverXFEM2DBlendedElement::createGaussPoint() {
     }
 }
 
-Eigen::MatrixXd HESolverXFEM2DBlendedElement::bMatrixForOneGaussPoint(const Vec2& gpts) const {
+Eigen::MatrixXd HESolveCrackPropagationBlendedElement::bMatrixForOneGaussPoint(const Vec2& gpts) const {
     const double ls = gaussLevelSet_.empty() ? 0.0 : gaussLevelSet_.front();
     return bMatrixForOneGaussPoint(gpts, ls);
 }
 
-Eigen::MatrixXd HESolverXFEM2DBlendedElement::bMatrixForOneGaussPoint(const Vec2& gpts, double gptsLevelSet) const {
-    const auto stdB = HESolverXFEM2DElement::bMatrixForOneGaussPoint(gpts);
+Eigen::MatrixXd HESolveCrackPropagationBlendedElement::bMatrixForOneGaussPoint(const Vec2& gpts, double gptsLevelSet) const {
+    const auto stdB = HESolveCrackPropagationElement::bMatrixForOneGaussPoint(gpts);
     Eigen::MatrixXd full = stdB;
-    const auto stdN = HESolverXFEM2DElement::shapeMatrixForOneGaussPoint(gpts);
+    const auto stdN = HESolveCrackPropagationElement::shapeMatrixForOneGaussPoint(gpts);
 
     for (int i = 0; i < 4; ++i) {
-        if (nodes_[i]->classify() == HESolverXFEM2DNodeClass::Heaviside) {
+        if (nodes_[i]->classify() == HESolveCrackPropagationNodeClass::Heaviside) {
             Eigen::Matrix<double, 3, 2> sub;
             const double first = stdB(0, i * 2);
             const double second = stdB(1, i * 2 + 1);
@@ -586,7 +586,7 @@ Eigen::MatrixXd HESolverXFEM2DBlendedElement::bMatrixForOneGaussPoint(const Vec2
                    second, first;
             sub *= bLevel;
             appendColumns(full, sub);
-        } else if (nodes_[i]->classify() == HESolverXFEM2DNodeClass::Asymptotic) {
+        } else if (nodes_[i]->classify() == HESolveCrackPropagationNodeClass::Asymptotic) {
             const double alpha = nodes_[i]->tipAngle();
             const Vec2 crack = nodes_[i]->nearestTip();
             const auto QT = rotation(alpha);
@@ -612,18 +612,18 @@ Eigen::MatrixXd HESolverXFEM2DBlendedElement::bMatrixForOneGaussPoint(const Vec2
     return full;
 }
 
-Eigen::MatrixXd HESolverXFEM2DBlendedElement::shapeMatrixForOneGaussPoint(const Vec2& gpts, double gptsLevelSet) const {
-    const auto stdN = HESolverXFEM2DElement::shapeMatrixForOneGaussPoint(gpts);
+Eigen::MatrixXd HESolveCrackPropagationBlendedElement::shapeMatrixForOneGaussPoint(const Vec2& gpts, double gptsLevelSet) const {
+    const auto stdN = HESolveCrackPropagationElement::shapeMatrixForOneGaussPoint(gpts);
     Eigen::MatrixXd full = stdN;
     for (int i = 0; i < 4; ++i) {
-        if (nodes_[i]->classify() == HESolverXFEM2DNodeClass::Heaviside) {
+        if (nodes_[i]->classify() == HESolveCrackPropagationNodeClass::Heaviside) {
             Eigen::Matrix<double, 2, 2> sub = Eigen::Matrix<double, 2, 2>::Zero();
             const double shape = stdN(0, i * 2);
             const double level = gptsLevelSet - nodes_[i]->levelSet();
             sub(0, 0) = shape * level;
             sub(1, 1) = shape * level;
             appendColumns(full, sub);
-        } else if (nodes_[i]->classify() == HESolverXFEM2DNodeClass::Asymptotic) {
+        } else if (nodes_[i]->classify() == HESolveCrackPropagationNodeClass::Asymptotic) {
             const double alpha = nodes_[i]->tipAngle();
             const Vec2 crack = nodes_[i]->nearestTip();
             const auto QT = rotation(alpha);
@@ -644,7 +644,7 @@ Eigen::MatrixXd HESolverXFEM2DBlendedElement::shapeMatrixForOneGaussPoint(const 
     return full;
 }
 
-void HESolverXFEM2DBlendedElement::createStiffnessMatrix() {
+void HESolveCrackPropagationBlendedElement::createStiffnessMatrix() {
     stiffnessMatrix_ = Eigen::MatrixXd::Zero(dofs_, dofs_);
     bMatrixForAllGaussPoint_.clear();
     for (std::size_t i = 0; i < gaussPoints_.size(); ++i) {
@@ -655,7 +655,7 @@ void HESolverXFEM2DBlendedElement::createStiffnessMatrix() {
     }
 }
 
-void HESolverXFEM2DBlendedElement::createMassMatrix() {
+void HESolveCrackPropagationBlendedElement::createMassMatrix() {
     massMatrix_ = Eigen::MatrixXd::Zero(dofs_, dofs_);
     for (std::size_t i = 0; i < gaussPoints_.size(); ++i) {
         const auto N = shapeMatrixForOneGaussPoint(gaussPoints_[i], gaussLevelSet_[i]);
@@ -664,11 +664,11 @@ void HESolverXFEM2DBlendedElement::createMassMatrix() {
     }
 }
 
-void HESolverXFEM2DBlendedElement::createDisplacement(const Eigen::VectorXd& displacementOfElement) {
+void HESolveCrackPropagationBlendedElement::createDisplacement(const Eigen::VectorXd& displacementOfElement) {
     displacement_ = displacementOfElement;
-    const bool hasStandard = std::any_of(nodes_.begin(), nodes_.end(), [](const HESolverXFEM2DNodePtr& node) { return node->classify() == HESolverXFEM2DNodeClass::Standard; });
+    const bool hasStandard = std::any_of(nodes_.begin(), nodes_.end(), [](const HESolveCrackPropagationNodePtr& node) { return node->classify() == HESolveCrackPropagationNodeClass::Standard; });
     if (hasStandard) {
-        HESolverXFEM2DElement::createDisplacement(displacementOfElement);
+        HESolveCrackPropagationElement::createDisplacement(displacementOfElement);
         return;
     }
 
@@ -684,7 +684,7 @@ void HESolverXFEM2DBlendedElement::createDisplacement(const Eigen::VectorXd& dis
     }
 }
 
-void HESolverXFEM2DBlendedElement::createStress() {
+void HESolveCrackPropagationBlendedElement::createStress() {
     createGlobalGaussPoint();
     stress_.clear();
     for (std::size_t i = 0; i < gaussPoints_.size(); ++i) {
@@ -705,4 +705,4 @@ void HESolverXFEM2DBlendedElement::createStress() {
     }
 }
 
-} // namespace xfem
+} // namespace XFEMCrackPropagation

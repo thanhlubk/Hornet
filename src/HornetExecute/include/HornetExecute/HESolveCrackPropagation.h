@@ -7,7 +7,7 @@
 #include <unordered_map>
 #include <vector>
 
-class HORNETEXECUTE_EXPORT HESolveXFEM2D : public HExecute
+class HORNETEXECUTE_EXPORT HESolveCrackPropagation : public HExecute
 {
 public:
     struct XfemCrack
@@ -17,8 +17,8 @@ public:
         double dK2;
     };
 
-    HESolveXFEM2D(std::vector<std::vector<HVector2d>> vecCrack, double thickness, double density, double youngsModulus, double poissonRatio, HESolve::AnalysisType analysisType, HESolve::ConditionType conditionType, double sifRadius, double growthStepLength, DatabaseSession* db, int step,bool transaction=true, bool logCommand=true);
-    ~HESolveXFEM2D();
+    HESolveCrackPropagation(std::vector<std::vector<HVector2d>> vecCrack, double thickness, double density, double youngsModulus, double poissonRatio, HESolve::AnalysisType analysisType, HESolve::ConditionType conditionType, double sifRadius, double growthStepLength, DatabaseSession* db, int step,bool transaction=true, bool logCommand=true);
+    ~HESolveCrackPropagation();
 
     std::vector<XfemCrack> getCrackResult() const noexcept { return m_vecCrackResult; }
 

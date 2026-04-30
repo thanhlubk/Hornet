@@ -1,12 +1,12 @@
-#include "HornetExecute/HESolveXFEM2D.h"
+#include "HornetExecute/HESolveCrackPropagation.h"
 #include <HornetBase/HINode.h>
 #include <HornetBase/HIElement.h>
 #include <HornetBase/HILbcConstraint.h>
 #include <HornetBase/HILbcForce.h>
-#include "HornetExecute/HESolverXFEM2DModel.h"
-#include "HornetExecute/HESolverXFEM2DCommon.h"
+#include "HornetExecute/HESolveCrackPropagationModel.h"
+#include "HornetExecute/HESolveCrackPropagationCommon.h"
 
-HESolveXFEM2D::HESolveXFEM2D(std::vector<std::vector<HVector2d>> vecCrack, double thickness, double density, double youngsModulus, double poissonRatio, HESolve::AnalysisType analysisType, HESolve::ConditionType conditionType, double sifRadius, double growthStepLength, DatabaseSession* db, int step, bool transaction, bool logCommand)
+HESolveCrackPropagation::HESolveCrackPropagation(std::vector<std::vector<HVector2d>> vecCrack, double thickness, double density, double youngsModulus, double poissonRatio, HESolve::AnalysisType analysisType, HESolve::ConditionType conditionType, double sifRadius, double growthStepLength, DatabaseSession* db, int step, bool transaction, bool logCommand)
     : HExecute(db, transaction, logCommand),
     m_vecCrack(std::move(vecCrack)),
     m_dThickness(thickness),
@@ -21,22 +21,22 @@ HESolveXFEM2D::HESolveXFEM2D(std::vector<std::vector<HVector2d>> vecCrack, doubl
 {
 }
 
-HESolveXFEM2D::~HESolveXFEM2D()
+HESolveCrackPropagation::~HESolveCrackPropagation()
 {
 }
 
-void HESolveXFEM2D::logCommand()
+void HESolveCrackPropagation::logCommand()
 {
     return;
 }
 
-bool HESolveXFEM2D::onExecute()
+bool HESolveCrackPropagation::onExecute()
 {
-    std::vector<std::vector<xfem::Vec2>> vecDisplayedCracks;
+    std::vector<std::vector<XFEMCrackPropagation::Vec2>> vecDisplayedCracks;
     vecDisplayedCracks.reserve(m_vecCrack.size());
     for (const auto& line : m_vecCrack)
     {
-        std::vector<xfem::Vec2> crack;
+        std::vector<XFEMCrackPropagation::Vec2> crack;
         crack.reserve(line.size());
         for (const auto& p : line) {
             crack.emplace_back(p.x, p.y);
@@ -44,10 +44,10 @@ bool HESolveXFEM2D::onExecute()
         vecDisplayedCracks.push_back(crack);
     }
     
-    auto model = xfem::HESolverXFEM2DModel(m_pDb, vecDisplayedCracks, Eigen::Vector2d(m_dYoungsModulus, m_dPoissonRatio), m_dThickness, m_dDensity, static_cast<xfem::HESolverXFEM2DConditionType>(m_eConditionType));
+    auto model = XFEMCrackPropagation::HESolveCrackPropagationModel(m_pDb, vecDisplayedCracks, Eigen::Vector2d(m_dYoungsModulus, m_dPoissonRatio), m_dThickness, m_dDensity, static_cast<XFEMCrackPropagation::HESolveCrackPropagationConditionType>(m_eConditionType));
 
     model.createStiffnessMatrix();
-    model.solve(static_cast<xfem::HESolverXFEM2DAnalysisType>(m_eAnalysisType));
+    model.solve(static_cast<XFEMCrackPropagation::HESolveCrackPropagationAnalysisType>(m_eAnalysisType));
     model.createDisplacement();
     model.createStress();
 

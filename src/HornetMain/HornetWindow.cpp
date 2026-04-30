@@ -12,7 +12,7 @@
 #include <HornetBase/HILbcConstraint.h>
 #include <QDir>
 #include "Csv.h"
-#include <HornetExecute/HESolveXFEM2D.h>
+#include <HornetExecute/HESolveCrackPropagation.h>
 #include <HornetExecute/HESolveLinearAnalysis.h>
 #include <HornetExecute/HESolveDef.h>
 
@@ -49,8 +49,8 @@ void HornetWindow::initWindow()
     ui->comboBoxStep->clear();
     ui->comboBoxResultType->clear();
 
-    connect(ui->pushButtonImport, &QPushButton::clicked, this, &HornetWindow::onImportModel);
-    connect(ui->pushButtonSolve, &QPushButton::clicked, this, &HornetWindow::onSolve);
+    connect(ui->pushButtonImport, &QPushButton::clicked, this, &HornetWindow::onImportModelXfem);
+    connect(ui->pushButtonSolve, &QPushButton::clicked, this, &HornetWindow::onSolveXfem);
     connect(ui->pushButtonShowResult, &QPushButton::clicked, this, &HornetWindow::onShowResult);
     connect(ui->pushButtonUnshowResult, &QPushButton::clicked, this, &HornetWindow::onUnshowResult);
 
@@ -355,7 +355,7 @@ void HornetWindow::onSolveXfem()
 
     for (size_t i = 0; i < iterations; i++)
     {
-        HESolveXFEM2D solver(crack, thickness, density, youngsModulus, poissonRatio, HESolve::AnalysisType::Static, HESolve::ConditionType::PlaneStrain, sifRadius, growthStepLength, pDb, static_cast<int>(i + 1));
+        HESolveCrackPropagation solver(crack, thickness, density, youngsModulus, poissonRatio, HESolve::AnalysisType::Static, HESolve::ConditionType::PlaneStrain, sifRadius, growthStepLength, pDb, static_cast<int>(i + 1));
         solver.execute();
 
         auto crackResult = solver.getCrackResult(); // Get results for visualization or further processing
