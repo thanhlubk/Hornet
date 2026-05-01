@@ -49,8 +49,8 @@ void HornetWindow::initWindow()
     ui->comboBoxStep->clear();
     ui->comboBoxResultType->clear();
 
-    connect(ui->pushButtonImport, &QPushButton::clicked, this, &HornetWindow::onImportModelXfem);
-    connect(ui->pushButtonSolve, &QPushButton::clicked, this, &HornetWindow::onSolveXfem);
+    connect(ui->pushButtonImport, &QPushButton::clicked, this, &HornetWindow::onImportModel);
+    connect(ui->pushButtonSolve, &QPushButton::clicked, this, &HornetWindow::onSolve);
     connect(ui->pushButtonShowResult, &QPushButton::clicked, this, &HornetWindow::onShowResult);
     connect(ui->pushButtonUnshowResult, &QPushButton::clicked, this, &HornetWindow::onUnshowResult);
 
@@ -71,7 +71,7 @@ void HornetWindow::onImportModel()
     if (!pDb)
         return;
     
-    auto strDatatDir = QStringLiteral("C:\\Data\\Source\\Temp\\fem_solver\\hex8_bracket_with_hole_over_5000_nodes");
+    auto strDatatDir = QStringLiteral("C:\\Data\\Source\\Temp\\fem_solver\\bracket_tet4_finer_with_hole_over_5000_nodes");
     auto nodePath = QDir(strDatatDir).filePath(QStringLiteral("Node_file.csv"));
     auto elementPath = QDir(strDatatDir).filePath(QStringLiteral("Element_file.csv"));
     auto loadPath = QDir(strDatatDir).filePath(QStringLiteral("Load_file.csv"));
@@ -415,8 +415,8 @@ void HornetWindow::createDocumentModel()
     pView->camera()->setFovDegrees(10.0f);                                 // perspective FOV
     pView->camera()->setOrthoHeight(10.0f);
 
-    pView->camera()->setOrbitRotateSpeed(30.0f);
-    pView->camera()->setOrbitPanSpeed(30.0f);
+    pView->camera()->setOrbitRotateSpeed(10.0f);
+    pView->camera()->setOrbitPanSpeed(10.0f);
 
     pView->lighting()->enableAmbient(true);
     pView->lighting()->enableDiffuse(true);
@@ -512,14 +512,15 @@ void HornetWindow::onShowResult()
         auto resultIdx = ui->comboBoxResultType->currentIndex();
         if (resultIdx == 0) // Displacement
         {
-            pDoc->view()->setShowDisplacement(true);
-            pDoc->view()->setShowStress(false);
+            pDoc->view()->setShowDeformation(true);
+            pDoc->view()->setResultComponent(3); // 0 for magnitude, 1 for x, 2 for y, etc. (if applicable)
+            pDoc->view()->setShowResultComponent(true);
         }
         else if (resultIdx == 1) // Von Mises Stress
         {
-            pDoc->view()->setShowDisplacement(false);
-            pDoc->view()->setStress(StressComponent::VonMises);
-            pDoc->view()->setShowStress(true);
+            pDoc->view()->setShowDeformation(false);
+            pDoc->view()->setResultComponent(10); // Assuming 11 corresponds to Von Mises Stress
+            pDoc->view()->setShowResultComponent(true);
         }
 
         pDoc->notify(MessageType::ViewRequestRedraw);
@@ -533,8 +534,8 @@ void HornetWindow::onUnshowResult()
         return;
 
     pDoc->view()->setStep(0);
-    pDoc->view()->setShowDisplacement(false);
-    pDoc->view()->setShowStress(false);
+    pDoc->view()->setShowDeformation(false);
+    pDoc->view()->setShowResultComponent(false);
     pDoc->notify(MessageType::ViewRequestRedraw);
 }
 

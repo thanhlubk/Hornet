@@ -507,6 +507,7 @@ bool HESolveCrackPropagationModel::getResultNode(HCursor* target, HIResultData& 
     const auto& node = nodes_[static_cast<std::size_t>(idx)];
     data.displacement.x = node->displacement().x();
     data.displacement.y = node->displacement().y();
+    data.displacement.translational = node->displacement().norm();
     data.stress.xx = node->stress().x();
     data.stress.yy = node->stress().y();
     data.stress.xy = node->stress().z();

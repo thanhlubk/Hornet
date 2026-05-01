@@ -363,6 +363,7 @@ bool HESolveLinearAnalysisModel::getResultNode(HCursor* target, HIResultData& da
     data.displacement.x = node->displacement().x();
     data.displacement.y = node->displacement().y();
     data.displacement.z = node->displacement().z();
+    data.displacement.translational = node->displacement().norm();
     data.stress.xx = node->stress()[0];
     data.stress.yy = node->stress()[1];
     data.stress.zz = node->stress()[2];

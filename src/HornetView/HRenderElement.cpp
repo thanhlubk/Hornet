@@ -347,6 +347,49 @@ void HRenderElement::setElements(const std::vector<QVector3D> &pos, const std::v
             triFaces.push_back({n0, n2, n3, n20, n23, n03, ecol, C, e.id});
         }
         break;
+        case ElementType::ElementTypePrism6:
+        {
+            // 6-node wedge / triangular prism. Assumed node order:
+            // bottom triangle: 0,1,2; top triangle: 3,4,5; vertical pairs: 0-3, 1-4, 2-5.
+            int n0 = IDX(e.v[0]), n1 = IDX(e.v[1]), n2 = IDX(e.v[2]);
+            int n3 = IDX(e.v[3]), n4 = IDX(e.v[4]), n5 = IDX(e.v[5]);
+            QVector3D C = (P(n0) + P(n1) + P(n2) + P(n3) + P(n4) + P(n5)) * (1.0f / 6.0f);
+
+            // Two triangular caps. Winding is corrected later by fixTriOutward().
+            triFaces.push_back({n0, n1, n2, -1, -1, -1, ecol, C, e.id});
+            triFaces.push_back({n3, n4, n5, -1, -1, -1, ecol, C, e.id});
+
+            // Three rectangular side faces. Winding is corrected later by fixQuadOutward().
+            quadFaces.push_back({n0, n1, n4, n3, -1, -1, -1, -1, ecol, C, e.id});
+            quadFaces.push_back({n1, n2, n5, n4, -1, -1, -1, -1, ecol, C, e.id});
+            quadFaces.push_back({n2, n0, n3, n5, -1, -1, -1, -1, ecol, C, e.id});
+        }
+        break;
+        case ElementType::ElementTypePrism15:
+        {
+            // 15-node quadratic wedge / triangular prism. Assumed node order:
+            // corners: 0,1,2 bottom and 3,4,5 top
+            // mids:    6=(0-1), 7=(1-2), 8=(2-0),
+            //          9=(3-4), 10=(4-5), 11=(5-3),
+            //          12=(0-3), 13=(1-4), 14=(2-5).
+            int c0 = IDX(e.v[0]), c1 = IDX(e.v[1]), c2 = IDX(e.v[2]);
+            int c3 = IDX(e.v[3]), c4 = IDX(e.v[4]), c5 = IDX(e.v[5]);
+            int m01 = IDX(e.v[6]), m12 = IDX(e.v[7]), m20 = IDX(e.v[8]);
+            int m34 = IDX(e.v[9]), m45 = IDX(e.v[10]), m53 = IDX(e.v[11]);
+            int m03 = IDX(e.v[12]), m14 = IDX(e.v[13]), m25 = IDX(e.v[14]);
+
+            QVector3D C = (P(c0) + P(c1) + P(c2) + P(c3) + P(c4) + P(c5)) * (1.0f / 6.0f);
+
+            // Quadratic triangular caps.
+            triFaces.push_back({c0, c1, c2, m01, m12, m20, ecol, C, e.id});
+            triFaces.push_back({c3, c4, c5, m34, m45, m53, ecol, C, e.id});
+
+            // Quadratic rectangular side faces.
+            quadFaces.push_back({c0, c1, c4, c3, m01, m14, m34, m03, ecol, C, e.id});
+            quadFaces.push_back({c1, c2, c5, c4, m12, m25, m45, m14, ecol, C, e.id});
+            quadFaces.push_back({c2, c0, c3, c5, m20, m03, m53, m25, ecol, C, e.id});
+        }
+        break;
         case ElementType::ElementTypeHex8:
         {
             int n0 = IDX(e.v[0]), n1 = IDX(e.v[1]), n2 = IDX(e.v[2]), n3 = IDX(e.v[3]);

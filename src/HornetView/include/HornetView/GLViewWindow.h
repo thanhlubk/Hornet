@@ -59,18 +59,18 @@ public:
     void setShowNode(bool show);
     bool showNode() const;
 
-    void setShowDisplacement(bool show);
-    bool showDisplacement() const;
+    void setShowDeformation(bool show);
+    bool showDeformation() const;
 
-    void setShowStress(bool show);
-    bool showStress() const;
+    void setShowResultComponent(bool show);
+    bool showResultComponent() const;
 
-    // Multiplier for displacement visualization. Default is 1000.0.
+    // Multiplier for deformation visualization. Default is 1000.0.
     void setScale(double scale);
     double scale() const;
 
-    void setStress(StressComponent component);
-    StressComponent stress() const;
+    void setResultComponent(int component);
+    int resultComponent() const;
 
     void setNotifyDispatcher(NotifyDispatcher &disp);
     void onNotify(MessageType mess, MessageParam a, MessageParam b);
@@ -119,20 +119,20 @@ private:
     DatabaseSession* m_pDb;
 
     int m_iResultStep;
-    bool m_bShowDisplacement;
-    bool m_bShowStress;
+    bool m_bShowDeformation;
+    bool m_bShowResultComponent;
     bool m_bShowLbc;
     bool m_bShowCoordinate;
     bool m_bAutoScale;
-    double m_fResultScale;
-    StressComponent m_eStressComponent;
-    bool m_bHasStressRange;
-    double m_fStressMin;
-    double m_fStressMax;
+    double m_dDeformationScale;
+    int m_iResultComponent;
+    bool m_bHasResultRange;
+    double m_dResultMin;
+    double m_dResultMax;
 
     void destroyGLObjects();
     void rebuildFromDatabase();
-    void drawStressLegend();
+    void drawResultComponentLegend();
     bool getHitPosition(const QPointF &point, QVector3D &hit, int &elemId) const;
     void selectAtPoint(const QPointF &point);
     void selectInRect(const QRectF &rectMarquee);

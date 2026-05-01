@@ -139,7 +139,10 @@ void HRenderCoordinateGizmo::draw(const QQuaternion &cameraQ, int w, int h)
     auto drawAxis = [&](const QVector3D &color, const QQuaternion &axisRot)
     {
         QMatrix4x4 M;
-        M.rotate(cameraQ);
+        // The gizmo should show world axes from the camera's current view.
+        // Use the inverse camera orientation; using cameraQ directly makes the mini-axis
+        // appear mirrored/backward relative to the main view.
+        M.rotate(cameraQ.conjugated());
         M.rotate(axisRot);
         M.scale(m_fScale);
         QMatrix4x4 MVP = P * V * M;
@@ -151,9 +154,9 @@ void HRenderCoordinateGizmo::draw(const QQuaternion &cameraQ, int w, int h)
         glBindVertexArray(0);
         m_shaderProgram.release();
     };
-    drawAxis(QVector3D(1.0f, 0.25f, 0.25f), QQuaternion::fromAxisAndAngle(0, 1, 0, -90)); // X
-    drawAxis(QVector3D(0.25f, 1.0f, 0.25f), QQuaternion::fromAxisAndAngle(1, 0, 0, 90));  // Y
-    drawAxis(QVector3D(0.25f, 0.5f, 1.0f), QQuaternion());                                // Z
+    drawAxis(QVector3D(1.0f, 0.25f, 0.25f), QQuaternion::fromAxisAndAngle(0, 1, 0, 90)); // X
+    drawAxis(QVector3D(0.25f, 1.0f, 0.25f), QQuaternion::fromAxisAndAngle(1, 0, 0, -90));  // Y
+    drawAxis(QVector3D(0.25f, 0.5f, 1.0f), QQuaternion::fromAxisAndAngle(0, 0, 1, 90)); // Z
 
     if (!scissorWas)
         glDisable(GL_SCISSOR_TEST);

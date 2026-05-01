@@ -9,6 +9,7 @@ struct HIResultDataDisplacement
     double x = 0.0;
     double y = 0.0;
     double z = 0.0;
+    double translational = 0.0; // magnitude of translational displacement
 };
 
 struct HIResultDataStress
@@ -30,6 +31,7 @@ struct HIResultDataStrain
     double xy = 0.0;
     double yz = 0.0;
     double xz = 0.0;
+    double vonMises = 0.0;
 };
 
 struct HIResultData
@@ -54,6 +56,8 @@ public:
 public:
     HIResultData getResult(HCursor* target) const noexcept;
     void setResult(HCursor* target, const HIResultData& data) noexcept;
+
+    bool getResultComponent(HCursor* target, int component, double& data) const noexcept;
 
     bool getDisplacement(HCursor* target, HIResultDataDisplacement& disp) const noexcept;
     bool getStress(HCursor* target, HIResultDataStress& stress) const noexcept;
