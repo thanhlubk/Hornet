@@ -18,7 +18,7 @@ public:
     void createStiffnessMatrix();
     void createMassMatrix();
     void solve(HESolve::AnalysisType analysis = HESolve::AnalysisType::Static, int numberOfMode = 5);
-    void createDisplacement();
+    void createDisplacement(int mode = 0);
     void createStress();
 
     const std::vector<HESolveLinearAnalysisNodePtr>& nodes() const noexcept { return nodes_; }
@@ -36,6 +36,8 @@ public:
 
     bool getResultNode(HCursor* target, HIResultData& data) const noexcept;
 
+    const Eigen::VectorXd& frequency() const noexcept { return frequency_; }
+
 private:
     Mat66 dMatrix_ = Mat66::Zero();
     std::vector<HESolveLinearAnalysisNodePtr> nodes_;
@@ -51,6 +53,9 @@ private:
     Eigen::VectorXd displacement_;
 
     std::unordered_map<std::uint64_t, std::size_t> nodeIdToIndex_;
+    Eigen::VectorXd frequency_;
+    std::vector<Eigen::VectorXd> modeShapes_;
+    HESolve::AnalysisType analysisType_;
 };
 
 } // namespace FEMLinearStatic

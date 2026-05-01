@@ -129,6 +129,7 @@ private:
     bool m_bHasResultRange;
     double m_dResultMin;
     double m_dResultMax;
+    std::string m_strResultComponentName;
 
     void destroyGLObjects();
     void rebuildFromDatabase();

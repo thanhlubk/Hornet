@@ -6,6 +6,9 @@
 #include <HornetBase/HINode.h>
 #include <HornetBase/HILbcConstraint.h>
 #include <HornetBase/HILbcForce.h>
+#include <Spectra/SymGEigsSolver.h>
+#include <Spectra/MatOp/SparseSymMatProd.h>
+#include <Spectra/MatOp/SparseCholesky.h>
 
 namespace FEMLinearStatic {
 namespace {
@@ -222,6 +225,7 @@ void HESolveLinearAnalysisModel::createMassMatrix() {
 }
 
 void HESolveLinearAnalysisModel::solve(HESolve::AnalysisType analysis, int numberOfMode) {
+    analysisType_ = analysis;
     std::vector<int> freeDofs;
     freeDofs.reserve(dofs_);
 
@@ -284,6 +288,7 @@ void HESolveLinearAnalysisModel::solve(HESolve::AnalysisType analysis, int numbe
         return;
     }
 
+#if 0
     std::vector<Eigen::Triplet<double>> mTriplets;
     mTriplets.reserve(massMatrix_.nonZeros());
     for (int outer = 0; outer < massMatrix_.outerSize(); ++outer) {
@@ -302,7 +307,10 @@ void HESolveLinearAnalysisModel::solve(HESolve::AnalysisType analysis, int numbe
 
     Eigen::MatrixXd KredDense(Kred);
     Eigen::MatrixXd MredDense(Mred);
-    Eigen::GeneralizedSelfAdjointEigenSolver<Eigen::MatrixXd> solver(KredDense, MredDense);
+    // Eigen::GeneralizedSelfAdjointEigenSolver<Eigen::MatrixXd> solver(KredDense, MredDense);
+
+    Eigen::GeneralizedSelfAdjointEigenSolver<Eigen::MatrixXd> solver;
+    solver.compute(KredDense, MredDense, Eigen::EigenvaluesOnly);
     if (solver.info() != Eigen::Success) {
         throw std::runtime_error("Generalized eigenvalue solve failed");
     }
@@ -314,10 +322,93 @@ void HESolveLinearAnalysisModel::solve(HESolve::AnalysisType analysis, int numbe
     for (int i = 0; i < modes; ++i) {
         root_(i) = std::sqrt(std::max(vals(i), 0.0)) / (2.0 * kPi);
     }
+#endif
+
+    std::vector<Eigen::Triplet<double>> mTriplets;
+    mTriplets.reserve(massMatrix_.nonZeros());
+    for (int outer = 0; outer < massMatrix_.outerSize(); ++outer) {
+        for (Eigen::SparseMatrix<double>::InnerIterator it(massMatrix_, outer); it; ++it) {
+            const int rr = dofToReduced[static_cast<std::size_t>(it.row())];
+            const int rc = dofToReduced[static_cast<std::size_t>(it.col())];
+            if (rr >= 0 && rc >= 0) {
+                mTriplets.emplace_back(rr, rc, it.value());
+            }
+        }
+    }
+
+    Eigen::SparseMatrix<double> Mred(nFree, nFree);
+    Mred.setFromTriplets(mTriplets.begin(), mTriplets.end(),
+                         [](double a, double b) { return a + b; });
+    Mred.makeCompressed();
+
+    const int nev = std::max(1, std::min<int>(numberOfMode, static_cast<int>(nFree) - 1));
+    const int ncv = std::min<int>(static_cast<int>(nFree), std::max(2 * nev + 8, 20));
+
+    using KOp = Spectra::SparseSymMatProd<double>;
+    using MOp = Spectra::SparseCholesky<double>;
+    using Solver = Spectra::SymGEigsSolver<KOp, MOp, Spectra::GEigsMode::Cholesky>;
+
+    KOp op(Kred);
+    MOp Bop(Mred);
+
+    if (Bop.info() != Spectra::CompInfo::Successful) {
+        throw std::runtime_error("Mass matrix Cholesky factorization failed");
+    }
+
+    Solver eigs(op, Bop, nev, ncv);
+    eigs.init();
+
+    const int nconv = eigs.compute(Spectra::SortRule::SmallestAlge, 1000, 1e-10);
+
+    if (eigs.info() != Spectra::CompInfo::Successful && nconv <= 0) {
+        throw std::runtime_error("Spectra modal solve failed");
+    }
+
+    Eigen::VectorXd vals = eigs.eigenvalues();
+
+    std::vector<double> positiveVals;
+    positiveVals.reserve(static_cast<std::size_t>(vals.size()));
+    for (Eigen::Index i = 0; i < vals.size(); ++i) {
+        if (vals(i) > 0.0) {
+            positiveVals.push_back(vals(i));
+        }
+    }
+    std::sort(positiveVals.begin(), positiveVals.end());
+
+    const int modes = std::min<int>(nev, static_cast<int>(positiveVals.size()));
+    constexpr double kPi = 3.141592653589793238462643383279502884;
+
+    frequency_ = Eigen::VectorXd::Zero(modes);
+    frequency_.resize(modes);
+    // root_.resize(modes);
+    for (int i = 0; i < modes; ++i) {
+        frequency_(i) = std::sqrt(positiveVals[static_cast<std::size_t>(i)]) / (2.0 * kPi);
+    }
+
+    modeShapes_.clear();
+    auto eigenvector = eigs.eigenvectors();   // size: nFree x modes
+    for (int m = 0; m < modes; m++)
+    {
+        Eigen::VectorXd phiReduced = eigenvector.col(m);
+        Eigen::VectorXd phiFull = Eigen::VectorXd::Zero(dofs_);
+        for (Eigen::Index i = 0; i < nFree; ++i)
+        {
+            phiFull(freeDofs[static_cast<std::size_t>(i)]) = phiReduced(i);
+        }
+
+        modeShapes_.push_back(phiFull);
+    }
 }
 
-void HESolveLinearAnalysisModel::createDisplacement() {
-    displacement_ = root_;
+void HESolveLinearAnalysisModel::createDisplacement(int mode)
+{
+    if (analysisType_ == HESolve::AnalysisType::Modal) {
+        displacement_ = modeShapes_[static_cast<std::size_t>(mode)];
+    }
+    else {
+        displacement_ = root_;
+    }
+    
     for (std::size_t i = 0; i < elements_.size(); ++i) {
         Eigen::VectorXd elemDisp(boolean_[i].size());
         for (std::size_t j = 0; j < boolean_[i].size(); ++j) {

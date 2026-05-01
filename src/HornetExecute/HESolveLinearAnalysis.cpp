@@ -30,15 +30,21 @@ bool HESolveLinearAnalysis::onExecute()
     if (m_eAnalysisType == HESolve::AnalysisType::Modal)
         model.solve(HESolve::AnalysisType::Modal, static_cast<int>(m_iNumModes));
     else if (m_eAnalysisType == HESolve::AnalysisType::Static)
-        model.solve(HESolve::AnalysisType::Static);
-
-    model.createDisplacement();
-    model.createStress();
-
-    m_pDb->emplace<HIResult>(1);
-    auto pResult = m_pDb->checkOut<HIResult>(1);
-    if (pResult)
     {
+        model.solve(HESolve::AnalysisType::Static);
+    }
+
+    if (m_eAnalysisType == HESolve::AnalysisType::Static)
+    {
+        model.createDisplacement();
+        model.createStress();
+
+        m_pDb->emplace<HIResult>(1);
+        auto pResult = m_pDb->checkOut<HIResult>(1);
+        if (!pResult)
+            return false;
+
+        pResult->setAnalysisType(HIResultAnalysisType::LinearStatic);
         auto pPoolNode = m_pDb->getPoolUnique(CategoryType::CatNode);
         if (pPoolNode)
         {
@@ -48,6 +54,38 @@ bool HESolveLinearAnalysis::onExecute()
                 if (model.getResultNode(crNode, data))
                 {
                     pResult->setResult(crNode, data);
+                }
+            }
+        }
+    }
+    else if (m_eAnalysisType == HESolve::AnalysisType::Modal)
+    {
+        auto vecFrequencies = model.frequency();
+        for (auto i = 0; i < vecFrequencies.size(); i++)
+        {
+            model.createDisplacement(i);
+            model.createStress();
+
+            m_pDb->emplace<HIResult>(i + 1);
+            auto pResult = m_pDb->checkOut<HIResult>(i + 1);
+            if (!pResult)
+                continue;
+
+            pResult->setAnalysisType(HIResultAnalysisType::Modal);
+
+            auto frequency = vecFrequencies[i];
+            pResult->setModalFrequency(frequency);
+
+            auto pPoolNode = m_pDb->getPoolUnique(CategoryType::CatNode);
+            if (pPoolNode)
+            {
+                for (auto any : pPoolNode->range()) {
+                    auto crNode = std::launder(reinterpret_cast<HCursor *>(any));
+                    HIResultData data;
+                    if (model.getResultNode(crNode, data))
+                    {
+                        pResult->setResult(crNode, data);
+                    }
                 }
             }
         }

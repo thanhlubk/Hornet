@@ -89,32 +89,6 @@ static QColor contourColor(double t)
                             1.0);
 }
 
-static QString resultComponentLabel(int component)
-{
-    switch (component)
-    {
-    case 0:       return QStringLiteral("Disp X");
-    case 1:       return QStringLiteral("Disp Y");
-    case 2:       return QStringLiteral("Disp Z");
-    case 3:       return QStringLiteral("Disp Translational");
-    case 4:       return QStringLiteral("Stress XX");
-    case 5:       return QStringLiteral("Stress YY");
-    case 6:       return QStringLiteral("Stress ZZ");
-    case 7:       return QStringLiteral("Stress XY");
-    case 8:       return QStringLiteral("Stress YZ");
-    case 9:      return QStringLiteral("Stress XZ");
-    case 10:      return QStringLiteral("von Mises Stress");
-    case 11:      return QStringLiteral("Strain XX");
-    case 12:      return QStringLiteral("Strain YY");
-    case 13:      return QStringLiteral("Strain ZZ");
-    case 14:      return QStringLiteral("Strain XY");
-    case 15:      return QStringLiteral("Strain YZ");
-    case 16:      return QStringLiteral("Strain XZ");
-    case 17:      return QStringLiteral("von Mises Strain");
-    }
-    return QStringLiteral("Unknown");
-}
-
 static QVector4D contourColorVector(double value, double minValue, double maxValue)
 {
     double t = 0.5;
@@ -139,6 +113,7 @@ GLViewWindow::GLViewWindow(QWindow *parent)
     , m_bHasResultRange(false)
     , m_dResultMin(0.0)
     , m_dResultMax(0.0)
+    , m_strResultComponentName("")
 {
     // QWidget-specific calls like setFocusPolicy / setMouseTracking
     // are NOT available here. Focus/mouse handling will be handled
@@ -338,7 +313,14 @@ void GLViewWindow::setNotifyDispatcher(NotifyDispatcher &disp)
 
 void GLViewWindow::onNotify(MessageType mess, MessageParam a, MessageParam b)
 {
-    if (mess == MessageType::DataModified || mess == MessageType::DataEmplaced || mess == MessageType::ViewRequestRedraw)
+    if (mess == MessageType::DataModified || mess == MessageType::DataEmplaced)
+    {
+        rebuildFromDatabase();
+        fitView();
+        m_pCamera->setFocus(m_pRenderModel->center());
+        update();
+    }
+    else if (mess == MessageType::ViewRequestRedraw)
     {
         rebuildFromDatabase();
     }
@@ -513,6 +495,7 @@ void GLViewWindow::rebuildFromDatabase()
         double minValue = std::numeric_limits<double>::max();
         double maxValue = std::numeric_limits<double>::lowest();
         bool hasAnyResult = false;
+        m_strResultComponentName = pResult->getResultComponentName(m_iResultComponent);
 
         for (size_t i = 0; i < resultValues.size(); ++i)
         {
@@ -685,8 +668,8 @@ void GLViewWindow::rebuildFromDatabase()
     if (m_pRenderConstraint)
         m_pRenderConstraint->setConstraints(renderConstraints);
 
-    fitView();
-    m_pCamera->setFocus(m_pRenderModel->center());
+    // fitView();
+    // m_pCamera->setFocus(m_pRenderModel->center());
 
     update();
 }
@@ -891,8 +874,7 @@ void GLViewWindow::drawResultComponentLegend()
     painter.setBrush(Qt::NoBrush);
     painter.drawRect(QRect(x, y, barWidth, barHeight));
 
-    const QString label = resultComponentLabel(m_iResultComponent);
-    painter.drawText(QPoint(x, y - 12), label);
+    painter.drawText(QPoint(x, y - 12), QString::fromStdString(m_strResultComponentName));
     painter.drawText(QPoint(x + barWidth + 8, y + 14),
                      QString::number(m_dResultMax, 'g', 6));
     painter.drawText(QPoint(x + barWidth + 8, y + barHeight),

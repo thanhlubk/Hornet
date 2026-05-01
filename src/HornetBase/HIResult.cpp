@@ -48,8 +48,51 @@ bool HIResult::getResultComponent(HCursor* target, int component, double& data) 
         default:
             break;
         }
+
+        // if (component >= 18 && component < 18 + static_cast<int>(resultData.extends.size()))
+        // {
+        //     data = resultData.extends[component - 18].value;
+        //     return true;
+        // }
     }
     return false;
+}
+
+std::string HIResult::getResultComponentName(int component) const noexcept
+{
+    switch (component)
+    {
+    case 0:       return "Disp X";
+    case 1:       return "Disp Y";
+    case 2:       return "Disp Z";
+    case 3:       return "Disp Translational";
+    case 4:       return "Stress XX";
+    case 5:       return "Stress YY";
+    case 6:       return "Stress ZZ";
+    case 7:       return "Stress XY";
+    case 8:       return "Stress YZ";
+    case 9:      return "Stress XZ";
+    case 10:      return "von Mises Stress";
+    case 11:      return "Strain XX";
+    case 12:      return "Strain YY";
+    case 13:      return "Strain ZZ";
+    case 14:      return "Strain XY";
+    case 15:      return "Strain YZ";
+    case 16:      return "Strain XZ";
+    case 17:      return "von Mises Strain";
+    default:
+        break;
+    }
+    // if (component >= 18)
+    //     return m_mapResult.begin()->second.extends[component - 18].name; // Assuming all extends have the same names
+    return "Unknown";
+}
+
+int HIResult::getResultComponentCount() const noexcept
+{
+    if (m_mapResult.empty())
+        return 18; // Base components only
+    return 18 /*+ static_cast<int>(m_mapResult.begin()->second.extends.size());*/;
 }
 
 bool HIResult::getDisplacement(HCursor* target, HIResultDataDisplacement& disp) const noexcept

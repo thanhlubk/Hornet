@@ -79,7 +79,32 @@ bool HESolveCrackPropagation::onExecute()
         crackResult.dK1 = model.K1();
         crackResult.dK2 = model.K2();
         m_vecCrackResult.push_back(crackResult);
+
+        extendCrack(HVector2d(model.tip()[i].x(), model.tip()[i].y()), HVector2d(crackPoint.x(), crackPoint.y()));
     }
 
     return true;
+}
+
+void HESolveCrackPropagation::extendCrack(const HVector2d& crackTip, const HVector2d& nextPoint)
+{
+    // Small epsilon for floating point comparison
+    const double tolerance = 1e-6;
+    for (auto& crackLine : m_vecCrack) {
+        if (crackLine.empty()) continue;
+
+        // Check if the crackTip is the start of the line
+        if ((crackLine.front() - crackTip).length() <= tolerance) {
+            // Add the next point to the beginning
+            crackLine.insert(crackLine.begin(), nextPoint);
+            return; // Found and updated, exit function
+        }
+
+        // Check if the crackTip is at the end of the line
+        if ((crackLine.back() - crackTip).length() <= tolerance) {
+            // Add the next point to the end
+            crackLine.push_back(nextPoint);
+            return; // Found and updated, exit function
+        }
+    }
 }

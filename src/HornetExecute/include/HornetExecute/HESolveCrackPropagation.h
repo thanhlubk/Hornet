@@ -21,10 +21,11 @@ public:
     ~HESolveCrackPropagation();
 
     std::vector<XfemCrack> getCrackResult() const noexcept { return m_vecCrackResult; }
-
+    std::vector<std::vector<HVector2d>> getCrack() const noexcept { return m_vecCrack; }
 protected:
     bool onExecute() override;
     void logCommand() override;
+    void extendCrack(const HVector2d& crackTip, const HVector2d& nextPoint);
 
 private:
     std::vector<std::vector<HVector2d>> m_vecCrack;

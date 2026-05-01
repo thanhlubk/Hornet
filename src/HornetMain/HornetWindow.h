@@ -10,6 +10,7 @@
 #include <HornetBase/NotifyDispatcher.h>
 #include <HornetBase/DatabaseSession.h>
 #include <FancyWidgets/FSplitWidget.h>
+#include <HornetUtil/HVector.h>
 
 namespace Ui {
 class HornetWindow;
@@ -26,20 +27,26 @@ public:
 protected:
     void initWindow();
 
+    void solveLinearAnalysis();
+    void solveCrackPropagation();
+
 private slots:
     void onImportModel();
     void onSolve();
-    void onImportModelXfem();
-    void onSolveXfem();
     void onShowResult();
     void onUnshowResult();
     void onToggleMeshLine();
     void onToggleNode();
     void onToggleLbc();
+    void onToggleDeformation();
+    void onStepChanged(int index);
+    void onEnableCrack(bool enabled);
 
 private:
     void createDocumentModel();
     Ui::HornetWindow *ui;
     AppBase* m_app;
     QWidget* m_pViewWidget;
+
+    std::vector<std::vector<HVector2d>> m_vecCrack;
 };

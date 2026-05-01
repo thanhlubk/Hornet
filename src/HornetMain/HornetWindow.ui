@@ -42,21 +42,8 @@
        <layout class="QVBoxLayout" name="verticalLayout">
         <item>
          <layout class="QGridLayout" name="gridLayout">
-          <item row="3" column="5">
-           <widget class="QComboBox" name="comboBoxType"/>
-          </item>
-          <item row="2" column="0">
-           <widget class="QLabel" name="label_3">
-            <property name="text">
-             <string>Young's Modulus</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="1">
-           <widget class="QLineEdit" name="lineEditModulus"/>
-          </item>
-          <item row="1" column="1">
-           <widget class="QLineEdit" name="lineEditDensity"/>
+          <item row="1" column="3">
+           <widget class="QComboBox" name="comboBoxResultType"/>
           </item>
           <item row="3" column="2">
            <widget class="QPushButton" name="pushButtonToggleNode">
@@ -65,35 +52,17 @@
             </property>
            </widget>
           </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="label_2">
-            <property name="text">
-             <string>Density</string>
-            </property>
-           </widget>
+          <item row="2" column="1">
+           <widget class="QLineEdit" name="lineEditModulus"/>
           </item>
-          <item row="1" column="5">
-           <widget class="QLineEdit" name="lineEditSifRadius"/>
+          <item row="2" column="5">
+           <widget class="QLineEdit" name="lineEditGrowthLength"/>
           </item>
-          <item row="0" column="4">
-           <widget class="QCheckBox" name="checkBoxCrack">
-            <property name="text">
-             <string>Crack</string>
-            </property>
-           </widget>
+          <item row="0" column="3">
+           <widget class="QComboBox" name="comboBoxStep"/>
           </item>
-          <item row="1" column="3">
-           <widget class="QComboBox" name="comboBoxResultType"/>
-          </item>
-          <item row="3" column="1">
-           <widget class="QLineEdit" name="lineEditPoison"/>
-          </item>
-          <item row="1" column="2">
-           <widget class="QLabel" name="label_9">
-            <property name="text">
-             <string>Result Type</string>
-            </property>
-           </widget>
+          <item row="0" column="1">
+           <widget class="QComboBox" name="comboBoxAnalysis"/>
           </item>
           <item row="2" column="3">
            <widget class="QPushButton" name="pushButtonUnshowResult">
@@ -102,27 +71,10 @@
             </property>
            </widget>
           </item>
-          <item row="2" column="2">
-           <widget class="QPushButton" name="pushButtonShowResult">
+          <item row="4" column="2">
+           <widget class="QPushButton" name="pushButtonToggleLbc">
             <property name="text">
-             <string>Show Result</string>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="4">
-           <widget class="QLabel" name="label_5">
-            <property name="text">
-             <string>Type</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="3">
-           <widget class="QComboBox" name="comboBoxStep"/>
-          </item>
-          <item row="2" column="4">
-           <widget class="QLabel" name="label_6">
-            <property name="text">
-             <string>Growth Length</string>
+             <string>Toggle Lbc</string>
             </property>
            </widget>
           </item>
@@ -133,6 +85,13 @@
             </property>
            </widget>
           </item>
+          <item row="4" column="3">
+           <widget class="QPushButton" name="pushButtonToggleDeformation">
+            <property name="text">
+             <string>Toggle Deformation</string>
+            </property>
+           </widget>
+          </item>
           <item row="1" column="4">
            <widget class="QLabel" name="label_7">
             <property name="text">
@@ -140,10 +99,17 @@
             </property>
            </widget>
           </item>
-          <item row="3" column="3">
-           <widget class="QPushButton" name="pushButtonToggleMeshline">
+          <item row="1" column="2">
+           <widget class="QLabel" name="label_9">
             <property name="text">
-             <string>Toggle Meshline</string>
+             <string>Result Type</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_3">
+            <property name="text">
+             <string>Young's Modulus</string>
             </property>
            </widget>
           </item>
@@ -154,8 +120,31 @@
             </property>
            </widget>
           </item>
-          <item row="2" column="5">
-           <widget class="QLineEdit" name="lineEditGrowthLength"/>
+          <item row="1" column="5">
+           <widget class="QLineEdit" name="lineEditSifRadius"/>
+          </item>
+          <item row="3" column="5">
+           <widget class="QLineEdit" name="lineEditThickness"/>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_2">
+            <property name="text">
+             <string>Density</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QLineEdit" name="lineEditDensity"/>
+          </item>
+          <item row="2" column="2">
+           <widget class="QPushButton" name="pushButtonShowResult">
+            <property name="text">
+             <string>Show Result</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="QLineEdit" name="lineEditPoison"/>
           </item>
           <item row="0" column="2">
            <widget class="QLabel" name="label_8">
@@ -164,15 +153,53 @@
             </property>
            </widget>
           </item>
-          <item row="0" column="1">
-           <widget class="QComboBox" name="comboBoxAnalysis"/>
-          </item>
-          <item row="4" column="2">
-           <widget class="QPushButton" name="pushButtonToggleLbc">
+          <item row="3" column="3">
+           <widget class="QPushButton" name="pushButtonToggleMeshline">
             <property name="text">
-             <string>Toggle Lbc</string>
+             <string>Toggle Meshline</string>
             </property>
            </widget>
+          </item>
+          <item row="2" column="4">
+           <widget class="QLabel" name="label_6">
+            <property name="text">
+             <string>Growth Length</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="4">
+           <widget class="QCheckBox" name="checkBoxCrack">
+            <property name="text">
+             <string>Crack</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="4">
+           <widget class="QLabel" name="label_10">
+            <property name="text">
+             <string>Thickness</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="4">
+           <widget class="QLabel" name="label_5">
+            <property name="text">
+             <string>Type</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="5">
+           <widget class="QComboBox" name="comboBoxType"/>
+          </item>
+          <item row="4" column="4">
+           <widget class="QLabel" name="label_11">
+            <property name="text">
+             <string>Num Step</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="5">
+           <widget class="QLineEdit" name="lineEditNumStep"/>
           </item>
          </layout>
         </item>

@@ -15,6 +15,8 @@
 #include <HornetExecute/HESolveCrackPropagation.h>
 #include <HornetExecute/HESolveLinearAnalysis.h>
 #include <HornetExecute/HESolveDef.h>
+#include <QFileDialog>
+#include <HornetBase/HIResult.h>
 
 namespace
 { 
@@ -47,7 +49,29 @@ void HornetWindow::initWindow()
     ui->setupUi(this);
 
     ui->comboBoxStep->clear();
+    ui->comboBoxStep->addItem("Initial", 0);
+    ui->comboBoxStep->setCurrentIndex(0);
+
     ui->comboBoxResultType->clear();
+
+    ui->comboBoxType->clear();
+    ui->comboBoxType->addItem("Plane Strain", 0);
+    ui->comboBoxType->addItem("Plane Stress", 1);
+    ui->comboBoxType->setCurrentIndex(0);
+
+    ui->comboBoxAnalysis->clear();
+    ui->comboBoxAnalysis->addItem("Static", 0);
+    ui->comboBoxAnalysis->addItem("Modal", 1);
+    ui->comboBoxAnalysis->setCurrentIndex(0);
+
+    ui->lineEditModulus->setText("2e11");
+    ui->lineEditDensity->setText("1000");
+    ui->lineEditPoison->setText("0.3");
+
+    ui->lineEditThickness->setText("1");
+    ui->lineEditGrowthLength->setText("0.005");
+    ui->lineEditSifRadius->setText("0.01");
+    ui->lineEditNumStep->setText("12");
 
     connect(ui->pushButtonImport, &QPushButton::clicked, this, &HornetWindow::onImportModel);
     connect(ui->pushButtonSolve, &QPushButton::clicked, this, &HornetWindow::onSolve);
@@ -57,7 +81,11 @@ void HornetWindow::initWindow()
     connect(ui->pushButtonToggleMeshline, &QPushButton::clicked, this, &HornetWindow::onToggleMeshLine);
     connect(ui->pushButtonToggleNode, &QPushButton::clicked, this, &HornetWindow::onToggleNode);
     connect(ui->pushButtonToggleLbc, &QPushButton::clicked, this, &HornetWindow::onToggleLbc);
+    connect(ui->pushButtonToggleDeformation, &QPushButton::clicked, this, &HornetWindow::onToggleDeformation);
+    connect(ui->comboBoxStep, &QComboBox::currentIndexChanged, this, &HornetWindow::onStepChanged);
+    connect(ui->checkBoxCrack, &QCheckBox::toggled, this, &HornetWindow::onEnableCrack);
 
+    onEnableCrack(ui->checkBoxCrack->isChecked());
     createDocumentModel();
 }
 
@@ -70,23 +98,56 @@ void HornetWindow::onImportModel()
     auto pDb = pDoc->database();
     if (!pDb)
         return;
+
+    QString strDatatDir = QFileDialog::getExistingDirectory(
+        this,                          // Parent widget
+        tr("Select Import Directory"), // Dialog title
+        "/home",                       // Starting directory (optional)
+        QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks
+    );
+
+    // 2. Check if the user actually selected something
+    if (strDatatDir.isEmpty()) {
+        // User clicked "Cancel"
+        return; 
+    }
     
-    auto strDatatDir = QStringLiteral("C:\\Data\\Source\\Temp\\fem_solver\\bracket_tet4_finer_with_hole_over_5000_nodes");
+    // auto strDatatDir = QStringLiteral("C:\\Data\\Source\\Temp\\fem_solver\\bracket_tet4_finer_with_hole_over_5000_nodes");
     auto nodePath = QDir(strDatatDir).filePath(QStringLiteral("Node_file.csv"));
     auto elementPath = QDir(strDatatDir).filePath(QStringLiteral("Element_file.csv"));
     auto loadPath = QDir(strDatatDir).filePath(QStringLiteral("Load_file.csv"));
     auto bcPath = QDir(strDatatDir).filePath(QStringLiteral("BC_file.csv"));
 
+    QString crackPath = QString("");
+    m_vecCrack.clear();
+    if (ui->checkBoxCrack->isChecked())
+    {
+        crackPath = QDir(strDatatDir).filePath(QStringLiteral("Crack_file.csv"));
+        CsvTable crackCsv(crackPath.toStdString());
+        for (std::size_t i = 0; i < crackCsv.rowCount(); ++i)
+        {
+            auto crackNum = static_cast<Id>(crackCsv.getInt(i, "Crack Number"));
+            auto X = crackCsv.getDouble(i, "Point X");
+            auto Y = crackCsv.getDouble(i, "Point Y");
+
+            if (m_vecCrack.size() < crackNum)
+                m_vecCrack.resize(crackNum);
+
+            m_vecCrack[crackNum - 1].push_back({X, Y});
+        }
+    }
 
     pDb->beginTransaction();
-
     CsvTable nodeCsv(nodePath.toStdString());
     for (std::size_t i = 0; i < nodeCsv.rowCount(); ++i)
     {
         auto id = nodeCsv.getDouble(i, "Node Number");
         auto x = nodeCsv.getDouble(i, "X Location (m)");
         auto y = nodeCsv.getDouble(i, "Y Location (m)");
-        auto z = nodeCsv.getDouble(i, "Z Location (m)");
+
+        double z = 0.0;
+        if (!ui->checkBoxCrack->isChecked())
+            z = nodeCsv.getDouble(i, "Z Location (m)");
 
         pDb->emplace<HINode>(static_cast<Id>(id));
         auto pNode = pDb->checkOut<HINode>(static_cast<Id>(id));
@@ -161,6 +222,25 @@ void HornetWindow::onImportModel()
             }
             pElem->setNodes(nodeCursors);
         }
+        else if (elementCsv.getString(i, "Element Type") == "QUAD4")
+        {
+            std::vector<Id> nodeIds = {
+                static_cast<Id>(elementCsv.getInt(i, "Nodes 1")),
+                static_cast<Id>(elementCsv.getInt(i, "Nodes 2")),
+                static_cast<Id>(elementCsv.getInt(i, "Nodes 3")),
+                static_cast<Id>(elementCsv.getInt(i, "Nodes 4"))
+            };
+            pDb->emplace<HIElementQuad4>(id);
+            auto pElem = pDb->checkOut<HIElementQuad4>(id);
+            std::vector<HCursor*> nodeCursors;
+            for (const auto& nodeId : nodeIds)
+            {
+                auto pNode = pDb->checkOut<HINode>(nodeId);
+                if (pNode)
+                    nodeCursors.push_back(pNode->getCursor());
+            }
+            pElem->setNodes(nodeCursors);
+        }
     }
 
     CsvTable loadCsv(loadPath.toStdString());
@@ -170,7 +250,10 @@ void HornetWindow::onImportModel()
         auto nodeId = static_cast<Id>(loadCsv.getInt(i, "Node Number"));
         auto fx = loadCsv.getDouble(i, "X Load");
         auto fy = loadCsv.getDouble(i, "Y Load");
-        auto fz = loadCsv.getDouble(i, "Z Load");
+
+        double fz = 0.0;
+        if (!ui->checkBoxCrack->isChecked())
+            fz = loadCsv.getDouble(i, "Z Load");
 
         pDb->emplace<HILbcForce>(id);
         auto pLbcForce = pDb->checkOut<HILbcForce>(id);
@@ -189,7 +272,10 @@ void HornetWindow::onImportModel()
         auto nodeId = static_cast<Id>(bcCsv.getInt(i, "Node Number"));
         auto dofX = bcCsv.getInt(i, "X BC");
         auto dofY = bcCsv.getInt(i, "Y BC");
-        auto dofZ = bcCsv.getInt(i, "Z BC");
+
+        int dofZ = 1;
+        if (!ui->checkBoxCrack->isChecked())
+            dofZ = bcCsv.getInt(i, "Z BC");
 
         pDb->emplace<HILbcConstraint>(id);
         auto pLbcConstraint = pDb->checkOut<HILbcConstraint>(id);
@@ -217,23 +303,72 @@ void HornetWindow::onSolve()
     if (!pDb)
         return;
 
-    double youngsModulus = 210.0e9;
-    double poissonRatio = 0.3;
-    double density = 7850.0;
+    double youngsModulus = ui->lineEditModulus->text().toDouble();
+    double poissonRatio = ui->lineEditPoison->text().toDouble();
+    double density = ui->lineEditDensity->text().toDouble();
+    HESolve::AnalysisType analysisType = static_cast<HESolve::AnalysisType>(ui->comboBoxAnalysis->currentData().toInt());
 
-    HESolveLinearAnalysis solver(density, youngsModulus, poissonRatio, HESolve::AnalysisType::Static, pDb);
-    solver.execute();
+    if (ui->checkBoxCrack->isChecked())
+    {
+        double thickness = ui->lineEditThickness->text().toDouble();
+        double sifRadius = ui->lineEditSifRadius->text().toDouble();
+        double growthStepLength = ui->lineEditGrowthLength->text().toDouble();
+        double iterations = ui->lineEditNumStep->text().toDouble();
+        HESolve::ConditionType conditionType = static_cast<HESolve::ConditionType>(ui->comboBoxType->currentData().toInt());
+
+        for (size_t i = 0; i < iterations; i++)
+        {
+            HESolveCrackPropagation solver(m_vecCrack, thickness, density, youngsModulus, poissonRatio, analysisType, conditionType, sifRadius, growthStepLength, pDb, static_cast<int>(i + 1));
+            solver.execute();
+
+            auto crackResult = solver.getCrackResult(); // Get results for visualization or further processing
+            qDebug() << "Iteration" << i + 1 << ": Crack tip at" << crackResult[0].vCrackPoint.x << "," << crackResult[0].vCrackPoint.y;
+
+            qDebug() << "K1" << crackResult[0].dK1;
+            qDebug() << "K2" << crackResult[0].dK2;
+
+            m_vecCrack = solver.getCrack(); // Update crack geometry for next iteration
+        }
     
-    ui->comboBoxStep->clear();
-    ui->comboBoxStep->addItem("Initial", 0);
-    ui->comboBoxStep->addItem(QString("Static"), 1);
-
-    ui->comboBoxResultType->clear();
-    ui->comboBoxResultType->addItem("Displacement", 0);
-    ui->comboBoxResultType->addItem("Von Mises Stress", 1);
-    ui->comboBoxResultType->setCurrentIndex(0);
+        ui->comboBoxStep->clear();
+        ui->comboBoxStep->addItem("Initial", 0);
+        for (size_t i = 0; i < iterations; i++)    {
+            ui->comboBoxStep->addItem(QString("Step %1").arg(i + 1), static_cast<int>(i + 1));
+        }
+        ui->comboBoxStep->setCurrentIndex(0);
+    }
+    else
+    {
+        HESolveLinearAnalysis solver(density, youngsModulus, poissonRatio, analysisType, pDb);
+        solver.execute();
+        
+        ui->comboBoxStep->clear();
+        ui->comboBoxStep->addItem("Initial", 0);
+        if (analysisType == HESolve::AnalysisType::Static)
+        {
+            ui->comboBoxStep->addItem(QString("Static"), 1);
+        }
+        else if (analysisType == HESolve::AnalysisType::Modal)
+        {
+            auto pPoolResult = pDb->getPoolUnique(CategoryType::CatResult);
+            if (pPoolResult)
+            {
+                for (auto any : pPoolResult->range()) {
+                    auto crResult = std::launder(reinterpret_cast<HCursor *>(any));
+                    auto pResult = crResult->item<HIResult>();
+                    if (pResult)
+                    {
+                        const auto& frequency = pResult->modalFrequency();
+                        ui->comboBoxStep->addItem(QString("Mode %1: %2 Hz").arg(crResult->id()).arg(frequency), static_cast<int>(crResult->id()));
+                    }
+                }
+            }
+        }
+        ui->comboBoxStep->setCurrentIndex(0);
+    }
 }
 
+#if 0
 void HornetWindow::onImportModelXfem()
 {
     auto pDoc = dynamic_cast<DocumentModel*>(m_app->docs()->activeDocument());
@@ -359,11 +494,12 @@ void HornetWindow::onSolveXfem()
         solver.execute();
 
         auto crackResult = solver.getCrackResult(); // Get results for visualization or further processing
-        crack[0].push_back(crackResult[0].vCrackPoint); // Update crack geometry for next iteration
         qDebug() << "Iteration" << i + 1 << ": Crack tip at" << crackResult[0].vCrackPoint.x << "," << crackResult[0].vCrackPoint.y;
 
         qDebug() << "K1" << crackResult[0].dK1;
         qDebug() << "K2" << crackResult[0].dK2;
+
+        crack = solver.getCrack(); // Update crack geometry for next iteration
     }
     
     ui->comboBoxStep->clear();
@@ -371,12 +507,9 @@ void HornetWindow::onSolveXfem()
     for (size_t i = 0; i < iterations; i++)    {
         ui->comboBoxStep->addItem(QString("Step %1").arg(i + 1), static_cast<int>(i + 1));
     }
-
-    ui->comboBoxResultType->clear();
-    ui->comboBoxResultType->addItem("Displacement", 0);
-    ui->comboBoxResultType->addItem("Von Mises Stress", 1);
-    ui->comboBoxResultType->setCurrentIndex(0);
+    ui->comboBoxStep->setCurrentIndex(0);
 }
+#endif
 
 void HornetWindow::createDocumentModel()
 {
@@ -509,20 +642,9 @@ void HornetWindow::onShowResult()
     if (step != 0)
     {
         pDoc->view()->setStep(step);
-        auto resultIdx = ui->comboBoxResultType->currentIndex();
-        if (resultIdx == 0) // Displacement
-        {
-            pDoc->view()->setShowDeformation(true);
-            pDoc->view()->setResultComponent(3); // 0 for magnitude, 1 for x, 2 for y, etc. (if applicable)
-            pDoc->view()->setShowResultComponent(true);
-        }
-        else if (resultIdx == 1) // Von Mises Stress
-        {
-            pDoc->view()->setShowDeformation(false);
-            pDoc->view()->setResultComponent(10); // Assuming 11 corresponds to Von Mises Stress
-            pDoc->view()->setShowResultComponent(true);
-        }
-
+        auto resultIdx = ui->comboBoxResultType->currentData().toInt();
+        pDoc->view()->setResultComponent(resultIdx);
+        pDoc->view()->setShowResultComponent(true);
         pDoc->notify(MessageType::ViewRequestRedraw);
     }
 }
@@ -567,4 +689,52 @@ void HornetWindow::onToggleLbc()
 
     bool show = !pDoc->view()->showLbc();
     pDoc->view()->setShowLbc(show);
+}
+
+void HornetWindow::onToggleDeformation()
+{
+    auto pDoc = dynamic_cast<DocumentModel*>(m_app->docs()->activeDocument());
+    if (!pDoc)
+        return;
+
+    bool show = !pDoc->view()->showDeformation();
+    pDoc->view()->setShowDeformation(show);
+    pDoc->notify(MessageType::ViewRequestRedraw);
+}
+
+void HornetWindow::onStepChanged(int index)
+{
+    auto pDoc = dynamic_cast<DocumentModel*>(m_app->docs()->activeDocument());
+    if (!pDoc)
+        return;
+
+    auto pDb = pDoc->database();
+    if (!pDb)
+        return;
+
+    int step = ui->comboBoxStep->itemData(index).toInt();
+    ui->comboBoxResultType->clear();
+
+    if (step == 0)
+        return;
+
+    auto pResult = pDb->get<HIResult>(step);
+    if (pResult)
+    {
+        for (int i = 0; i < pResult->getResultComponentCount(); ++i)
+        {
+            ui->comboBoxResultType->addItem(QString::fromStdString(pResult->getResultComponentName(i)), i);
+        }
+
+        ui->comboBoxResultType->setCurrentIndex(0);
+    }
+}
+
+void HornetWindow::onEnableCrack(bool enabled)
+{
+    ui->lineEditSifRadius->setEnabled(enabled);
+    ui->lineEditThickness->setEnabled(enabled);
+    ui->lineEditGrowthLength->setEnabled(enabled);
+    ui->lineEditNumStep->setEnabled(enabled);
+    ui->comboBoxType->setEnabled(enabled);
 }
