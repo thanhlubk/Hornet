@@ -150,6 +150,7 @@ GLViewWindow::GLViewWindow(QWindow *parent)
     m_pRenderForce = new HRenderForce(this);
     m_pRenderModel = new HRenderModel(this);
     m_pRenderConstraint = new HRenderConstraint(this);
+    m_pRenderCustomDraw = new HRenderCustomDraw(this);
 }
 
 GLViewWindow::~GLViewWindow()
@@ -757,6 +758,11 @@ HRenderConstraint *GLViewWindow::constraintRenderer()
     return m_pRenderConstraint; 
 }
 
+HRenderCustomDraw *GLViewWindow::customDrawRenderer()
+{
+    return m_pRenderCustomDraw;
+}
+
 void GLViewWindow::initializeGL()
 {
     GLenum err = glewInit();
@@ -779,6 +785,7 @@ void GLViewWindow::initializeGL()
     m_pRenderCoordinate->initialize();
     m_pRenderForce->initialize();
     m_pRenderConstraint->initialize();
+    m_pRenderCustomDraw->initialize();
 
     connect(m_pLighting, &HViewLighting::lightingChanged, this, [this]() { update(); });
     connect(m_pCamera, &HViewCamera::viewChanged, this, [this]() { update(); });
@@ -787,6 +794,8 @@ void GLViewWindow::initializeGL()
     connect(m_pRenderForce, &HRenderForce::dataChanged, this, [this]() { update(); });
     connect(m_pRenderConstraint, &HRenderConstraint::dataChanged, this, [this]() { update(); });
     connect(m_pRenderModel, &HRenderModel::settingChanged, this, [this]() { update(); });
+    connect(m_pRenderCustomDraw, &HRenderCustomDraw::dataChanged, this, [this]() { update(); });
+    connect(m_pRenderCustomDraw, &HRenderCustomDraw::settingChanged, this, [this]() { update(); });
 
     // QObject::connect(context(), &QOpenGLContext::aboutToBeDestroyed, this, [this] { destroyGLObjects(); }, Qt::DirectConnection);
 }
@@ -807,6 +816,9 @@ void GLViewWindow::paintGL()
 
     // Main mesh
     m_pRenderModel->draw(P, V, m_pLighting);
+
+    // Custom draw calls (e.g. for debug visualization)
+    m_pRenderCustomDraw->draw(P, V);
 
     // LBC overlay. Data stays cached in the renderers; this flag only controls drawing.
     if (m_bShowLbc)
@@ -1114,7 +1126,8 @@ void GLViewWindow::destroyGLObjects()
     m_pRenderForce->destroy();
     m_pRenderModel->destroy();
     m_pRenderCoordinate->destroy();
-
+    m_pRenderCustomDraw->destroy();
+    
     if (bMake)
         doneCurrent();
 }

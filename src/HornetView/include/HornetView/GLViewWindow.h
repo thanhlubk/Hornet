@@ -22,6 +22,7 @@
 #include "HRenderForce.h"
 #include "HRenderConstraint.h"
 #include "HViewSelectionManager.h"
+#include "HRenderCustomDraw.h"
 #include "HViewDef.h"
 #include "HornetBase/NotifyDispatcher.h"
 #include "HornetBase/DatabaseSession.h"
@@ -99,6 +100,7 @@ public:
     HRenderModel* modelRenderer();
     HRenderForce* forceRenderer();
     HRenderConstraint* constraintRenderer();
+    HRenderCustomDraw* customDrawRenderer();
 
 protected:
     // QOpenGLWidget
@@ -143,7 +145,8 @@ private:
     HRenderCoordinateGizmo* m_pRenderCoordinate;
     HRenderForce* m_pRenderForce;
     HRenderConstraint* m_pRenderConstraint;
-
+    HRenderCustomDraw* m_pRenderCustomDraw;
+    
     // View control
     HViewSelectionManager* m_pSelection;
     HViewCamera* m_pCamera;

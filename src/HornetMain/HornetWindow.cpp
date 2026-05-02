@@ -658,6 +658,22 @@ void HornetWindow::onUnshowResult()
     pDoc->view()->setStep(0);
     pDoc->view()->setShowDeformation(false);
     pDoc->view()->setShowResultComponent(false);
+    // pDoc->view()->customDrawRenderer()->setPointSize(10.0f);
+    pDoc->view()->customDrawRenderer()->setLineWidth(2.0f);
+    for (auto i = 0; i < m_vecCrack.size(); i++)
+    {
+        for (auto j = 0; j < m_vecCrack[i].size() - 1; j++)
+        {
+            QVector3D start(m_vecCrack[i][j].x, m_vecCrack[i][j].y, 0);
+            QVector3D end(m_vecCrack[i][j + 1].x, m_vecCrack[i][j + 1].y, 0);
+            pDoc->view()->customDrawRenderer()->drawCustomLine3D(start, end, QColor(0, 170, 170));
+        }
+        // for (auto j = 0; j < m_vecCrack[i].size(); j++)
+        // {
+        //     QVector3D point(m_vecCrack[i][j].x, m_vecCrack[i][j].y, 0);
+        //     pDoc->view()->customDrawRenderer()->drawCustomPoint3D(point, QColor(255, 0, 0));
+        // }
+    }
     pDoc->notify(MessageType::ViewRequestRedraw);
 }
 
