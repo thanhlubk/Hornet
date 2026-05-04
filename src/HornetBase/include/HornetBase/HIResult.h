@@ -66,7 +66,8 @@ class HORNETBASE_EXPORT HIResult : public HItem
 public:
     HIResult(Id id, HCursor *cursor, HItemCreatorToken tok);
 
-    DEFINE_TRANSACTION_EXCHANGE(&HIResult::m_mapResult,
+    DEFINE_TRANSACTION_EXCHANGE(&HIResult::m_iStep,
+                                &HIResult::m_mapResult,
                                 &HIResult::m_eAnalysisType,
                                 &HIResult::m_dModalFrequency)
     

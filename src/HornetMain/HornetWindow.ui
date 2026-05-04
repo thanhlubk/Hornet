@@ -65,9 +65,9 @@
            <widget class="QComboBox" name="comboBoxAnalysis"/>
           </item>
           <item row="2" column="3">
-           <widget class="QPushButton" name="pushButtonUnshowResult">
+           <widget class="QPushButton" name="pushButtonShowInitialState">
             <property name="text">
-             <string>Unshow Result</string>
+             <string>Show Initial State</string>
             </property>
            </widget>
           </item>

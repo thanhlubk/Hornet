@@ -51,10 +51,12 @@ bool HESolveCrackPropagation::onExecute()
     model.createDisplacement();
     model.createStress();
 
-    m_pDb->emplace<HIResult>(m_iStep + 1);
-    auto pResult = m_pDb->checkOut<HIResult>(m_iStep + 1);
+    m_pDb->emplace<HIResult>(m_iStep);
+    auto pResult = m_pDb->checkOut<HIResult>(m_iStep);
     if (pResult)
     {
+        pResult->setAnalysisType(HIResultAnalysisType::LinearStatic);
+        pResult->setStep(m_iStep);
         auto pPoolNode = m_pDb->getPoolUnique(CategoryType::CatNode);
         if (pPoolNode)
         {

@@ -190,12 +190,15 @@ HESolveCrackPropagationModel::HESolveCrackPropagationModel(DatabaseSession* db,
                 }
                 const double sum = std::accumulate(levelSet.begin(), levelSet.end(), 0.0);
                 if (std::abs(sum) != 4.0) {
-                    found = true;
                     for (int i = 0; i < 4; ++i) {
                         nodes_[elem[i]]->setLevelSet(levelSet[i]);
                     }
                     insideCrack = getCrackInPolygon(crackPath, {nodes_[elem[0]]->coordinate(), nodes_[elem[1]]->coordinate(), nodes_[elem[2]]->coordinate(), nodes_[elem[3]]->coordinate()});
-                    break;
+
+                    if (!insideCrack.empty()) {
+                        found = true;
+                        break;
+                    }
                 }
             }
             if (!found && !crack_.empty()) {

@@ -24,18 +24,28 @@ public:
     // Call this from GLViewWindow::paintGL() after the model pass.
     void draw(const QMatrix4x4 &P, const QMatrix4x4 &V);
 
-    // Adds one custom point. The primitive stays until clearCustomPoints()/clear() is called.
-    void drawCustomPoint3D(const QVector3D &position);
-    void drawCustomPoint3D(const QVector3D &position, const QColor &color);
+    // Adds one custom point and returns a stable primitive id.
+    // The primitive stays until clearCustomPoint(id), clearCustomPoints(), or clear() is called.
+    int drawCustomPoint3D(const QVector3D &position);
+    int drawCustomPoint3D(const QVector3D &position, const QColor &color);
+    int drawCustomPoint3D(const QVector3D &position, const QColor &color, float pointSize);
 
-    // Adds one custom line segment. The primitive stays until clearCustomLines()/clear() is called.
-    void drawCustomLine3D(const QVector3D &p0, const QVector3D &p1);
-    void drawCustomLine3D(const QVector3D &p0, const QVector3D &p1, const QColor &color);
+    // Adds one custom line segment and returns a stable primitive id.
+    // The primitive stays until clearCustomLine(id), clearCustomLines(), or clear() is called.
+    int drawCustomLine3D(const QVector3D &p0, const QVector3D &p1);
+    int drawCustomLine3D(const QVector3D &p0, const QVector3D &p1, const QColor &color);
+    int drawCustomLine3D(const QVector3D &p0, const QVector3D &p1, const QColor &color, float lineWidth);
 
     void clear();
     void clearCustomPoints();
     void clearCustomLines();
 
+    // Remove one primitive by id. Return true if something was removed.
+    bool clearCustomPoint(int id);
+    bool clearCustomLine(int id);
+    bool clearCustomPrimitive(int id);
+
+    // Defaults are still used by overloads that do not pass pointSize/lineWidth.
     void setPointSize(float pixel);
     float pointSize() const;
 
@@ -62,8 +72,28 @@ signals:
     void dataChanged();
 
 private:
+    struct CustomPoint
+    {
+        int id = -1;
+        QVector3D position;
+        QVector4D color;
+        float size = 1.0f;
+    };
+
+    struct CustomLine
+    {
+        int id = -1;
+        QVector3D p0;
+        QVector3D p1;
+        QVector4D color;
+        float width = 1.0f;
+    };
+
     static QVector4D toVec4(const QColor &color);
     static QVector3D toVec3(const QVector4D &color);
+    static float clampPixel(float pixel);
+
+    int nextPrimitiveId();
 
     void uploadPoints();
     void uploadLines();
@@ -77,6 +107,7 @@ private:
     GLuint m_pointVao;
     GLuint m_pointVboPosition;
     GLuint m_pointVboColor;
+    GLuint m_pointVboSize;
 
     GLuint m_lineVao;
     GLuint m_lineVboPosition;
@@ -93,15 +124,22 @@ private:
     bool m_bShowPoints;
     bool m_bShowLines;
 
+    int m_iNextPrimitiveId;
+
     float m_fPointSize;
     float m_fLineWidth;
     QVector4D m_vDefaultPointColor;
     QVector4D m_vDefaultLineColor;
 
+    std::vector<CustomPoint> m_vecPoints;
+    std::vector<CustomLine> m_vecLines;
+
     std::vector<QVector3D> m_vecPointPositions;
     std::vector<QVector4D> m_vecPointColors;
+    std::vector<float> m_vecPointSizes;
 
     std::vector<QVector3D> m_vecLinePositions;
     std::vector<QVector4D> m_vecLineColors;
     std::vector<uint32_t> m_vecLineIndices;
+    std::vector<float> m_vecLineWidths;
 };

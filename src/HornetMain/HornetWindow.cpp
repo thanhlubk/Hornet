@@ -17,6 +17,7 @@
 #include <HornetExecute/HESolveDef.h>
 #include <QFileDialog>
 #include <HornetBase/HIResult.h>
+#include <QMessageBox>
 
 namespace
 { 
@@ -73,10 +74,12 @@ void HornetWindow::initWindow()
     ui->lineEditSifRadius->setText("0.01");
     ui->lineEditNumStep->setText("12");
 
+    m_mapStepCrack.clear();
+
     connect(ui->pushButtonImport, &QPushButton::clicked, this, &HornetWindow::onImportModel);
     connect(ui->pushButtonSolve, &QPushButton::clicked, this, &HornetWindow::onSolve);
     connect(ui->pushButtonShowResult, &QPushButton::clicked, this, &HornetWindow::onShowResult);
-    connect(ui->pushButtonUnshowResult, &QPushButton::clicked, this, &HornetWindow::onUnshowResult);
+    connect(ui->pushButtonShowInitialState, &QPushButton::clicked, this, &HornetWindow::onShowInitalState);
 
     connect(ui->pushButtonToggleMeshline, &QPushButton::clicked, this, &HornetWindow::onToggleMeshLine);
     connect(ui->pushButtonToggleNode, &QPushButton::clicked, this, &HornetWindow::onToggleNode);
@@ -118,11 +121,12 @@ void HornetWindow::onImportModel()
     auto loadPath = QDir(strDatatDir).filePath(QStringLiteral("Load_file.csv"));
     auto bcPath = QDir(strDatatDir).filePath(QStringLiteral("BC_file.csv"));
 
-    QString crackPath = QString("");
-    m_vecCrack.clear();
     if (ui->checkBoxCrack->isChecked())
     {
-        crackPath = QDir(strDatatDir).filePath(QStringLiteral("Crack_file.csv"));
+        std::vector<std::vector<HVector2d>> vecCrack;
+        vecCrack.clear();
+
+        QString crackPath = QDir(strDatatDir).filePath(QStringLiteral("Crack_file.csv"));
         CsvTable crackCsv(crackPath.toStdString());
         for (std::size_t i = 0; i < crackCsv.rowCount(); ++i)
         {
@@ -130,11 +134,33 @@ void HornetWindow::onImportModel()
             auto X = crackCsv.getDouble(i, "Point X");
             auto Y = crackCsv.getDouble(i, "Point Y");
 
-            if (m_vecCrack.size() < crackNum)
-                m_vecCrack.resize(crackNum);
+            if (vecCrack.size() < crackNum)
+                vecCrack.resize(crackNum);
 
-            m_vecCrack[crackNum - 1].push_back({X, Y});
+            vecCrack[crackNum - 1].push_back({X, Y});
         }
+
+        m_mapStepCrack[0] = vecCrack;
+
+        QString propPath = QDir(strDatatDir).filePath(QStringLiteral("Properties_file.csv"));
+        CsvTable propCsv(propPath.toStdString());
+        double propDensity = propCsv.getDouble(0, "Density");
+        double propYoungModulus = propCsv.getDouble(0, "Young Modulus");
+        double propPoison = propCsv.getDouble(0, "Poison Ratio");
+        double propSIF = propCsv.getDouble(0, "SIF");
+        double propGrowth = propCsv.getDouble(0, "Growth Length");
+        double propThickness = propCsv.getDouble(0, "Thickness");
+        int propType = propCsv.getInt(0, "Type");
+        int propIteration = propCsv.getInt(0, "Iteration");
+
+        ui->lineEditDensity->setText(QString::number(propDensity));
+        ui->lineEditModulus->setText(QString::number(propYoungModulus));
+        ui->lineEditPoison->setText(QString::number(propPoison));
+        ui->lineEditSifRadius->setText(QString::number(propSIF));
+        ui->lineEditGrowthLength->setText(QString::number(propGrowth));
+        ui->lineEditThickness->setText(QString::number(propThickness));
+        ui->comboBoxType->setCurrentIndex(propType);
+        ui->lineEditNumStep->setText(QString::number(propIteration));
     }
 
     pDb->beginTransaction();
@@ -291,6 +317,8 @@ void HornetWindow::onImportModel()
         }
     }
     pDb->commitTransaction();
+
+    onShowInitalState();
 }
 
 void HornetWindow::onSolve()
@@ -316,9 +344,11 @@ void HornetWindow::onSolve()
         double iterations = ui->lineEditNumStep->text().toDouble();
         HESolve::ConditionType conditionType = static_cast<HESolve::ConditionType>(ui->comboBoxType->currentData().toInt());
 
+        auto initialCrack = m_mapStepCrack[0];
         for (size_t i = 0; i < iterations; i++)
         {
-            HESolveCrackPropagation solver(m_vecCrack, thickness, density, youngsModulus, poissonRatio, analysisType, conditionType, sifRadius, growthStepLength, pDb, static_cast<int>(i + 1));
+            m_mapStepCrack[i + 1] = initialCrack;
+            HESolveCrackPropagation solver(initialCrack, thickness, density, youngsModulus, poissonRatio, analysisType, conditionType, sifRadius, growthStepLength, pDb, static_cast<int>(i + 1));
             solver.execute();
 
             auto crackResult = solver.getCrackResult(); // Get results for visualization or further processing
@@ -327,7 +357,7 @@ void HornetWindow::onSolve()
             qDebug() << "K1" << crackResult[0].dK1;
             qDebug() << "K2" << crackResult[0].dK2;
 
-            m_vecCrack = solver.getCrack(); // Update crack geometry for next iteration
+            initialCrack = solver.getCrack(); // Update crack geometry for next iteration
         }
     
         ui->comboBoxStep->clear();
@@ -359,13 +389,15 @@ void HornetWindow::onSolve()
                     if (pResult)
                     {
                         const auto& frequency = pResult->modalFrequency();
-                        ui->comboBoxStep->addItem(QString("Mode %1: %2 Hz").arg(crResult->id()).arg(frequency), static_cast<int>(crResult->id()));
+                        ui->comboBoxStep->addItem(QString("Mode %1: %2 Hz").arg(pResult->step()).arg(frequency), static_cast<int>(pResult->step()));
                     }
                 }
             }
         }
         ui->comboBoxStep->setCurrentIndex(0);
     }
+
+    QMessageBox::information(this, "Process Complete", "Finish solving");
 }
 
 #if 0
@@ -645,36 +677,45 @@ void HornetWindow::onShowResult()
         auto resultIdx = ui->comboBoxResultType->currentData().toInt();
         pDoc->view()->setResultComponent(resultIdx);
         pDoc->view()->setShowResultComponent(true);
+        drawCrack(step);
         pDoc->notify(MessageType::ViewRequestRedraw);
     }
 }
 
-void HornetWindow::onUnshowResult()
+void HornetWindow::onShowInitalState()
 {
     auto pDoc = dynamic_cast<DocumentModel*>(m_app->docs()->activeDocument());
     if (!pDoc)
         return;
 
-    pDoc->view()->setStep(0);
+    auto step = ui->comboBoxStep->currentData().toInt();
+    pDoc->view()->setStep(step);
     pDoc->view()->setShowDeformation(false);
     pDoc->view()->setShowResultComponent(false);
-    // pDoc->view()->customDrawRenderer()->setPointSize(10.0f);
-    pDoc->view()->customDrawRenderer()->setLineWidth(2.0f);
-    for (auto i = 0; i < m_vecCrack.size(); i++)
-    {
-        for (auto j = 0; j < m_vecCrack[i].size() - 1; j++)
-        {
-            QVector3D start(m_vecCrack[i][j].x, m_vecCrack[i][j].y, 0);
-            QVector3D end(m_vecCrack[i][j + 1].x, m_vecCrack[i][j + 1].y, 0);
-            pDoc->view()->customDrawRenderer()->drawCustomLine3D(start, end, QColor(0, 170, 170));
-        }
-        // for (auto j = 0; j < m_vecCrack[i].size(); j++)
-        // {
-        //     QVector3D point(m_vecCrack[i][j].x, m_vecCrack[i][j].y, 0);
-        //     pDoc->view()->customDrawRenderer()->drawCustomPoint3D(point, QColor(255, 0, 0));
-        // }
-    }
+    drawCrack(step);
     pDoc->notify(MessageType::ViewRequestRedraw);
+}
+
+void HornetWindow::drawCrack(int step)
+{
+    auto pDoc = dynamic_cast<DocumentModel*>(m_app->docs()->activeDocument());
+    if (!pDoc)
+        return;
+        
+    pDoc->view()->customDrawRenderer()->clearCustomLines();
+    if (m_mapStepCrack.find(step) != m_mapStepCrack.end())
+    {
+        pDoc->view()->customDrawRenderer()->setLineWidth(2.0f);
+        for (auto i = 0; i < m_mapStepCrack[step].size(); i++)
+        {
+            for (auto j = 0; j < m_mapStepCrack[step][i].size() - 1; j++)
+            {
+                QVector3D start(m_mapStepCrack[step][i][j].x, m_mapStepCrack[step][i][j].y, 0);
+                QVector3D end(m_mapStepCrack[step][i][j + 1].x, m_mapStepCrack[step][i][j + 1].y, 0);
+                pDoc->view()->customDrawRenderer()->drawCustomLine3D(start, end, QColor(30, 30, 30));
+            }
+        }
+    }
 }
 
 void HornetWindow::onToggleMeshLine()
@@ -713,6 +754,7 @@ void HornetWindow::onToggleDeformation()
     if (!pDoc)
         return;
 
+    pDoc->view()->customDrawRenderer()->clearCustomLines();
     bool show = !pDoc->view()->showDeformation();
     pDoc->view()->setShowDeformation(show);
     pDoc->notify(MessageType::ViewRequestRedraw);
@@ -744,6 +786,8 @@ void HornetWindow::onStepChanged(int index)
 
         ui->comboBoxResultType->setCurrentIndex(0);
     }
+
+    onShowInitalState();
 }
 
 void HornetWindow::onEnableCrack(bool enabled)

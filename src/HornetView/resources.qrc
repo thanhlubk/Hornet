@@ -4,6 +4,7 @@
     <file alias="element">shaders/VSElement.glsl</file>
     <file alias="coordinate">shaders/VSCoordinate.glsl</file>
     <file alias="force">shaders/VSForce.glsl</file>
+    <file alias="customdraw">shaders/VSCustomDraw.glsl</file>
   </qresource>
 
   <qresource prefix="shader/fragment">
@@ -11,5 +12,6 @@
     <file alias="element">shaders/FSElement.glsl</file>
     <file alias="coordinate">shaders/FSCoordinate.glsl</file>
     <file alias="force">shaders/FSForce.glsl</file>
+    <file alias="customdraw">shaders/FSCustomDraw.glsl</file>
   </qresource>
 </RCC>

@@ -34,7 +34,7 @@ private slots:
     void onImportModel();
     void onSolve();
     void onShowResult();
-    void onUnshowResult();
+    void onShowInitalState();
     void onToggleMeshLine();
     void onToggleNode();
     void onToggleLbc();
@@ -44,9 +44,10 @@ private slots:
 
 private:
     void createDocumentModel();
+    void drawCrack(int step);
     Ui::HornetWindow *ui;
     AppBase* m_app;
     QWidget* m_pViewWidget;
 
-    std::vector<std::vector<HVector2d>> m_vecCrack;
+    std::unordered_map<int, std::vector<std::vector<HVector2d>>> m_mapStepCrack;
 };

@@ -29,11 +29,6 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/HornetMain/HornetWindow.ui" line="70"/>
-        <source>Unshow Result</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../src/HornetMain/HornetWindow.ui" line="142"/>
         <source>Show Result</source>
         <translation type="unfinished"></translation>
@@ -66,6 +61,11 @@
     <message>
         <location filename="../src/HornetMain/HornetWindow.ui" line="77"/>
         <source>Toggle Lbc</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/HornetMain/HornetWindow.ui" line="70"/>
+        <source>Show Initial State</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -109,7 +109,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/HornetMain/HornetWindow.cpp" line="104"/>
+        <location filename="../src/HornetMain/HornetWindow.cpp" line="107"/>
         <source>Select Import Directory</source>
         <translation type="unfinished"></translation>
     </message>

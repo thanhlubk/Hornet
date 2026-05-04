@@ -345,7 +345,14 @@ void GLViewWindow::rebuildFromDatabase()
             for (auto any : pPoolResult->range())
             {
                 auto crCurrentResult = std::launder(reinterpret_cast<HCursor *>(any));
-                if (!crCurrentResult || static_cast<int>(crCurrentResult->id()) != m_iResultStep)
+                if (!crCurrentResult)
+                    continue;
+
+                auto pCurrentResult = crCurrentResult->item<HIResult>();
+                if (!pCurrentResult)
+                    continue;
+                
+                if (pCurrentResult->step() != m_iResultStep)
                     continue;
 
                 crResult = crCurrentResult;
@@ -1127,7 +1134,7 @@ void GLViewWindow::destroyGLObjects()
     m_pRenderModel->destroy();
     m_pRenderCoordinate->destroy();
     m_pRenderCustomDraw->destroy();
-    
+
     if (bMake)
         doneCurrent();
 }

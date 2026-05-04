@@ -45,6 +45,7 @@ bool HESolveLinearAnalysis::onExecute()
             return false;
 
         pResult->setAnalysisType(HIResultAnalysisType::LinearStatic);
+        pResult->setStep(1);
         auto pPoolNode = m_pDb->getPoolUnique(CategoryType::CatNode);
         if (pPoolNode)
         {
@@ -72,7 +73,7 @@ bool HESolveLinearAnalysis::onExecute()
                 continue;
 
             pResult->setAnalysisType(HIResultAnalysisType::Modal);
-
+            pResult->setStep(i + 1);
             auto frequency = vecFrequencies[i];
             pResult->setModalFrequency(frequency);
 

@@ -8,6 +8,7 @@ HRenderCustomDraw::HRenderCustomDraw(QObject *parent)
     m_pointVao = 0;
     m_pointVboPosition = 0;
     m_pointVboColor = 0;
+    m_pointVboSize = 0;
 
     m_lineVao = 0;
     m_lineVboPosition = 0;
@@ -24,6 +25,8 @@ HRenderCustomDraw::HRenderCustomDraw(QObject *parent)
     m_bShowPoints = true;
     m_bShowLines = true;
 
+    m_iNextPrimitiveId = 1;
+
     m_fPointSize = 6.0f;
     m_fLineWidth = 1.0f;
     m_vDefaultPointColor = QVector4D(0.95f, 0.35f, 0.25f, 1.0f);
@@ -35,24 +38,25 @@ void HRenderCustomDraw::initialize()
     initializeOpenGLFunctions();
 
     m_pointShaderProgram.removeAllShaders();
-    if (!m_pointShaderProgram.addShaderFromSourceFile(QOpenGLShader::Vertex, ":/shader/vertex/node"))
-        qWarning("Failed compiling custom point vertex shader: %s", qPrintable(m_pointShaderProgram.log()));
-    if (!m_pointShaderProgram.addShaderFromSourceFile(QOpenGLShader::Fragment, ":/shader/fragment/node"))
-        qWarning("Failed compiling custom point fragment shader: %s", qPrintable(m_pointShaderProgram.log()));
+    if (!m_pointShaderProgram.addShaderFromSourceFile(QOpenGLShader::Vertex, ":/shader/vertex/customdraw"))
+        qWarning("Failed compiling custom draw point vertex shader: %s", qPrintable(m_pointShaderProgram.log()));
+    if (!m_pointShaderProgram.addShaderFromSourceFile(QOpenGLShader::Fragment, ":/shader/fragment/customdraw"))
+        qWarning("Failed compiling custom draw point fragment shader: %s", qPrintable(m_pointShaderProgram.log()));
     if (!m_pointShaderProgram.link())
         qWarning() << m_pointShaderProgram.log();
 
     m_lineShaderProgram.removeAllShaders();
-    if (!m_lineShaderProgram.addShaderFromSourceFile(QOpenGLShader::Vertex, ":/shader/vertex/element"))
-        qWarning("Failed compiling custom line vertex shader: %s", qPrintable(m_lineShaderProgram.log()));
-    if (!m_lineShaderProgram.addShaderFromSourceFile(QOpenGLShader::Fragment, ":/shader/fragment/element"))
-        qWarning("Failed compiling custom line fragment shader: %s", qPrintable(m_lineShaderProgram.log()));
+    if (!m_lineShaderProgram.addShaderFromSourceFile(QOpenGLShader::Vertex, ":/shader/vertex/customdraw"))
+        qWarning("Failed compiling custom draw line vertex shader: %s", qPrintable(m_lineShaderProgram.log()));
+    if (!m_lineShaderProgram.addShaderFromSourceFile(QOpenGLShader::Fragment, ":/shader/fragment/customdraw"))
+        qWarning("Failed compiling custom draw line fragment shader: %s", qPrintable(m_lineShaderProgram.log()));
     if (!m_lineShaderProgram.link())
         qWarning() << m_lineShaderProgram.log();
 
     glGenVertexArrays(1, &m_pointVao);
     glGenBuffers(1, &m_pointVboPosition);
     glGenBuffers(1, &m_pointVboColor);
+    glGenBuffers(1, &m_pointVboSize);
 
     glGenVertexArrays(1, &m_lineVao);
     glGenBuffers(1, &m_lineVboPosition);
@@ -90,6 +94,11 @@ void HRenderCustomDraw::destroy()
         m_lineVao = 0;
     }
 
+    if (m_pointVboSize)
+    {
+        glDeleteBuffers(1, &m_pointVboSize);
+        m_pointVboSize = 0;
+    }
     if (m_pointVboColor)
     {
         glDeleteBuffers(1, &m_pointVboColor);
@@ -133,53 +142,84 @@ void HRenderCustomDraw::draw(const QMatrix4x4 &P, const QMatrix4x4 &V)
         drawPoints(P, V);
 }
 
-void HRenderCustomDraw::drawCustomPoint3D(const QVector3D &position)
+int HRenderCustomDraw::drawCustomPoint3D(const QVector3D &position)
 {
-    drawCustomPoint3D(position, defaultPointColor());
+    return drawCustomPoint3D(position, defaultPointColor(), m_fPointSize);
 }
 
-void HRenderCustomDraw::drawCustomPoint3D(const QVector3D &position, const QColor &color)
+int HRenderCustomDraw::drawCustomPoint3D(const QVector3D &position, const QColor &color)
 {
-    m_vecPointPositions.push_back(position);
-    m_vecPointColors.push_back(toVec4(color));
-    m_iPointCount = GLsizei(m_vecPointPositions.size());
+    return drawCustomPoint3D(position, color, m_fPointSize);
+}
+
+int HRenderCustomDraw::drawCustomPoint3D(const QVector3D &position, const QColor &color, float pointSize)
+{
+    const int id = nextPrimitiveId();
+
+    CustomPoint p;
+    p.id = id;
+    p.position = position;
+    p.color = toVec4(color);
+    p.size = clampPixel(pointSize);
+
+    m_vecPoints.push_back(p);
+    m_iPointCount = GLsizei(m_vecPoints.size());
     m_bDirtyPoints = true;
     emit dataChanged();
+    return id;
 }
 
-void HRenderCustomDraw::drawCustomLine3D(const QVector3D &p0, const QVector3D &p1)
+int HRenderCustomDraw::drawCustomLine3D(const QVector3D &p0, const QVector3D &p1)
 {
-    drawCustomLine3D(p0, p1, defaultLineColor());
+    return drawCustomLine3D(p0, p1, defaultLineColor(), m_fLineWidth);
 }
 
-void HRenderCustomDraw::drawCustomLine3D(const QVector3D &p0, const QVector3D &p1, const QColor &color)
+int HRenderCustomDraw::drawCustomLine3D(const QVector3D &p0, const QVector3D &p1, const QColor &color)
 {
-    const uint32_t base = static_cast<uint32_t>(m_vecLinePositions.size());
-    const QVector4D c = toVec4(color);
+    return drawCustomLine3D(p0, p1, color, m_fLineWidth);
+}
 
-    m_vecLinePositions.push_back(p0);
-    m_vecLinePositions.push_back(p1);
-    m_vecLineColors.push_back(c);
-    m_vecLineColors.push_back(c);
-    m_vecLineIndices.push_back(base);
-    m_vecLineIndices.push_back(base + 1u);
+int HRenderCustomDraw::drawCustomLine3D(const QVector3D &p0, const QVector3D &p1, const QColor &color, float lineWidth)
+{
+    const int id = nextPrimitiveId();
 
-    m_iLineVertexCount = GLsizei(m_vecLinePositions.size());
-    m_iLineIndexCount = GLsizei(m_vecLineIndices.size());
+    CustomLine l;
+    l.id = id;
+    l.p0 = p0;
+    l.p1 = p1;
+    l.color = toVec4(color);
+    l.width = clampPixel(lineWidth);
+
+    m_vecLines.push_back(l);
+    m_iLineVertexCount = GLsizei(m_vecLines.size() * 2u);
+    m_iLineIndexCount = GLsizei(m_vecLines.size() * 2u);
     m_bDirtyLines = true;
     emit dataChanged();
+    return id;
 }
 
 void HRenderCustomDraw::clear()
 {
-    clearCustomPoints();
-    clearCustomLines();
+    const bool hadAny = !m_vecPoints.empty() || !m_vecLines.empty();
+    m_vecPoints.clear();
+    m_vecLines.clear();
+
+    m_iPointCount = 0;
+    m_iLineVertexCount = 0;
+    m_iLineIndexCount = 0;
+    m_bDirtyPoints = true;
+    m_bDirtyLines = true;
+
+    if (hadAny)
+        emit dataChanged();
 }
 
 void HRenderCustomDraw::clearCustomPoints()
 {
-    m_vecPointPositions.clear();
-    m_vecPointColors.clear();
+    if (m_vecPoints.empty())
+        return;
+
+    m_vecPoints.clear();
     m_iPointCount = 0;
     m_bDirtyPoints = true;
     emit dataChanged();
@@ -187,18 +227,59 @@ void HRenderCustomDraw::clearCustomPoints()
 
 void HRenderCustomDraw::clearCustomLines()
 {
-    m_vecLinePositions.clear();
-    m_vecLineColors.clear();
-    m_vecLineIndices.clear();
+    if (m_vecLines.empty())
+        return;
+
+    m_vecLines.clear();
     m_iLineVertexCount = 0;
     m_iLineIndexCount = 0;
     m_bDirtyLines = true;
     emit dataChanged();
 }
 
+bool HRenderCustomDraw::clearCustomPoint(int id)
+{
+    const auto oldSize = m_vecPoints.size();
+    m_vecPoints.erase(std::remove_if(m_vecPoints.begin(), m_vecPoints.end(),
+                                     [id](const CustomPoint &p) { return p.id == id; }),
+                      m_vecPoints.end());
+
+    if (m_vecPoints.size() == oldSize)
+        return false;
+
+    m_iPointCount = GLsizei(m_vecPoints.size());
+    m_bDirtyPoints = true;
+    emit dataChanged();
+    return true;
+}
+
+bool HRenderCustomDraw::clearCustomLine(int id)
+{
+    const auto oldSize = m_vecLines.size();
+    m_vecLines.erase(std::remove_if(m_vecLines.begin(), m_vecLines.end(),
+                                    [id](const CustomLine &l) { return l.id == id; }),
+                     m_vecLines.end());
+
+    if (m_vecLines.size() == oldSize)
+        return false;
+
+    m_iLineVertexCount = GLsizei(m_vecLines.size() * 2u);
+    m_iLineIndexCount = GLsizei(m_vecLines.size() * 2u);
+    m_bDirtyLines = true;
+    emit dataChanged();
+    return true;
+}
+
+bool HRenderCustomDraw::clearCustomPrimitive(int id)
+{
+    const bool removedPoint = clearCustomPoint(id);
+    const bool removedLine = clearCustomLine(id);
+    return removedPoint || removedLine;
+}
+
 void HRenderCustomDraw::setPointSize(float pixel)
 {
-    const float clamped = std::max(1.0f, pixel);
+    const float clamped = clampPixel(pixel);
     if (m_fPointSize == clamped)
         return;
 
@@ -213,7 +294,7 @@ float HRenderCustomDraw::pointSize() const
 
 void HRenderCustomDraw::setLineWidth(float pixel)
 {
-    const float clamped = std::max(1.0f, pixel);
+    const float clamped = clampPixel(pixel);
     if (m_fLineWidth == clamped)
         return;
 
@@ -284,12 +365,12 @@ bool HRenderCustomDraw::showLines() const
 
 int HRenderCustomDraw::pointCount() const
 {
-    return static_cast<int>(m_vecPointPositions.size());
+    return static_cast<int>(m_vecPoints.size());
 }
 
 int HRenderCustomDraw::lineCount() const
 {
-    return static_cast<int>(m_vecLineIndices.size() / 2u);
+    return static_cast<int>(m_vecLines.size());
 }
 
 QVector4D HRenderCustomDraw::toVec4(const QColor &color)
@@ -302,10 +383,35 @@ QVector3D HRenderCustomDraw::toVec3(const QVector4D &color)
     return QVector3D(color.x(), color.y(), color.z());
 }
 
+float HRenderCustomDraw::clampPixel(float pixel)
+{
+    return std::max(1.0f, pixel);
+}
+
+int HRenderCustomDraw::nextPrimitiveId()
+{
+    return m_iNextPrimitiveId++;
+}
+
 void HRenderCustomDraw::uploadPoints()
 {
     if (!m_bInitialized)
         return;
+
+    m_vecPointPositions.clear();
+    m_vecPointColors.clear();
+    m_vecPointSizes.clear();
+
+    m_vecPointPositions.reserve(m_vecPoints.size());
+    m_vecPointColors.reserve(m_vecPoints.size());
+    m_vecPointSizes.reserve(m_vecPoints.size());
+
+    for (const CustomPoint &p : m_vecPoints)
+    {
+        m_vecPointPositions.push_back(p.position);
+        m_vecPointColors.push_back(p.color);
+        m_vecPointSizes.push_back(p.size);
+    }
 
     glBindVertexArray(m_pointVao);
 
@@ -325,6 +431,14 @@ void HRenderCustomDraw::uploadPoints()
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(QVector4D), reinterpret_cast<void *>(0));
 
+    glBindBuffer(GL_ARRAY_BUFFER, m_pointVboSize);
+    glBufferData(GL_ARRAY_BUFFER,
+                 GLsizeiptr(m_vecPointSizes.size() * sizeof(float)),
+                 m_vecPointSizes.data(),
+                 GL_DYNAMIC_DRAW);
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, sizeof(float), reinterpret_cast<void *>(0));
+
     glBindVertexArray(0);
 
     m_iPointCount = GLsizei(m_vecPointPositions.size());
@@ -335,6 +449,29 @@ void HRenderCustomDraw::uploadLines()
 {
     if (!m_bInitialized)
         return;
+
+    m_vecLinePositions.clear();
+    m_vecLineColors.clear();
+    m_vecLineIndices.clear();
+    m_vecLineWidths.clear();
+
+    m_vecLinePositions.reserve(m_vecLines.size() * 2u);
+    m_vecLineColors.reserve(m_vecLines.size() * 2u);
+    m_vecLineIndices.reserve(m_vecLines.size() * 2u);
+    m_vecLineWidths.reserve(m_vecLines.size());
+
+    for (const CustomLine &line : m_vecLines)
+    {
+        const uint32_t base = static_cast<uint32_t>(m_vecLinePositions.size());
+
+        m_vecLinePositions.push_back(line.p0);
+        m_vecLinePositions.push_back(line.p1);
+        m_vecLineColors.push_back(line.color);
+        m_vecLineColors.push_back(line.color);
+        m_vecLineIndices.push_back(base);
+        m_vecLineIndices.push_back(base + 1u);
+        m_vecLineWidths.push_back(line.width);
+    }
 
     glBindVertexArray(m_lineVao);
 
@@ -353,6 +490,10 @@ void HRenderCustomDraw::uploadLines()
                  GL_DYNAMIC_DRAW);
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(QVector4D), reinterpret_cast<void *>(0));
+
+    // Lines do not need the point-size attribute. Set a safe constant value for attribute 2.
+    glDisableVertexAttribArray(2);
+    glVertexAttrib1f(2, 1.0f);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_lineEbo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER,
@@ -390,6 +531,7 @@ void HRenderCustomDraw::drawPoints(const QMatrix4x4 &P, const QMatrix4x4 &V)
     m_pointShaderProgram.bind();
     m_pointShaderProgram.setUniformValue("uMVP", MVP);
     m_pointShaderProgram.setUniformValue("uPointSize", m_fPointSize);
+    m_pointShaderProgram.setUniformValue("uUseVertexSize", 1);
     m_pointShaderProgram.setUniformValue("uUseVertexColor", 1);
     m_pointShaderProgram.setUniformValue("uColor", toVec3(m_vDefaultPointColor));
 
@@ -434,16 +576,21 @@ void HRenderCustomDraw::drawLines(const QMatrix4x4 &P, const QMatrix4x4 &V)
 
     m_lineShaderProgram.bind();
     m_lineShaderProgram.setUniformValue("uMVP", MVP);
-    m_lineShaderProgram.setUniformValue("uView", V);
-    m_lineShaderProgram.setUniformValue("uLit", 0);
+    m_lineShaderProgram.setUniformValue("uPointSize", 1.0f);
+    m_lineShaderProgram.setUniformValue("uUseVertexSize", 0);
     m_lineShaderProgram.setUniformValue("uUseVertexColor", 1);
     m_lineShaderProgram.setUniformValue("uColor", toVec3(m_vDefaultLineColor));
 
     glBindVertexArray(m_lineVao);
-    glLineWidth(m_fLineWidth);
-    glDrawElements(GL_LINES, m_iLineIndexCount, GL_UNSIGNED_INT, reinterpret_cast<void *>(0));
-    glBindVertexArray(0);
 
+    for (int i = 0; i < static_cast<int>(m_vecLineWidths.size()); ++i)
+    {
+        glLineWidth(m_vecLineWidths[static_cast<size_t>(i)]);
+        const void *off = reinterpret_cast<const void *>(sizeof(uint32_t) * 2u * static_cast<uint32_t>(i));
+        glDrawElements(GL_LINES, 2, GL_UNSIGNED_INT, off);
+    }
+
+    glBindVertexArray(0);
     m_lineShaderProgram.release();
 
     if (!hadLineSmooth)
