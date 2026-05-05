@@ -217,6 +217,13 @@
           </property>
          </widget>
         </item>
+        <item>
+         <widget class="QPushButton" name="pushButtonClear">
+          <property name="text">
+           <string>Clear Data</string>
+          </property>
+         </widget>
+        </item>
        </layout>
       </item>
       <item>

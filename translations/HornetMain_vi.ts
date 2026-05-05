@@ -94,6 +94,11 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <location filename="../src/HornetMain/HornetWindow.ui" line="223"/>
+        <source>Clear Data</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <location filename="../src/HornetMain/HornetWindow.ui" line="173"/>
         <source>Crack</source>
         <translation type="unfinished"></translation>
@@ -113,7 +118,7 @@
         <translation type="obsolete">FancyButton</translation>
     </message>
     <message>
-        <location filename="../src/HornetMain/HornetWindow.cpp" line="107"/>
+        <location filename="../src/HornetMain/HornetWindow.cpp" line="109"/>
         <source>Select Import Directory</source>
         <translation type="unfinished"></translation>
     </message>

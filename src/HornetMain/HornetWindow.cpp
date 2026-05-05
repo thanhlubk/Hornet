@@ -85,6 +85,8 @@ void HornetWindow::initWindow()
     connect(ui->pushButtonToggleNode, &QPushButton::clicked, this, &HornetWindow::onToggleNode);
     connect(ui->pushButtonToggleLbc, &QPushButton::clicked, this, &HornetWindow::onToggleLbc);
     connect(ui->pushButtonToggleDeformation, &QPushButton::clicked, this, &HornetWindow::onToggleDeformation);
+    connect(ui->pushButtonClear, &QPushButton::clicked, this, &HornetWindow::onClearAll);
+
     connect(ui->comboBoxStep, &QComboBox::currentIndexChanged, this, &HornetWindow::onStepChanged);
     connect(ui->checkBoxCrack, &QCheckBox::toggled, this, &HornetWindow::onEnableCrack);
 
@@ -321,6 +323,73 @@ void HornetWindow::onImportModel()
     onShowInitalState();
 }
 
+void HornetWindow::onClearAll()
+{
+    // Implementation for clearing all data
+    auto pDoc = dynamic_cast<DocumentModel*>(m_app->docs()->activeDocument());
+    if (!pDoc)
+        return;
+    
+    auto pDb = pDoc->database();
+    if (!pDb)
+        return;
+
+    pDb->beginTransaction();
+    // std::vector<HCursor*> cursorsToErase;
+    // auto pPoolNode = pDb->getPoolUnique(CategoryType::CatNode);
+    // if (pPoolNode)
+    // {
+    //     for (auto any : pPoolNode->range()) {
+    //         auto crNode = std::launder(reinterpret_cast<HCursor *>(any));
+    //         if (!crNode)
+    //             continue;
+    //         cursorsToErase.push_back(crNode);
+    //     }
+    // }
+
+    // auto pPoolElement = pDb->getPoolMix(CategoryType::CatElement);
+    // if (pPoolElement)
+    // {
+    //     for (auto any : pPoolElement->range()) {
+    //         auto crElement = std::launder(reinterpret_cast<HCursor *>(any));
+    //         if (!crElement)
+    //             continue;
+    //         cursorsToErase.push_back(crElement);
+    //     }
+    // }
+
+    // auto pPoolLbc = pDb->getPoolMix(CategoryType::CatLbc);
+    // if (pPoolLbc)
+    // {
+    //     for (auto any : pPoolLbc->range()) {
+    //         auto crLbc = std::launder(reinterpret_cast<HCursor *>(any));
+    //         if (!crLbc)
+    //             continue;
+    //         cursorsToErase.push_back(crLbc);
+    //     }
+    // }
+
+    // auto pPoolResult = pDb->getPoolUnique(CategoryType::CatResult);
+    // if (pPoolResult)
+    // {
+    //     for (auto any : pPoolResult->range()) {
+    //         auto crResult = std::launder(reinterpret_cast<HCursor *>(any));
+    //         if (!crResult)
+    //             continue;
+    //         cursorsToErase.push_back(crResult);
+    //     }
+    // }
+
+    // for (auto cursor : cursorsToErase)
+    // {
+    //     pDb->erase(cursor);
+    // }
+
+    pDb->clear();
+
+    pDb->commitTransaction();
+}
+
 void HornetWindow::onSolve()
 {
     auto pDoc = dynamic_cast<DocumentModel*>(m_app->docs()->activeDocument());
@@ -330,6 +399,9 @@ void HornetWindow::onSolve()
     auto pDb = pDoc->database();
     if (!pDb)
         return;
+
+    QElapsedTimer timer;
+    timer.start();
 
     double youngsModulus = ui->lineEditModulus->text().toDouble();
     double poissonRatio = ui->lineEditPoison->text().toDouble();
@@ -352,10 +424,14 @@ void HornetWindow::onSolve()
             solver.execute();
 
             auto crackResult = solver.getCrackResult(); // Get results for visualization or further processing
-            qDebug() << "Iteration" << i + 1 << ": Crack tip at" << crackResult[0].vCrackPoint.x << "," << crackResult[0].vCrackPoint.y;
 
-            qDebug() << "K1" << crackResult[0].dK1;
-            qDebug() << "K2" << crackResult[0].dK2;
+            for (auto j = 0; j < crackResult.size(); j++)
+            {
+                qDebug() << "Iteration" << i + 1 << ": Crack tip at" << crackResult[j].vCrackPoint.x << "," << crackResult[j].vCrackPoint.y;
+
+                qDebug() << "K1" << crackResult[j].dK1;
+                qDebug() << "K2" << crackResult[j].dK2;
+            }
 
             initialCrack = solver.getCrack(); // Update crack geometry for next iteration
         }
@@ -397,7 +473,7 @@ void HornetWindow::onSolve()
         ui->comboBoxStep->setCurrentIndex(0);
     }
 
-    QMessageBox::information(this, "Process Complete", "Finish solving");
+    QMessageBox::information(this, "Process Complete", "Finish solving in " + QString::number(timer.elapsed() / 1000.0) + " seconds");
 }
 
 #if 0

@@ -288,7 +288,7 @@ void HESolveLinearAnalysisModel::solve(HESolve::AnalysisType analysis, int numbe
         return;
     }
 
-#if 0
+#if 1
     std::vector<Eigen::Triplet<double>> mTriplets;
     mTriplets.reserve(massMatrix_.nonZeros());
     for (int outer = 0; outer < massMatrix_.outerSize(); ++outer) {
@@ -310,7 +310,7 @@ void HESolveLinearAnalysisModel::solve(HESolve::AnalysisType analysis, int numbe
     // Eigen::GeneralizedSelfAdjointEigenSolver<Eigen::MatrixXd> solver(KredDense, MredDense);
 
     Eigen::GeneralizedSelfAdjointEigenSolver<Eigen::MatrixXd> solver;
-    solver.compute(KredDense, MredDense, Eigen::EigenvaluesOnly);
+    solver.compute(KredDense, MredDense, Eigen::ComputeEigenvectors);
     if (solver.info() != Eigen::Success) {
         throw std::runtime_error("Generalized eigenvalue solve failed");
     }
@@ -318,12 +318,34 @@ void HESolveLinearAnalysisModel::solve(HESolve::AnalysisType analysis, int numbe
     const auto& vals = solver.eigenvalues();
     const int modes = std::min<int>(numberOfMode, static_cast<int>(vals.size()));
     constexpr double kPi = 3.141592653589793238462643383279502884;
-    root_.resize(modes);
+    // root_.resize(modes);
+    // for (int i = 0; i < modes; ++i) {
+    //     root_(i) = std::sqrt(std::max(vals(i), 0.0)) / (2.0 * kPi);
+    // }
+
+    frequency_ = Eigen::VectorXd::Zero(modes);
+    frequency_.resize(modes);
+    // root_.resize(modes);
     for (int i = 0; i < modes; ++i) {
-        root_(i) = std::sqrt(std::max(vals(i), 0.0)) / (2.0 * kPi);
+        frequency_(i) = std::sqrt(std::max(vals(i), 0.0)) / (2.0 * kPi);
+    }
+
+    modeShapes_.clear();
+    auto eigenvector = solver.eigenvectors();   // size: nFree x modes
+    for (int m = 0; m < modes; m++)
+    {
+        Eigen::VectorXd phiReduced = eigenvector.col(m);
+        Eigen::VectorXd phiFull = Eigen::VectorXd::Zero(dofs_);
+        for (Eigen::Index i = 0; i < nFree; ++i)
+        {
+            phiFull(freeDofs[static_cast<std::size_t>(i)]) = phiReduced(i);
+        }
+
+        modeShapes_.push_back(phiFull);
     }
 #endif
 
+#if 0
     std::vector<Eigen::Triplet<double>> mTriplets;
     mTriplets.reserve(massMatrix_.nonZeros());
     for (int outer = 0; outer < massMatrix_.outerSize(); ++outer) {
@@ -398,6 +420,7 @@ void HESolveLinearAnalysisModel::solve(HESolve::AnalysisType analysis, int numbe
 
         modeShapes_.push_back(phiFull);
     }
+#endif
 }
 
 void HESolveLinearAnalysisModel::createDisplacement(int mode)

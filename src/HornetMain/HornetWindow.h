@@ -41,6 +41,7 @@ private slots:
     void onToggleDeformation();
     void onStepChanged(int index);
     void onEnableCrack(bool enabled);
+    void onClearAll();
 
 private:
     void createDocumentModel();
